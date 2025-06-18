@@ -8,6 +8,7 @@ import { submitApplication, type ApplicationData } from '@/lib/api';
 import { searchCanadianBusinesses, formatBusinessDataForForm, type BusinessRegistryResult } from '@/lib/businessRegistry';
 import { saveOrUpdateBusiness, saveManualBusiness } from '@/lib/supabase';
 import { getUserIpAddress } from '@/lib/ipAddress';
+import { searchAddresses, type GeoapifyFeature } from '@/lib/geoapify';
 
 interface FormData {
   [key: string]: string;
@@ -1768,6 +1769,50 @@ function Step13Form({ onNext, formData, isSubmitting }: { onNext: (data: FormDat
     additionalInfo: formData.additionalInfo || ''
   });
 
+  // Address autocomplete state
+  const [addressSuggestions, setAddressSuggestions] = useState<GeoapifyFeature[]>([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [isSearching, setIsSearching] = useState(false);
+
+  // Debounce address search
+  useEffect(() => {
+    const timeoutId = setTimeout(async () => {
+      if (localData.businessAddress && localData.businessAddress.length >= 3) {
+        setIsSearching(true);
+        try {
+          const suggestions = await searchAddresses(localData.businessAddress);
+          setAddressSuggestions(suggestions);
+          setShowSuggestions(suggestions.length > 0);
+        } catch (error) {
+          console.error('Address search error:', error);
+          setAddressSuggestions([]);
+          setShowSuggestions(false);
+        } finally {
+          setIsSearching(false);
+        }
+      } else {
+        setAddressSuggestions([]);
+        setShowSuggestions(false);
+      }
+    }, 300);
+
+    return () => clearTimeout(timeoutId);
+  }, [localData.businessAddress]);
+
+  const handleAddressSelect = (feature: GeoapifyFeature) => {
+    setLocalData({...localData, businessAddress: feature.properties.formatted});
+    setShowSuggestions(false);
+    setAddressSuggestions([]);
+  };
+
+  const handleAddressChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setLocalData({...localData, businessAddress: e.target.value});
+    if (e.target.value.length < 3) {
+      setShowSuggestions(false);
+      setAddressSuggestions([]);
+    }
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -1790,19 +1835,51 @@ function Step13Form({ onNext, formData, isSubmitting }: { onNext: (data: FormDat
       </div>
 
       <div className="space-y-6">
-        <div>
+        <div className="relative">
           <label htmlFor="businessAddress" className="block text-sm font-medium text-gray-700 mb-2">
             Business Address *
           </label>
-          <input
-            type="text"
-            id="businessAddress"
-            required
-            value={localData.businessAddress}
-            onChange={(e) => setLocalData({...localData, businessAddress: e.target.value})}
-            placeholder="123 Main Street, City, Province, Postal Code"
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-          />
+          <div className="relative">
+            <input
+              type="text"
+              id="businessAddress"
+              required
+              value={localData.businessAddress}
+              onChange={handleAddressChange}
+              onFocus={() => addressSuggestions.length > 0 && setShowSuggestions(true)}
+              onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
+              placeholder="Start typing your business address..."
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            />
+            {isSearching && (
+              <div className="absolute right-3 top-3">
+                <div className="animate-spin h-4 w-4 border-2 border-blue-500 border-t-transparent rounded-full"></div>
+              </div>
+            )}
+          </div>
+          
+          {/* Address suggestions dropdown */}
+          {showSuggestions && addressSuggestions.length > 0 && (
+            <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-y-auto">
+              {addressSuggestions.map((suggestion, index) => (
+                <button
+                  key={index}
+                  type="button"
+                  onClick={() => handleAddressSelect(suggestion)}
+                  className="w-full px-4 py-3 text-left hover:bg-gray-50 focus:bg-gray-50 focus:outline-none border-b border-gray-100 last:border-b-0"
+                >
+                  <div className="font-medium text-gray-900">
+                    {suggestion.properties.formatted}
+                  </div>
+                  {suggestion.properties.country && (
+                    <div className="text-sm text-gray-500 mt-1">
+                      {suggestion.properties.country}
+                    </div>
+                  )}
+                </button>
+              ))}
+            </div>
+          )}
         </div>
 
         <div>
