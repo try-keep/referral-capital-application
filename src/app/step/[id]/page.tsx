@@ -71,9 +71,10 @@ export default function StepPage() {
     saveFormData(stepData);
     
     if (currentStep < 14) {
-      // Just move to next step for steps 1-13
+      // Just move to next step for steps 1-13, but skip step 6
       await new Promise(resolve => setTimeout(resolve, 500));
-      router.push(`/step/${currentStep + 1}`);
+      const nextStep = currentStep === 5 ? 7 : currentStep + 1;
+      router.push(`/step/${nextStep}`);
     } else {
       // Submit to backend for final step
       try {
@@ -95,7 +96,9 @@ export default function StepPage() {
 
   const handleBack = () => {
     if (currentStep > 1) {
-      router.push(`/step/${currentStep - 1}`);
+      // Skip step 6 when going backwards too
+      const previousStep = currentStep === 7 ? 5 : currentStep - 1;
+      router.push(`/step/${previousStep}`);
     } else {
       router.push('/');
     }
@@ -113,8 +116,6 @@ export default function StepPage() {
         return <Step3Form onNext={handleNext} formData={formData} isSubmitting={isSubmitting} />;
       case 5:
         return <Step4Form onNext={handleNext} formData={formData} isSubmitting={isSubmitting} />;
-      case 6:
-        return <Step6Form onNext={handleNext} formData={formData} isSubmitting={isSubmitting} />;
       case 7:
         return <Step7Form onNext={handleNext} formData={formData} isSubmitting={isSubmitting} />;
       case 8:
@@ -1357,8 +1358,8 @@ function Step5Form({ onNext, formData, isSubmitting }: { onNext: (data: FormData
   );
 }
 
-// Step 6: Bank Connection
-function Step6Form({ onNext, formData, isSubmitting }: { onNext: (data: FormData) => void, formData: FormData, isSubmitting: boolean }) {
+// Step 6: Bank Connection (Will be removed)
+function RemovedStep6Form({ onNext, formData, isSubmitting }: { onNext: (data: FormData) => void, formData: FormData, isSubmitting: boolean }) {
   const [localData, setLocalData] = useState({
     bankConnected: formData.bankConnected || '',
     bankConnectionMethod: formData.bankConnectionMethod || ''
