@@ -71,10 +71,9 @@ export default function StepPage() {
     saveFormData(stepData);
     
     if (currentStep < 14) {
-      // Just move to next step for steps 1-13, but skip step 6
+      // Just move to next step for steps 1-13
       await new Promise(resolve => setTimeout(resolve, 500));
-      const nextStep = currentStep === 5 ? 7 : currentStep + 1;
-      router.push(`/step/${nextStep}`);
+      router.push(`/step/${currentStep + 1}`);
     } else {
       // Submit to backend for final step
       try {
@@ -96,9 +95,7 @@ export default function StepPage() {
 
   const handleBack = () => {
     if (currentStep > 1) {
-      // Skip step 6 when going backwards too
-      const previousStep = currentStep === 7 ? 5 : currentStep - 1;
-      router.push(`/step/${previousStep}`);
+      router.push(`/step/${currentStep - 1}`);
     } else {
       router.push('/');
     }
@@ -116,6 +113,8 @@ export default function StepPage() {
         return <Step3Form onNext={handleNext} formData={formData} isSubmitting={isSubmitting} />;
       case 5:
         return <Step4Form onNext={handleNext} formData={formData} isSubmitting={isSubmitting} />;
+      case 6:
+        return <Step6Form onNext={handleNext} formData={formData} isSubmitting={isSubmitting} />;
       case 7:
         return <Step7Form onNext={handleNext} formData={formData} isSubmitting={isSubmitting} />;
       case 8:
@@ -309,103 +308,65 @@ function Step10Form({ onNext, formData, isSubmitting }: { onNext: (data: FormDat
   );
 }
 
-// Step 11: Financial Information
-function Step11Form({ onNext, formData, isSubmitting }: { onNext: (data: FormData) => void, formData: FormData, isSubmitting: boolean }) {
+// Step 6: Manual Business Name Entry (Conditional)
+function Step6Form({ onNext, formData, isSubmitting }: { onNext: (data: FormData) => void, formData: FormData, isSubmitting: boolean }) {
   const [localData, setLocalData] = useState({
-    annualRevenue: formData.annualRevenue || '',
-    cashFlow: formData.cashFlow || '',
-    creditScore: formData.creditScore || '',
-    timeInBusiness: formData.timeInBusiness || ''
+    businessName: formData.businessName || '',
+    legalBusinessName: formData.legalBusinessName || ''
   });
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onNext(localData);
+    if (!localData.legalBusinessName) {
+      alert('Please enter your legal business name');
+      return;
+    }
+    onNext({
+      ...localData,
+      businessName: localData.legalBusinessName,
+      businessSearchVerified: 'manual-entry'
+    });
   };
 
   return (
-    <form onSubmit={handleSubmit} className="bg-white rounded-lg shadow-lg p-8">
-      <div className="mb-6">
-        <label htmlFor="annualRevenue" className="block text-sm font-medium text-gray-700 mb-2">
-          What is your annual revenue? *
-        </label>
-        <div className="relative">
-          <span className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-500 text-xl">$</span>
-          <input
-            type="text"
-            id="annualRevenue"
-            required
-            placeholder="500,000"
-            value={localData.annualRevenue}
-            onChange={(e) => setLocalData({...localData, annualRevenue: e.target.value})}
-            className="w-full pl-8 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-lg"
-          />
-        </div>
-      </div>
-      
-      <div className="mb-6">
-        <label htmlFor="cashFlow" className="block text-sm font-medium text-gray-700 mb-2">
-          What is your monthly cash flow? *
-        </label>
-        <div className="relative">
-          <span className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-500 text-xl">$</span>
-          <input
-            type="text"
-            id="cashFlow"
-            required
-            placeholder="25,000"
-            value={localData.cashFlow}
-            onChange={(e) => setLocalData({...localData, cashFlow: e.target.value})}
-            className="w-full pl-8 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-lg"
-          />
-        </div>
-      </div>
-      
-      <div className="mb-6">
-        <label htmlFor="creditScore" className="block text-sm font-medium text-gray-700 mb-2">
-          What is your estimated credit score? *
-        </label>
-        <select
-          id="creditScore"
-          required
-          value={localData.creditScore}
-          onChange={(e) => setLocalData({...localData, creditScore: e.target.value})}
-          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-        >
-          <option value="">Select Credit Score Range</option>
-          <option value="excellent">Excellent (750-850)</option>
-          <option value="very-good">Very Good (700-749)</option>
-          <option value="good">Good (650-699)</option>
-          <option value="fair">Fair (600-649)</option>
-          <option value="poor">Poor (below 600)</option>
-        </select>
-      </div>
-      
+    <div className="bg-white rounded-lg shadow-lg p-8">
       <div className="mb-8">
-        <label htmlFor="timeInBusiness" className="block text-sm font-medium text-gray-700 mb-2">
-          Time in business (exact) *
-        </label>
-        <input
-          type="text"
-          id="timeInBusiness"
-          required
-          placeholder="e.g., 3 years 6 months"
-          value={localData.timeInBusiness}
-          onChange={(e) => setLocalData({...localData, timeInBusiness: e.target.value})}
-          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-        />
+        <h2 className="text-2xl font-bold text-gray-900 mb-4">Enter Your Legal Business Name</h2>
+        <p className="text-gray-600">
+          Since we couldn't find your business in the Canadian Business Registry, please enter your legal business name as it appears on your registration documents.
+        </p>
       </div>
-      
-      <div className="mt-8">
-        <button
-          type="submit"
-          disabled={isSubmitting}
-          className="w-full bg-black text-white py-3 px-6 rounded-lg font-semibold hover:bg-gray-800 transition-colors disabled:opacity-50"
-        >
-          {isSubmitting ? 'Saving...' : 'Continue to Bank Information'}
-        </button>
-      </div>
-    </form>
+
+      <form onSubmit={handleSubmit}>
+        <div className="mb-6">
+          <label htmlFor="legalBusinessName" className="block text-sm font-medium text-gray-700 mb-2">
+            Legal Business Name *
+          </label>
+          <input
+            type="text"
+            id="legalBusinessName"
+            required
+            value={localData.legalBusinessName}
+            onChange={(e) => setLocalData({...localData, legalBusinessName: e.target.value})}
+            placeholder="Enter your exact legal business name"
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          />
+          <p className="text-sm text-gray-500 mt-1">
+            This should match the name on your business registration, incorporation papers, or other legal documents.
+          </p>
+        </div>
+
+        <div className="mt-8">
+          <button
+            type="submit"
+            disabled={isSubmitting}
+            className="w-full bg-black text-white py-3 px-6 rounded-lg font-semibold hover:bg-gray-800 transition-colors disabled:opacity-50"
+          >
+            {isSubmitting ? 'Saving...' : 'Continue to Personal Information'}
+          </button>
+        </div>
+      </form>
+    </div>
   );
 }
 
@@ -1453,8 +1414,7 @@ function Step7Form({ onNext, formData, isSubmitting }: { onNext: (data: FormData
     lastName: formData.lastName || '',
     email: formData.email || '',
     phone: formData.phone || '',
-    title: formData.title || '',
-    ssn: formData.ssn || ''
+    title: formData.title || ''
   });
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -1535,21 +1495,6 @@ function Step7Form({ onNext, formData, isSubmitting }: { onNext: (data: FormData
             required
             value={localData.title}
             onChange={(e) => setLocalData({...localData, title: e.target.value})}
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-          />
-        </div>
-        
-        <div>
-          <label htmlFor="ssn" className="block text-sm font-medium text-gray-700 mb-2">
-            SIN (Last 4 digits) *
-          </label>
-          <input
-            type="text"
-            id="ssn"
-            required
-            maxLength={4}
-            value={localData.ssn}
-            onChange={(e) => setLocalData({...localData, ssn: e.target.value})}
             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           />
         </div>
@@ -1676,6 +1621,124 @@ function Step9Form({ onNext, formData, isSubmitting }: { onNext: (data: FormData
           className="w-full bg-black text-white py-3 px-6 rounded-lg font-semibold hover:bg-gray-800 transition-colors disabled:opacity-50"
         >
           {isSubmitting ? 'Saving...' : 'Continue to Business Details'}
+        </button>
+      </div>
+    </form>
+  );
+}
+
+// Step 11: Financial Information
+function Step11Form({ onNext, formData, isSubmitting }: { onNext: (data: FormData) => void, formData: FormData, isSubmitting: boolean }) {
+  const [localData, setLocalData] = useState({
+    annualRevenue: formData.annualRevenue || '',
+    cashFlow: formData.cashFlow || '',
+    creditScore: formData.creditScore || '',
+    timeInBusiness: formData.timeInBusiness || ''
+  });
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    onNext(localData);
+  };
+
+  return (
+    <form onSubmit={handleSubmit} className="bg-white rounded-lg shadow-lg p-8">
+      <div className="mb-8">
+        <h2 className="text-2xl font-bold text-gray-900 mb-4">Financial Information</h2>
+        <p className="text-gray-600">
+          Help us understand your business's financial position.
+        </p>
+      </div>
+
+      <div className="grid md:grid-cols-2 gap-6">
+        <div>
+          <label htmlFor="annualRevenue" className="block text-sm font-medium text-gray-700 mb-2">
+            Annual Revenue *
+          </label>
+          <select
+            id="annualRevenue"
+            required
+            value={localData.annualRevenue}
+            onChange={(e) => setLocalData({...localData, annualRevenue: e.target.value})}
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          >
+            <option value="">Select Revenue Range</option>
+            <option value="under-100k">Under $100,000</option>
+            <option value="100k-250k">$100,000 - $250,000</option>
+            <option value="250k-500k">$250,000 - $500,000</option>
+            <option value="500k-1m">$500,000 - $1,000,000</option>
+            <option value="1m-5m">$1,000,000 - $5,000,000</option>
+            <option value="over-5m">Over $5,000,000</option>
+          </select>
+        </div>
+
+        <div>
+          <label htmlFor="cashFlow" className="block text-sm font-medium text-gray-700 mb-2">
+            Monthly Cash Flow *
+          </label>
+          <select
+            id="cashFlow"
+            required
+            value={localData.cashFlow}
+            onChange={(e) => setLocalData({...localData, cashFlow: e.target.value})}
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          >
+            <option value="">Select Cash Flow</option>
+            <option value="positive">Positive</option>
+            <option value="break-even">Break Even</option>
+            <option value="negative">Negative</option>
+          </select>
+        </div>
+
+        <div>
+          <label htmlFor="creditScore" className="block text-sm font-medium text-gray-700 mb-2">
+            Personal Credit Score *
+          </label>
+          <select
+            id="creditScore"
+            required
+            value={localData.creditScore}
+            onChange={(e) => setLocalData({...localData, creditScore: e.target.value})}
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          >
+            <option value="">Select Credit Score Range</option>
+            <option value="excellent">Excellent (750+)</option>
+            <option value="good">Good (700-749)</option>
+            <option value="fair">Fair (650-699)</option>
+            <option value="below-average">Below Average (600-649)</option>
+            <option value="poor">Poor (551-599)</option>
+            <option value="very-poor">Very Poor (below 550)</option>
+          </select>
+        </div>
+
+        <div>
+          <label htmlFor="timeInBusiness" className="block text-sm font-medium text-gray-700 mb-2">
+            Time in Business *
+          </label>
+          <select
+            id="timeInBusiness"
+            required
+            value={localData.timeInBusiness}
+            onChange={(e) => setLocalData({...localData, timeInBusiness: e.target.value})}
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          >
+            <option value="">Select Time Range</option>
+            <option value="under-6-months">Under 6 months</option>
+            <option value="6-12-months">6-12 months</option>
+            <option value="1-2-years">1-2 years</option>
+            <option value="2-5-years">2-5 years</option>
+            <option value="over-5-years">Over 5 years</option>
+          </select>
+        </div>
+      </div>
+      
+      <div className="mt-8">
+        <button
+          type="submit"
+          disabled={isSubmitting}
+          className="w-full bg-black text-white py-3 px-6 rounded-lg font-semibold hover:bg-gray-800 transition-colors disabled:opacity-50"
+        >
+          {isSubmitting ? 'Saving...' : 'Continue to Bank Connection'}
         </button>
       </div>
     </form>
