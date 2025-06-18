@@ -1767,3 +1767,133 @@ function Step9Form({ onNext, formData, isSubmitting }: { onNext: (data: FormData
     </form>
   );
 }
+
+// Step 13: Additional Details
+function Step13Form({ onNext, formData, isSubmitting }: { onNext: (data: FormData) => void, formData: FormData, isSubmitting: boolean }) {
+  const [localData, setLocalData] = useState({
+    businessAddress: formData.businessAddress || '',
+    businessPhone: formData.businessPhone || '',
+    websiteUrl: formData.websiteUrl || '',
+    additionalInfo: formData.additionalInfo || ''
+  });
+
+  const validateUrl = (url: string) => {
+    if (!url) return true; // Optional field
+    
+    // Auto-prepend http:// if no protocol is specified
+    if (url && !url.match(/^https?:\/\//)) {
+      return `http://${url}`;
+    }
+    
+    try {
+      new URL(url);
+      return true;
+    } catch {
+      return false;
+    }
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    // Validate and auto-fix URL if needed
+    if (localData.websiteUrl) {
+      const validatedUrl = validateUrl(localData.websiteUrl);
+      if (validatedUrl === false) {
+        alert('Please enter a valid website URL (e.g., example.com or https://example.com)');
+        return;
+      } else if (typeof validatedUrl === 'string') {
+        // Auto-fix the URL
+        setLocalData(prev => ({ ...prev, websiteUrl: validatedUrl }));
+        onNext({ ...localData, websiteUrl: validatedUrl });
+        return;
+      }
+    }
+    
+    onNext(localData);
+  };
+
+  return (
+    <form onSubmit={handleSubmit} className="bg-white rounded-lg shadow-lg p-8">
+      <div className="mb-8">
+        <h2 className="text-2xl font-bold text-gray-900 mb-4">Additional Business Details</h2>
+        <p className="text-gray-600">
+          Provide additional information about your business location and contact details.
+        </p>
+      </div>
+
+      <div className="space-y-6">
+        <div>
+          <label htmlFor="businessAddress" className="block text-sm font-medium text-gray-700 mb-2">
+            Business Address *
+          </label>
+          <input
+            type="text"
+            id="businessAddress"
+            required
+            value={localData.businessAddress}
+            onChange={(e) => setLocalData({...localData, businessAddress: e.target.value})}
+            placeholder="123 Main Street, City, Province, Postal Code"
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          />
+        </div>
+
+        <div>
+          <label htmlFor="businessPhone" className="block text-sm font-medium text-gray-700 mb-2">
+            Business Phone Number *
+          </label>
+          <input
+            type="tel"
+            id="businessPhone"
+            required
+            value={localData.businessPhone}
+            onChange={(e) => setLocalData({...localData, businessPhone: e.target.value})}
+            placeholder="(555) 123-4567"
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          />
+        </div>
+
+        <div>
+          <label htmlFor="websiteUrl" className="block text-sm font-medium text-gray-700 mb-2">
+            Website URL (Optional)
+          </label>
+          <input
+            type="text"
+            id="websiteUrl"
+            value={localData.websiteUrl}
+            onChange={(e) => setLocalData({...localData, websiteUrl: e.target.value})}
+            placeholder="example.com or https://example.com"
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          />
+          <p className="text-sm text-gray-500 mt-1">
+            Enter your website URL. We'll automatically add http:// if needed.
+          </p>
+        </div>
+
+        <div>
+          <label htmlFor="additionalInfo" className="block text-sm font-medium text-gray-700 mb-2">
+            Additional Information (Optional)
+          </label>
+          <textarea
+            id="additionalInfo"
+            value={localData.additionalInfo}
+            onChange={(e) => setLocalData({...localData, additionalInfo: e.target.value})}
+            placeholder="Any additional information about your business or funding request..."
+            rows={4}
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          />
+        </div>
+      </div>
+      
+      <div className="mt-8">
+        <button
+          type="submit"
+          disabled={isSubmitting}
+          className="w-full bg-black text-white py-3 px-6 rounded-lg font-semibold hover:bg-gray-800 transition-colors disabled:opacity-50"
+        >
+          {isSubmitting ? 'Saving...' : 'Continue to Review & Submit'}
+        </button>
+      </div>
+    </form>
+  );
+}
