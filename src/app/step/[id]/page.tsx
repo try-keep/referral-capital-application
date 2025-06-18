@@ -1690,40 +1690,16 @@ function Step13Form({ onNext, formData, isSubmitting }: { onNext: (data: FormDat
     additionalInfo: formData.additionalInfo || ''
   });
 
-  const validateUrl = (url: string) => {
-    if (!url) return true; // Optional field
-    
-    // Auto-prepend http:// if no protocol is specified
-    if (url && !url.match(/^https?:\/\//)) {
-      return `http://${url}`;
-    }
-    
-    try {
-      new URL(url);
-      return true;
-    } catch {
-      return false;
-    }
-  };
-
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Validate and auto-fix URL if needed
-    if (localData.websiteUrl) {
-      const validatedUrl = validateUrl(localData.websiteUrl);
-      if (validatedUrl === false) {
-        alert('Please enter a valid website URL (e.g., example.com or https://example.com)');
-        return;
-      } else if (typeof validatedUrl === 'string') {
-        // Auto-fix the URL
-        setLocalData(prev => ({ ...prev, websiteUrl: validatedUrl }));
-        onNext({ ...localData, websiteUrl: validatedUrl });
-        return;
-      }
+    // Auto-prepend http:// if URL is provided but has no protocol
+    let finalData = { ...localData };
+    if (localData.websiteUrl && !localData.websiteUrl.match(/^https?:\/\//)) {
+      finalData.websiteUrl = `http://${localData.websiteUrl}`;
     }
     
-    onNext(localData);
+    onNext(finalData);
   };
 
   return (
@@ -1779,7 +1755,7 @@ function Step13Form({ onNext, formData, isSubmitting }: { onNext: (data: FormDat
             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           />
           <p className="text-sm text-gray-500 mt-1">
-            Enter your website URL. We'll automatically add http:// if needed.
+            Enter your website URL (e.g., example.com). We'll add http:// if needed.
           </p>
         </div>
 
