@@ -105,7 +105,7 @@ export default function SuccessPage() {
             
             <div className="space-y-3">
               <button
-                onClick={() => router.push('https://www.trykeep.com/')}
+                onClick={() => window.open('https://trykeep.com', '_blank')}
                 className="w-full bg-black text-white py-3 px-6 rounded-lg font-semibold hover:bg-gray-800 transition-colors"
               >
                 Visit Keep Website
