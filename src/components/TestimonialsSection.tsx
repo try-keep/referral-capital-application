@@ -7,6 +7,7 @@ export default function TestimonialsSection() {
             What our <span className="bg-gradient-to-r from-[#E28F43] via-[#F15379] to-[#914AE8] bg-clip-text text-transparent">customers</span> are saying
           </h2>
         </div>
+        <script src="https://widget.senja.io/widget/61b3b291-c362-4a8d-8453-d60b24d292df/platform.js" type="text/javascript" async></script>
         <div 
           className="senja-embed" 
           data-id="61b3b291-c362-4a8d-8453-d60b24d292df" 

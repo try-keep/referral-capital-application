@@ -189,6 +189,22 @@ export default function StepPage() {
           </div>
           
           {renderStepContent()}
+          
+          {/* Add social proof to key trust-building steps */}
+          {(currentStep === 1 || currentStep === 7 || currentStep === 12) && (
+            <div className="mt-8">
+              <script src="https://widget.senja.io/widget/3b59fc5b-c72d-4182-ad0e-1b90a2049069/platform.js" type="text/javascript" async></script>
+              <div className="senja-embed" data-id="3b59fc5b-c72d-4182-ad0e-1b90a2049069" data-mode="shadow" data-lazyload="false" style={{display: 'block', width: '100%'}}></div>
+            </div>
+          )}
+          
+          {/* Add review widget to final steps */}
+          {currentStep === 14 && (
+            <div className="mt-8">
+              <script src="https://widget.senja.io/widget/846e80aa-0de3-4620-9375-cddaa7715b56/platform.js" type="text/javascript" async></script>
+              <div className="senja-embed" data-id="846e80aa-0de3-4620-9375-cddaa7715b56" data-mode="shadow" data-lazyload="false" style={{display: 'block', width: '100%'}}></div>
+            </div>
+          )}
         </div>
       </main>
       

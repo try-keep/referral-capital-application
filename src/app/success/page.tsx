@@ -118,6 +118,12 @@ export default function SuccessPage() {
               </button>
             </div>
           </div>
+          
+          {/* Social proof widget for success page */}
+          <div className="mt-8">
+            <script src="https://widget.senja.io/widget/846e80aa-0de3-4620-9375-cddaa7715b56/platform.js" type="text/javascript" async></script>
+            <div className="senja-embed" data-id="846e80aa-0de3-4620-9375-cddaa7715b56" data-mode="shadow" data-lazyload="false" style={{display: 'block', width: '100%'}}></div>
+          </div>
         </div>
       </main>
       
