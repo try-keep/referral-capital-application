@@ -476,18 +476,13 @@ function Step12Form({ onNext, formData, isSubmitting }: { onNext: (data: FormDat
 // Step 14: Review & Submit
 function Step14Form({ onNext, formData, isSubmitting }: { onNext: (data: FormData) => void, formData: FormData, isSubmitting: boolean }) {
   const [localData, setLocalData] = useState({
-    agreesToTerms: formData.agreesToTerms === 'true',
-    authorizesCreditCheck: formData.authorizesCreditCheck === 'true'
+    agreesToTerms: formData.agreesToTerms === 'true'
   });
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!localData.agreesToTerms) {
-      alert('Please agree to the terms and conditions');
-      return;
-    }
-    if (!localData.authorizesCreditCheck) {
-      alert('Please authorize the credit check');
+      alert('Please confirm that all information provided is accurate and complete');
       return;
     }
     
@@ -496,7 +491,6 @@ function Step14Form({ onNext, formData, isSubmitting }: { onNext: (data: FormDat
     
     onNext({
       agreesToTerms: localData.agreesToTerms.toString(),
-      authorizesCreditCheck: localData.authorizesCreditCheck.toString(),
       ipAddress: ipAddress || ''
     });
   };
@@ -562,24 +556,12 @@ function Step14Form({ onNext, formData, isSubmitting }: { onNext: (data: FormDat
             </label>
           </div>
           
-          <div className="flex items-start">
-            <input
-              type="checkbox"
-              id="authorizesCreditCheck"
-              checked={localData.authorizesCreditCheck}
-              onChange={(e) => setLocalData({...localData, authorizesCreditCheck: e.target.checked})}
-              className="mt-1 mr-3 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-            />
-            <label htmlFor="authorizesCreditCheck" className="text-sm text-gray-700">
-              I authorize a credit check to be performed as part of this application
-            </label>
-          </div>
         </div>
         
         <div className="mt-8">
           <button
             type="submit"
-            disabled={isSubmitting || !localData.agreesToTerms || !localData.authorizesCreditCheck}
+            disabled={isSubmitting || !localData.agreesToTerms}
             className="w-full bg-green-600 text-white py-4 px-6 rounded-lg font-semibold hover:bg-green-700 transition-colors disabled:opacity-50 text-lg"
           >
             {isSubmitting ? 'Submitting Application...' : 'Submit Application'}
@@ -1773,9 +1755,15 @@ function Step13Form({ onNext, formData, isSubmitting }: { onNext: (data: FormDat
   const [addressSuggestions, setAddressSuggestions] = useState<GeoapifyFeature[]>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [isSearching, setIsSearching] = useState(false);
+  const [addressSelected, setAddressSelected] = useState(false);
 
   // Debounce address search
   useEffect(() => {
+    // Don't search if an address was just selected
+    if (addressSelected) {
+      return;
+    }
+
     const timeoutId = setTimeout(async () => {
       if (localData.businessAddress && localData.businessAddress.length >= 3) {
         setIsSearching(true);
@@ -1797,15 +1785,17 @@ function Step13Form({ onNext, formData, isSubmitting }: { onNext: (data: FormDat
     }, 300);
 
     return () => clearTimeout(timeoutId);
-  }, [localData.businessAddress]);
+  }, [localData.businessAddress, addressSelected]);
 
   const handleAddressSelect = (feature: GeoapifyFeature) => {
+    setAddressSelected(true);
     setLocalData({...localData, businessAddress: feature.properties.formatted});
     setShowSuggestions(false);
     setAddressSuggestions([]);
   };
 
   const handleAddressChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setAddressSelected(false); // Reset the selection flag when user types
     setLocalData({...localData, businessAddress: e.target.value});
     if (e.target.value.length < 3) {
       setShowSuggestions(false);

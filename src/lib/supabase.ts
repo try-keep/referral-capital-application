@@ -120,7 +120,6 @@ export interface ApplicationData {
   
   // Step 14: Review & Submit
   agrees_to_terms: boolean
-  authorizes_credit_check: boolean
   
   // Application Status
   status?: string

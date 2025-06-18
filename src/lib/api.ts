@@ -65,7 +65,6 @@ export interface ApplicationData {
   
   // Step 14: Review & Submit
   agreesToTerms: boolean;
-  authorizesCreditCheck: boolean;
   
   // Application Metadata
   ipAddress?: string;
@@ -148,7 +147,6 @@ function transformToSupabaseFormat(data: ApplicationData): SupabaseApplicationDa
     
     // Step 14: Review & Submit
     agrees_to_terms: data.agreesToTerms,
-    authorizes_credit_check: data.authorizesCreditCheck,
     
     // Application Status
     status: 'submitted',
