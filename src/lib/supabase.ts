@@ -88,7 +88,6 @@ export interface ApplicationData {
   last_name: string
   email: string
   phone: string
-  title: string
   ssn_last_4: string
   
   // Step 8: Funding Amount
@@ -126,6 +125,7 @@ export interface ApplicationData {
   // Application Status
   status?: string
   submitted_at?: string
+  ip_address?: string
   
   // Business Reference
   business_id?: number
@@ -209,6 +209,57 @@ export async function findBusinessByMrasId(mrasId: string) {
   }
 
   return data
+}
+
+// Save manual business entry (when user can't find business in registry)
+export async function saveManualBusiness(businessName: string) {
+  const manualBusinessData = {
+    mras_id: `manual-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+    company_name: businessName,
+    business_number: null,
+    juri_id: null,
+    registry_source: 'MANUAL',
+    jurisdiction: 'MANUAL',
+    reg_office_city: null,
+    city: null,
+    reg_office_province: null,
+    status_state: 'Active',
+    status_date: new Date().toISOString().split('T')[0],
+    status_notes: 'Manually entered by user',
+    date_incorporated: null,
+    display_date: null,
+    entity_type: 'Manual Entry',
+    mras_entity_type: null,
+    alternate_names: null,
+    text_fields: null,
+    score: null,
+    hierarchy: null,
+    data_source: 'MANUAL',
+    version_number: 1,
+    business_age_category: 'Unknown',
+    estimated_business_type: 'professional-services',
+    search_query: `Manual entry: ${businessName}`,
+    times_selected: 1,
+    last_selected_at: new Date().toISOString(),
+    raw_registry_data: { source: 'manual_entry', business_name: businessName }
+  };
+
+  try {
+    const { data, error } = await supabase
+      .from('businesses')
+      .insert([manualBusinessData])
+      .select()
+
+    if (error) {
+      console.error('Error saving manual business:', error)
+      throw error
+    }
+
+    return data[0]
+  } catch (error) {
+    console.error('Failed to save manual business entry:', error)
+    throw error
+  }
 }
 
 // Save or update business from Canadian Business Registry data

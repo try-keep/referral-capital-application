@@ -33,7 +33,6 @@ export interface ApplicationData {
   lastName: string;
   email: string;
   phone: string;
-  title: string;
   ssn?: string;
   
   // Step 8: Funding Amount
@@ -67,6 +66,9 @@ export interface ApplicationData {
   // Step 14: Review & Submit
   agreesToTerms: boolean;
   authorizesCreditCheck: boolean;
+  
+  // Application Metadata
+  ipAddress?: string;
   
   // Business Reference
   businessId?: string;
@@ -114,7 +116,6 @@ function transformToSupabaseFormat(data: ApplicationData): SupabaseApplicationDa
     last_name: data.lastName,
     email: data.email,
     phone: data.phone,
-    title: data.title,
     ssn_last_4: data.ssn || '',
     
     // Step 8: Funding Amount
@@ -152,6 +153,7 @@ function transformToSupabaseFormat(data: ApplicationData): SupabaseApplicationDa
     // Application Status
     status: 'submitted',
     submitted_at: new Date().toISOString(),
+    ip_address: data.ipAddress,
     
     // Business Reference
     business_id: data.businessId ? parseInt(data.businessId) : undefined

@@ -6,7 +6,8 @@ import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import { submitApplication, type ApplicationData } from '@/lib/api';
 import { searchCanadianBusinesses, formatBusinessDataForForm, type BusinessRegistryResult } from '@/lib/businessRegistry';
-import { saveOrUpdateBusiness } from '@/lib/supabase';
+import { saveOrUpdateBusiness, saveManualBusiness } from '@/lib/supabase';
+import { getUserIpAddress } from '@/lib/ipAddress';
 
 interface FormData {
   [key: string]: string;
@@ -16,9 +17,9 @@ const stepTitles = {
   1: 'Loan Type',
   2: 'Business Owner',
   3: 'Business Search',
-  4: 'Monthly Sales',
-  5: 'Existing Loans',
-  6: 'Bank Connection',
+  4: 'Business Name',
+  5: 'Monthly Sales',
+  6: 'Existing Loans',
   7: 'Personal Information',
   8: 'Funding Amount',
   9: 'Funding Purpose',
@@ -33,16 +34,16 @@ const stepDescriptions = {
   1: 'What type of funding are you looking for?',
   2: 'Verify your role in the business',
   3: 'Find and verify your business in the Canadian Business Registry',
-  4: 'Tell us about your monthly sales',
-  5: 'Tell us about any existing loan obligations',
-  6: 'Connect your business banking securely',
+  4: 'Enter your legal business name manually',
+  5: 'Tell us about your monthly sales',
+  6: 'Tell us about any existing loan obligations',
   7: 'Tell us about yourself and your role in the business',
   8: 'How much funding do you need and when?',
   9: 'How will you use the funds?',
   10: 'Provide details about your business operations',
   11: 'Share your revenue and funding requirements',
   12: 'Banking and account information',
-  13: 'Additional business information',
+  13: 'Additional details',
   14: 'Review your application before submitting'
 };
 
@@ -71,9 +72,24 @@ export default function StepPage() {
     saveFormData(stepData);
     
     if (currentStep < 14) {
-      // Just move to next step for steps 1-13
+      // Handle conditional navigation
+      let nextStep = currentStep + 1;
+      
+      // If user completes business search without registry verification, go to manual entry step
+      if (currentStep === 3 && stepData.businessConfirmed === 'false') {
+        nextStep = 4; // Manual business name entry
+      }
+      // If user completes business search WITH registry verification, skip manual entry step
+      else if (currentStep === 3 && stepData.businessConfirmed === 'true') {
+        nextStep = 5; // Skip manual entry, go directly to Monthly Sales
+      }
+      // If user completes manual business name entry, continue to Monthly Sales
+      else if (currentStep === 4 && stepData.businessSearchVerified === 'manual-entry') {
+        nextStep = 5; // Continue to Monthly Sales
+      }
+      
       await new Promise(resolve => setTimeout(resolve, 500));
-      router.push(`/step/${currentStep + 1}`);
+      router.push(`/step/${nextStep}`);
     } else {
       // Submit to backend for final step
       try {
@@ -110,11 +126,14 @@ export default function StepPage() {
       case 3:
         return <BusinessSearchForm onNext={handleNext} formData={formData} isSubmitting={isSubmitting} />;
       case 4:
-        return <Step3Form onNext={handleNext} formData={formData} isSubmitting={isSubmitting} />;
-      case 5:
-        return <Step4Form onNext={handleNext} formData={formData} isSubmitting={isSubmitting} />;
-      case 6:
+        // Step 4 is dedicated to manual business name entry (conditional)
         return <Step6Form onNext={handleNext} formData={formData} isSubmitting={isSubmitting} />;
+      case 5:
+        // Monthly Sales
+        return <Step3Form onNext={handleNext} formData={formData} isSubmitting={isSubmitting} />;
+      case 6:
+        // Existing Loans
+        return <Step4Form onNext={handleNext} formData={formData} isSubmitting={isSubmitting} />;
       case 7:
         return <Step7Form onNext={handleNext} formData={formData} isSubmitting={isSubmitting} />;
       case 8:
@@ -308,24 +327,42 @@ function Step10Form({ onNext, formData, isSubmitting }: { onNext: (data: FormDat
   );
 }
 
-// Step 6: Manual Business Name Entry (Conditional)
+// Step 4: Manual Business Name Entry (Conditional)
 function Step6Form({ onNext, formData, isSubmitting }: { onNext: (data: FormData) => void, formData: FormData, isSubmitting: boolean }) {
   const [localData, setLocalData] = useState({
     businessName: formData.businessName || '',
     legalBusinessName: formData.legalBusinessName || ''
   });
+  const [isSubmittingInternal, setIsSubmittingInternal] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!localData.legalBusinessName) {
       alert('Please enter your legal business name');
       return;
     }
-    onNext({
-      ...localData,
-      businessName: localData.legalBusinessName,
-      businessSearchVerified: 'manual-entry'
-    });
+    
+    setIsSubmittingInternal(true);
+    
+    try {
+      // Save manual business entry to database
+      const savedBusiness = await saveManualBusiness(localData.legalBusinessName);
+      
+      onNext({
+        ...localData,
+        businessName: localData.legalBusinessName,
+        businessSearchVerified: 'manual-entry',
+        businessId: savedBusiness.id,
+        legalBusinessName: localData.legalBusinessName
+      });
+      
+      console.log('✅ Manual business entry saved to database:', savedBusiness);
+    } catch (error) {
+      console.error('❌ Error saving manual business entry:', error);
+      alert('Failed to save business information. Please try again.');
+    } finally {
+      setIsSubmittingInternal(false);
+    }
   };
 
   return (
@@ -359,10 +396,10 @@ function Step6Form({ onNext, formData, isSubmitting }: { onNext: (data: FormData
         <div className="mt-8">
           <button
             type="submit"
-            disabled={isSubmitting}
+            disabled={isSubmitting || isSubmittingInternal}
             className="w-full bg-black text-white py-3 px-6 rounded-lg font-semibold hover:bg-gray-800 transition-colors disabled:opacity-50"
           >
-            {isSubmitting ? 'Saving...' : 'Continue to Personal Information'}
+            {(isSubmitting || isSubmittingInternal) ? 'Saving...' : 'Continue to Personal Information'}
           </button>
         </div>
       </form>
@@ -453,7 +490,7 @@ function Step14Form({ onNext, formData, isSubmitting }: { onNext: (data: FormDat
     authorizesCreditCheck: formData.authorizesCreditCheck === 'true'
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!localData.agreesToTerms) {
       alert('Please agree to the terms and conditions');
@@ -463,9 +500,14 @@ function Step14Form({ onNext, formData, isSubmitting }: { onNext: (data: FormDat
       alert('Please authorize the credit check');
       return;
     }
+    
+    // Get user's IP address
+    const ipAddress = await getUserIpAddress();
+    
     onNext({
       agreesToTerms: localData.agreesToTerms.toString(),
-      authorizesCreditCheck: localData.authorizesCreditCheck.toString()
+      authorizesCreditCheck: localData.authorizesCreditCheck.toString(),
+      ipAddress: ipAddress || ''
     });
   };
 
@@ -526,7 +568,7 @@ function Step14Form({ onNext, formData, isSubmitting }: { onNext: (data: FormDat
               className="mt-1 mr-3 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
             />
             <label htmlFor="agreesToTerms" className="text-sm text-gray-700">
-              I agree to the <a href="#" className="text-blue-600 hover:underline">Terms and Conditions</a> and <a href="#" className="text-blue-600 hover:underline">Privacy Policy</a>
+              I confirm that all information provided in this application is accurate and complete
             </label>
           </div>
           
@@ -1413,8 +1455,7 @@ function Step7Form({ onNext, formData, isSubmitting }: { onNext: (data: FormData
     firstName: formData.firstName || '',
     lastName: formData.lastName || '',
     email: formData.email || '',
-    phone: formData.phone || '',
-    title: formData.title || ''
+    phone: formData.phone || ''
   });
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -1479,22 +1520,6 @@ function Step7Form({ onNext, formData, isSubmitting }: { onNext: (data: FormData
             required
             value={localData.phone}
             onChange={(e) => setLocalData({...localData, phone: e.target.value})}
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-          />
-        </div>
-      </div>
-      
-      <div className="grid md:grid-cols-2 gap-6 mt-6">
-        <div>
-          <label htmlFor="title" className="block text-sm font-medium text-gray-700 mb-2">
-            Title/Position *
-          </label>
-          <input
-            type="text"
-            id="title"
-            required
-            value={localData.title}
-            onChange={(e) => setLocalData({...localData, title: e.target.value})}
             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           />
         </div>
@@ -1706,8 +1731,8 @@ function Step11Form({ onNext, formData, isSubmitting }: { onNext: (data: FormDat
             <option value="good">Good (700-749)</option>
             <option value="fair">Fair (650-699)</option>
             <option value="below-average">Below Average (600-649)</option>
-            <option value="poor">Poor (551-599)</option>
-            <option value="very-poor">Very Poor (below 550)</option>
+            <option value="poor">(551-599)</option>
+            <option value="very-poor">(below 550)</option>
           </select>
         </div>
 
