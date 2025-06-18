@@ -115,7 +115,8 @@ function transformToSupabaseFormat(data: ApplicationData): SupabaseApplicationDa
     last_name: data.lastName,
     email: data.email,
     phone: data.phone,
-    ssn_last_4: data.ssn || '',
+    title: '', // Default empty since removed from form
+    ssn_last_4: '', // Default empty since removed from form
     
     // Step 8: Funding Amount
     funding_amount: data.fundingAmount,
@@ -147,6 +148,7 @@ function transformToSupabaseFormat(data: ApplicationData): SupabaseApplicationDa
     
     // Step 14: Review & Submit
     agrees_to_terms: data.agreesToTerms,
+    authorizes_credit_check: false, // Default to false since removed from UI
     
     // Application Status
     status: 'submitted',
