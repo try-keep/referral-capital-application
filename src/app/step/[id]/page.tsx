@@ -413,9 +413,6 @@ function Step12Form({ onNext, formData, isSubmitting }: { onNext: (data: FormDat
     bankConnectionCompleted: formData.bankConnectionCompleted || false
   });
 
-  const handleSkipConnection = () => {
-    onNext({ ...localData, bankConnectionCompleted: 'false', skippedBankConnection: 'true' });
-  };
 
   const handleCompleteConnection = () => {
     onNext({ ...localData, bankConnectionCompleted: 'true' });
@@ -448,22 +445,14 @@ function Step12Form({ onNext, formData, isSubmitting }: { onNext: (data: FormDat
         />
       </div>
 
-      {/* Action buttons */}
-      <div className="flex flex-col sm:flex-row gap-4">
+      {/* Action button */}
+      <div className="mt-6">
         <button
           onClick={handleCompleteConnection}
           disabled={isSubmitting}
-          className="flex-1 bg-blue-600 text-white py-3 px-6 rounded-lg font-semibold hover:bg-blue-700 transition-colors disabled:opacity-50"
+          className="w-full bg-blue-600 text-white py-3 px-6 rounded-lg font-semibold hover:bg-blue-700 transition-colors disabled:opacity-50"
         >
           {isSubmitting ? 'Processing...' : 'I Connected My Bank'}
-        </button>
-        
-        <button
-          onClick={handleSkipConnection}
-          disabled={isSubmitting}
-          className="flex-1 bg-gray-100 text-gray-700 py-3 px-6 rounded-lg font-semibold hover:bg-gray-200 transition-colors disabled:opacity-50"
-        >
-          Skip for Now
         </button>
       </div>
 
