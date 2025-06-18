@@ -154,7 +154,7 @@ function transformToSupabaseFormat(data: ApplicationData): SupabaseApplicationDa
     submitted_at: new Date().toISOString(),
     
     // Business Reference
-    business_id: data.businessId ? parseInt(data.businessId) : null
+    business_id: data.businessId ? parseInt(data.businessId) : undefined
   };
 }
 

@@ -15,12 +15,14 @@
   "dependencies": {
     "@supabase/supabase-js": "^2.50.0",
     "autoprefixer": "^10.4.21",
+    "bufferutil": "^4.0.8",
     "dotenv": "^16.5.0",
     "next": "^13.5.11",
     "postcss": "^8.5.6",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
-    "tailwindcss": "^3.4.17"
+    "tailwindcss": "^3.4.17",
+    "utf-8-validate": "^6.0.4"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",

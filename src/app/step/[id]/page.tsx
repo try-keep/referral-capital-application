@@ -78,7 +78,7 @@ export default function StepPage() {
       // Submit to backend for final step
       try {
         const finalData = { ...formData, ...stepData };
-        const response = await submitApplication(finalData as ApplicationData);
+        const response = await submitApplication(finalData as unknown as ApplicationData);
         
         // Store application ID for success page
         localStorage.setItem('applicationId', response.applicationId.toString());
@@ -415,11 +415,11 @@ function Step12Form({ onNext, formData, isSubmitting }: { onNext: (data: FormDat
   });
 
   const handleSkipConnection = () => {
-    onNext({ ...localData, bankConnectionCompleted: false, skippedBankConnection: true });
+    onNext({ ...localData, bankConnectionCompleted: 'false', skippedBankConnection: 'true' });
   };
 
   const handleCompleteConnection = () => {
-    onNext({ ...localData, bankConnectionCompleted: true });
+    onNext({ ...localData, bankConnectionCompleted: 'true' });
   };
 
   return (
@@ -574,8 +574,8 @@ function Step13Form({ onNext, formData, isSubmitting }: { onNext: (data: FormDat
 // Step 14: Review & Submit
 function Step14Form({ onNext, formData, isSubmitting }: { onNext: (data: FormData) => void, formData: FormData, isSubmitting: boolean }) {
   const [localData, setLocalData] = useState({
-    agreesToTerms: formData.agreesToTerms || false,
-    authorizesCreditCheck: formData.authorizesCreditCheck || false
+    agreesToTerms: formData.agreesToTerms === 'true',
+    authorizesCreditCheck: formData.authorizesCreditCheck === 'true'
   });
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -588,7 +588,10 @@ function Step14Form({ onNext, formData, isSubmitting }: { onNext: (data: FormDat
       alert('Please authorize the credit check');
       return;
     }
-    onNext(localData);
+    onNext({
+      agreesToTerms: localData.agreesToTerms.toString(),
+      authorizesCreditCheck: localData.authorizesCreditCheck.toString()
+    });
   };
 
   return (
@@ -753,7 +756,7 @@ function BusinessSearchForm({ onNext, formData, isSubmitting }: { onNext: (data:
         ...localData,
         businessName: businessData.businessName,
         selectedBusiness: selectedBusinessData.MRAS_ID,
-        businessConfirmed: true,
+        businessConfirmed: 'true',
         businessId: savedBusiness.id,
         
         // Pre-fill business details for later steps
@@ -791,7 +794,7 @@ function BusinessSearchForm({ onNext, formData, isSubmitting }: { onNext: (data:
       ...localData,
       businessName: localData.businessSearchQuery,
       selectedBusiness: '',
-      businessConfirmed: false
+      businessConfirmed: 'false'
     });
   };
 
@@ -1624,13 +1627,13 @@ function Step7Form({ onNext, formData, isSubmitting }: { onNext: (data: FormData
         
         <div>
           <label htmlFor="ssn" className="block text-sm font-medium text-gray-700 mb-2">
-            SSN (Last 4 digits) *
+            SIN (Last 4 digits) *
           </label>
           <input
             type="text"
             id="ssn"
             required
-            maxLength="4"
+            maxLength={4}
             value={localData.ssn}
             onChange={(e) => setLocalData({...localData, ssn: e.target.value})}
             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
