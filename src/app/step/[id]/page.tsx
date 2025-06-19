@@ -13,7 +13,7 @@ import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import { submitApplication, type ApplicationData } from '@/lib/api';
 import { searchCanadianBusinesses, formatBusinessDataForForm, type BusinessRegistryResult } from '@/lib/businessRegistry';
-import { saveOrUpdateBusiness, saveManualBusiness } from '@/lib/supabase';
+import { saveOrUpdateBusiness, saveManualBusiness, upsertUser, linkApplicationToUser, type UserData } from '@/lib/supabase';
 import { getUserIpAddress } from '@/lib/ipAddress';
 import { searchAddresses, type GeoapifyFeature } from '@/lib/geoapify';
 
@@ -23,12 +23,12 @@ interface FormData {
 
 const stepTitles = {
   1: 'Loan Type',
-  2: 'Business Owner',
-  3: 'Business Search',
-  4: 'Business Name',
-  5: 'Monthly Sales',
-  6: 'Existing Loans',
-  7: 'Personal Information',
+  2: 'Personal Information',
+  3: 'Business Owner',
+  4: 'Business Search',
+  5: 'Business Name',
+  6: 'Monthly Sales',
+  7: 'Existing Loans',
   8: 'Funding Amount',
   9: 'Funding Purpose',
   10: 'Business Details', 
@@ -40,12 +40,12 @@ const stepTitles = {
 
 const stepDescriptions = {
   1: 'What type of funding are you looking for?',
-  2: 'Verify your role in the business',
-  3: 'Find and verify your business in the Canadian Business Registry',
-  4: 'Enter your legal business name manually',
-  5: 'Tell us about your monthly sales',
-  6: 'Tell us about any existing loan obligations',
-  7: 'Tell us about yourself and your role in the business',
+  2: 'Tell us about yourself and your role in the business',
+  3: 'Verify your role in the business',
+  4: 'Find and verify your business in the Canadian Business Registry',
+  5: 'Enter your legal business name manually',
+  6: 'Tell us about your monthly sales',
+  7: 'Tell us about any existing loan obligations',
   8: 'How much funding do you need and when?',
   9: 'How will you use the funds?',
   10: 'Provide details about your business operations',
@@ -89,12 +89,59 @@ export default function StepPage() {
       if (currentStep === 1) {
         // User started the application process
         window.fbq('track', 'InitiateCheckout');
-      } else if (currentStep === 3) {
-        // User completed business search - key conversion point
+      } else if (currentStep === 2) {
+        // User provided personal information - deeper engagement (moved to step 2)
         window.fbq('track', 'Lead');
-      } else if (currentStep === 7) {
-        // User provided personal information - deeper engagement
-        window.fbq('track', 'ViewContent', { content_name: 'Personal Information' });
+      } else if (currentStep === 4) {
+        // User completed business search - key conversion point (moved to step 4)
+        window.fbq('track', 'ViewContent', { content_name: 'Business Search' });
+      }
+    }
+    
+    // Create user at step 2 for campaign management
+    if (currentStep === 2) {
+      try {
+        const allFormData = { ...formData, ...stepData };
+        const userIpAddress = await getUserIpAddress();
+        
+        const userData: UserData = {
+          first_name: stepData.firstName || '',
+          last_name: stepData.lastName || '',
+          email: stepData.email || '',
+          phone: stepData.phone || '',
+          role_in_business: stepData.roleInBusiness || '',
+          ownership_percentage: stepData.ownershipPercentage ? parseInt(stepData.ownershipPercentage) : undefined,
+          source: 'referral_application',
+          email_marketing_consent: stepData.emailMarketingConsent === 'true',
+          sms_marketing_consent: stepData.smsMarketingConsent === 'true',
+          ip_address: userIpAddress,
+          user_agent: typeof window !== 'undefined' ? window.navigator.userAgent : undefined,
+          
+          // Extract UTM parameters from URL or localStorage if available
+          utm_campaign: new URLSearchParams(window.location.search).get('utm_campaign') || undefined,
+          utm_source: new URLSearchParams(window.location.search).get('utm_source') || undefined,
+          utm_medium: new URLSearchParams(window.location.search).get('utm_medium') || undefined,
+          utm_content: new URLSearchParams(window.location.search).get('utm_content') || undefined,
+        };
+        
+        console.log('Creating user at step 2:', userData);
+        
+        const user = await upsertUser(userData);
+        console.log('User created/updated:', user);
+        
+        // Store user ID for linking to application later
+        localStorage.setItem('userId', user.id);
+        
+        // If we have an existing application, link it to the user
+        const applicationId = localStorage.getItem('applicationId');
+        if (applicationId) {
+          await linkApplicationToUser(parseInt(applicationId), user.id);
+          console.log('Application linked to user:', applicationId, user.id);
+        }
+        
+      } catch (error) {
+        console.error('Error creating user:', error);
+        // Don't block the flow if user creation fails
       }
     }
     
@@ -160,16 +207,16 @@ export default function StepPage() {
       let nextStep = currentStep + 1;
       
       // If user completes business search without registry verification, go to manual entry step
-      if (currentStep === 3 && stepData.businessConfirmed === 'false') {
-        nextStep = 4; // Manual business name entry
+      if (currentStep === 4 && stepData.businessConfirmed === 'false') {
+        nextStep = 5; // Manual business name entry
       }
       // If user completes business search WITH registry verification, skip manual entry step
-      else if (currentStep === 3 && stepData.businessConfirmed === 'true') {
-        nextStep = 5; // Skip manual entry, go directly to Monthly Sales
+      else if (currentStep === 4 && stepData.businessConfirmed === 'true') {
+        nextStep = 6; // Skip manual entry, go directly to Monthly Sales
       }
       // If user completes manual business name entry, continue to Monthly Sales
-      else if (currentStep === 4 && stepData.businessSearchVerified === 'manual-entry') {
-        nextStep = 5; // Continue to Monthly Sales
+      else if (currentStep === 5 && stepData.businessSearchVerified === 'manual-entry') {
+        nextStep = 6; // Continue to Monthly Sales
       }
       
       await new Promise(resolve => setTimeout(resolve, 500));
@@ -211,20 +258,23 @@ export default function StepPage() {
       case 1:
         return <Step1Form onNext={handleNext} formData={formData} isSubmitting={isSubmitting} />;
       case 2:
-        return <Step2Form onNext={handleNext} formData={formData} isSubmitting={isSubmitting} />;
-      case 3:
-        return <BusinessSearchForm onNext={handleNext} formData={formData} isSubmitting={isSubmitting} />;
-      case 4:
-        // Step 4 is dedicated to manual business name entry (conditional)
-        return <Step6Form onNext={handleNext} formData={formData} isSubmitting={isSubmitting} />;
-      case 5:
-        // Monthly Sales
-        return <Step3Form onNext={handleNext} formData={formData} isSubmitting={isSubmitting} />;
-      case 6:
-        // Existing Loans
-        return <Step4Form onNext={handleNext} formData={formData} isSubmitting={isSubmitting} />;
-      case 7:
+        // Personal Information (moved from step 7)
         return <Step7Form onNext={handleNext} formData={formData} isSubmitting={isSubmitting} />;
+      case 3:
+        // Business Owner (moved from step 2)
+        return <Step2Form onNext={handleNext} formData={formData} isSubmitting={isSubmitting} />;
+      case 4:
+        // Business Search (moved from step 3)
+        return <BusinessSearchForm onNext={handleNext} formData={formData} isSubmitting={isSubmitting} />;
+      case 5:
+        // Step 5 is dedicated to manual business name entry (conditional)
+        return <Step6Form onNext={handleNext} formData={formData} isSubmitting={isSubmitting} />;
+      case 6:
+        // Monthly Sales (moved from step 5)
+        return <Step3Form onNext={handleNext} formData={formData} isSubmitting={isSubmitting} />;
+      case 7:
+        // Existing Loans (moved from step 6)
+        return <Step4Form onNext={handleNext} formData={formData} isSubmitting={isSubmitting} />;
       case 8:
         return <Step8Form onNext={handleNext} formData={formData} isSubmitting={isSubmitting} />;
       case 9:

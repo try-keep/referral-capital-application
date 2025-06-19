@@ -130,6 +130,51 @@ export interface ApplicationData {
   
   // Business Reference
   business_id?: number
+  
+  // User Reference
+  user_id?: string
+}
+
+// Database types for users table (campaign management - no passwords)
+export interface UserData {
+  id?: string
+  created_at?: string
+  updated_at?: string
+  
+  // Personal Information
+  first_name: string
+  last_name: string
+  email: string
+  phone?: string
+  
+  // Business Role
+  role_in_business?: string
+  ownership_percentage?: number
+  
+  // Address Information
+  address_line1?: string
+  address_line2?: string
+  city?: string
+  province?: string
+  postal_code?: string
+  
+  // Campaign Tracking
+  source?: string
+  utm_campaign?: string
+  utm_source?: string
+  utm_medium?: string
+  utm_content?: string
+  
+  // Preferences
+  email_marketing_consent?: boolean
+  sms_marketing_consent?: boolean
+  
+  // Status
+  status?: 'active' | 'inactive' | 'unsubscribed'
+  
+  // Metadata
+  ip_address?: string
+  user_agent?: string
 }
 
 // Function to save application data to Supabase
@@ -345,4 +390,128 @@ export async function getBusinessWithApplications(businessId: number) {
   }
 
   return data
+}
+
+// User management functions for campaign tracking
+
+// Function to create a user
+export async function createUser(userData: UserData) {
+  const { data, error } = await supabase
+    .from('users')
+    .insert([userData])
+    .select()
+
+  if (error) {
+    console.error('Error creating user:', error)
+    throw error
+  }
+
+  return data[0]
+}
+
+// Function to update user data
+export async function updateUser(id: string, userData: Partial<UserData>) {
+  const { data, error } = await supabase
+    .from('users')
+    .update({ ...userData, updated_at: new Date().toISOString() })
+    .eq('id', id)
+    .select()
+
+  if (error) {
+    console.error('Error updating user:', error)
+    throw error
+  }
+
+  return data[0]
+}
+
+// Function to get user by ID
+export async function getUser(id: string) {
+  const { data, error } = await supabase
+    .from('users')
+    .select('*')
+    .eq('id', id)
+    .single()
+
+  if (error) {
+    console.error('Error fetching user:', error)
+    throw error
+  }
+
+  return data
+}
+
+// Function to find user by email
+export async function findUserByEmail(email: string) {
+  const { data, error } = await supabase
+    .from('users')
+    .select('*')
+    .eq('email', email.toLowerCase())
+    .single()
+
+  if (error && error.code !== 'PGRST116') { // PGRST116 = not found
+    console.error('Error finding user by email:', error)
+    throw error
+  }
+
+  return data
+}
+
+// Function to create or update user (upsert by email)
+export async function upsertUser(userData: UserData) {
+  try {
+    // Check if user exists by email
+    const existingUser = await findUserByEmail(userData.email)
+    
+    if (existingUser) {
+      // Update existing user
+      return await updateUser(existingUser.id, userData)
+    } else {
+      // Create new user
+      return await createUser({
+        ...userData,
+        email: userData.email.toLowerCase(),
+        source: userData.source || 'referral_application',
+        status: userData.status || 'active'
+      })
+    }
+  } catch (error) {
+    console.error('Error upserting user:', error)
+    throw error
+  }
+}
+
+// Function to get user with applications
+export async function getUserWithApplications(userId: string) {
+  const { data, error } = await supabase
+    .from('users')
+    .select(`
+      *,
+      applications (*)
+    `)
+    .eq('id', userId)
+    .single()
+
+  if (error) {
+    console.error('Error fetching user with applications:', error)
+    throw error
+  }
+
+  return data
+}
+
+// Function to update application with user ID
+export async function linkApplicationToUser(applicationId: number, userId: string) {
+  const { data, error } = await supabase
+    .from('applications')
+    .update({ user_id: userId, updated_at: new Date().toISOString() })
+    .eq('id', applicationId)
+    .select()
+
+  if (error) {
+    console.error('Error linking application to user:', error)
+    throw error
+  }
+
+  return data[0]
 }
