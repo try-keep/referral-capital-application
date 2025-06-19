@@ -64,7 +64,11 @@ export default function StepPage() {
   useEffect(() => {
     const savedData = localStorage.getItem('referralApplicationData');
     if (savedData) {
-      setFormData(JSON.parse(savedData));
+      const parsedData = JSON.parse(savedData);
+      console.log('📋 Loading saved form data:', parsedData);
+      setFormData(parsedData);
+    } else {
+      console.log('📋 No saved form data found');
     }
     
     // Fire Facebook Pixel event for application start page view
@@ -75,6 +79,7 @@ export default function StepPage() {
 
   const saveFormData = (data: FormData) => {
     const updatedData = { ...formData, ...data };
+    console.log('💾 Saving form data:', updatedData);
     setFormData(updatedData);
     localStorage.setItem('referralApplicationData', JSON.stringify(updatedData));
   };
@@ -1717,6 +1722,12 @@ function Step7Form({ onNext, formData, isSubmitting }: { onNext: (data: FormData
     email: formData.email || '',
     phone: formData.phone || ''
   });
+
+  // Debug logging to see if data is being received
+  useEffect(() => {
+    console.log('👤 Step7Form received formData:', formData);
+    console.log('👤 Step7Form localData initialized:', localData);
+  }, [formData]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
