@@ -1,10 +1,12 @@
 import { createClient } from '@supabase/supabase-js';
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
-// Use service role key for server-side operations
-const supabase = createClient(supabaseUrl, supabaseServiceKey);
+// Create Supabase client only if environment variables are available
+const supabase = supabaseUrl && supabaseServiceKey 
+  ? createClient(supabaseUrl, supabaseServiceKey)
+  : null;
 
 export interface ComplianceCheck {
   id?: number;
@@ -56,6 +58,10 @@ export interface AICategorization {
 
 // Database operations
 export async function saveComplianceCheck(check: ComplianceCheck): Promise<number> {
+  if (!supabase) {
+    throw new Error('Supabase client not initialized - missing environment variables');
+  }
+
   const { data, error } = await supabase
     .from('compliance_checks')
     .insert(check)
@@ -70,6 +76,10 @@ export async function saveComplianceCheck(check: ComplianceCheck): Promise<numbe
 }
 
 export async function updateComplianceCheck(id: number, updates: Partial<ComplianceCheck>): Promise<void> {
+  if (!supabase) {
+    throw new Error('Supabase client not initialized - missing environment variables');
+  }
+
   const { error } = await supabase
     .from('compliance_checks')
     .update({
@@ -84,6 +94,10 @@ export async function updateComplianceCheck(id: number, updates: Partial<Complia
 }
 
 export async function getComplianceChecks(applicationId: number): Promise<ComplianceCheck[]> {
+  if (!supabase) {
+    throw new Error('Supabase client not initialized - missing environment variables');
+  }
+
   const { data, error } = await supabase
     .from('compliance_checks')
     .select('*')
