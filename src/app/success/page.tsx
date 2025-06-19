@@ -5,6 +5,13 @@ import { useRouter } from 'next/navigation';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 
+// Declare Facebook Pixel types
+declare global {
+  interface Window {
+    fbq: (action: string, event: string, data?: object) => void;
+  }
+}
+
 interface FormData {
   [key: string]: string;
 }
@@ -29,6 +36,12 @@ export default function SuccessPage() {
     const submissionSuccess = localStorage.getItem('submissionSuccess');
     if (!submissionSuccess) {
       router.push('/');
+    }
+    
+    // Fire Facebook Pixel conversion events when success page loads
+    if (typeof window !== 'undefined' && window.fbq) {
+      window.fbq('track', 'CompleteRegistration');
+      window.fbq('track', 'ViewContent', { content_name: 'Success' });
     }
   }, [router]);
 

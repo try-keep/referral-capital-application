@@ -2,6 +2,13 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
+
+// Declare Facebook Pixel types
+declare global {
+  interface Window {
+    fbq: (action: string, event: string, data?: object) => void;
+  }
+}
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import { submitApplication, type ApplicationData } from '@/lib/api';
@@ -72,6 +79,20 @@ export default function StepPage() {
     setIsSubmitting(true);
     saveFormData(stepData);
     
+    // Fire Facebook Pixel events at key conversion points
+    if (typeof window !== 'undefined' && window.fbq) {
+      if (currentStep === 1) {
+        // User started the application process
+        window.fbq('track', 'InitiateCheckout');
+      } else if (currentStep === 3) {
+        // User completed business search - key conversion point
+        window.fbq('track', 'Lead');
+      } else if (currentStep === 7) {
+        // User provided personal information - deeper engagement
+        window.fbq('track', 'ViewContent', { content_name: 'Personal Information' });
+      }
+    }
+    
     if (currentStep < 14) {
       // Handle conditional navigation
       let nextStep = currentStep + 1;
@@ -96,6 +117,11 @@ export default function StepPage() {
       try {
         const finalData = { ...formData, ...stepData };
         const response = await submitApplication(finalData as unknown as ApplicationData);
+        
+        // Fire Facebook Pixel conversion event for successful application submission
+        if (typeof window !== 'undefined' && window.fbq) {
+          window.fbq('track', 'CompleteRegistration');
+        }
         
         // Store application ID for success page
         localStorage.setItem('applicationId', response.applicationId.toString());
