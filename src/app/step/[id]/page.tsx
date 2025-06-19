@@ -143,33 +143,38 @@ export default function StepPage() {
       }
     }
     
-    // Create user at step 2 for campaign management
+    // Create user at step 2 for campaign management (only once per session)
     if (currentStep === 2) {
       try {
-        const allFormData = { ...formData, ...stepData };
-        const userIpAddress = await getUserIpAddress();
-        
-        const userData: UserData = {
-          first_name: stepData.firstName || '',
-          last_name: stepData.lastName || '',
-          email: stepData.email || '',
-          phone: stepData.phone || '',
-          role_in_business: stepData.roleInBusiness || '',
-          ownership_percentage: stepData.ownershipPercentage ? parseInt(stepData.ownershipPercentage) : undefined,
-          source: 'referral_application',
-          email_marketing_consent: stepData.emailMarketingConsent === 'true',
-          sms_marketing_consent: stepData.smsMarketingConsent === 'true',
-          ip_address: userIpAddress || undefined,
-          user_agent: typeof window !== 'undefined' ? window.navigator.userAgent : undefined,
+        // Check if we've already created a user for this session
+        const existingUserId = localStorage.getItem('userId');
+        if (existingUserId) {
+          console.log('User already exists for this session:', existingUserId);
+        } else {
+          const allFormData = { ...formData, ...stepData };
+          const userIpAddress = await getUserIpAddress();
           
-          // Extract UTM parameters from URL or localStorage if available
-          utm_campaign: new URLSearchParams(window.location.search).get('utm_campaign') || undefined,
-          utm_source: new URLSearchParams(window.location.search).get('utm_source') || undefined,
-          utm_medium: new URLSearchParams(window.location.search).get('utm_medium') || undefined,
-          utm_content: new URLSearchParams(window.location.search).get('utm_content') || undefined,
-        };
-        
-        console.log('Creating user at step 2:', userData);
+          const userData: UserData = {
+            first_name: stepData.firstName || '',
+            last_name: stepData.lastName || '',
+            email: stepData.email || '',
+            phone: stepData.phone || '',
+            role_in_business: stepData.roleInBusiness || '',
+            ownership_percentage: stepData.ownershipPercentage ? parseInt(stepData.ownershipPercentage) : undefined,
+            source: 'referral_application',
+            email_marketing_consent: stepData.emailMarketingConsent === 'true',
+            sms_marketing_consent: stepData.smsMarketingConsent === 'true',
+            ip_address: userIpAddress || undefined,
+            user_agent: typeof window !== 'undefined' ? window.navigator.userAgent : undefined,
+            
+            // Extract UTM parameters from URL or localStorage if available
+            utm_campaign: new URLSearchParams(window.location.search).get('utm_campaign') || undefined,
+            utm_source: new URLSearchParams(window.location.search).get('utm_source') || undefined,
+            utm_medium: new URLSearchParams(window.location.search).get('utm_medium') || undefined,
+            utm_content: new URLSearchParams(window.location.search).get('utm_content') || undefined,
+          };
+          
+          console.log('Creating user at step 2:', userData);
         
         // Use API endpoint instead of direct Supabase call
         const applicationId = localStorage.getItem('applicationId');
@@ -261,8 +266,9 @@ export default function StepPage() {
           } else {
             console.warn('⚠️ No applicationId found in localStorage');
           }
-        } else {
-          console.error('User creation failed:', result.error);
+          } else {
+            console.error('User creation failed:', result.error);
+          }
         }
         
       } catch (error) {
