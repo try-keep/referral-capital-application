@@ -114,7 +114,7 @@ export default function StepPage() {
           source: 'referral_application',
           email_marketing_consent: stepData.emailMarketingConsent === 'true',
           sms_marketing_consent: stepData.smsMarketingConsent === 'true',
-          ip_address: userIpAddress,
+          ip_address: userIpAddress || undefined,
           user_agent: typeof window !== 'undefined' ? window.navigator.userAgent : undefined,
           
           // Extract UTM parameters from URL or localStorage if available
