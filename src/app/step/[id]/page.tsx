@@ -67,7 +67,12 @@ export default function StepPage() {
     if (savedData) {
       setFormData(JSON.parse(savedData));
     }
-  }, []);
+    
+    // Fire Facebook Pixel event for application start page view
+    if (currentStep === 1 && typeof window !== 'undefined' && window.fbq) {
+      window.fbq('track', 'ViewContent', { content_name: 'Application Start' });
+    }
+  }, [currentStep]);
 
   const saveFormData = (data: FormData) => {
     const updatedData = { ...formData, ...data };
