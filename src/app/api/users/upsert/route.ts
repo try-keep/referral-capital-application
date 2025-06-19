@@ -4,9 +4,12 @@ import { upsertUser, linkApplicationToUser, type UserData } from '@/lib/supabase
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
+    console.log('Raw request body:', body);
+    
     const { userData, applicationId }: { userData: UserData, applicationId?: number } = body;
     
-    console.log('Upserting user via API:', userData);
+    console.log('Parsed userData:', userData);
+    console.log('Parsed applicationId:', applicationId);
     
     // Validate required fields
     if (!userData.first_name || !userData.last_name || !userData.email) {
@@ -44,7 +47,7 @@ export async function POST(request: NextRequest) {
       { 
         error: 'Failed to upsert user',
         details: error instanceof Error ? error.message : 'Unknown error',
-        errorCode: error?.code || 'UNKNOWN',
+        errorCode: (error as any)?.code || 'UNKNOWN',
         stack: error instanceof Error ? error.stack : undefined
       },
       { status: 500 }

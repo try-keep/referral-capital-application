@@ -231,8 +231,10 @@ export default function StepPage() {
               
               const savedApplication = await saveApplication(minimalApplicationData);
               applicationId = savedApplication.id.toString();
-              localStorage.setItem('applicationId', applicationId);
-              console.log('✅ Fallback application created:', applicationId);
+              if (applicationId) {
+                localStorage.setItem('applicationId', applicationId);
+                console.log('✅ Fallback application created:', applicationId);
+              }
             } catch (createError) {
               console.error('❌ Failed to create fallback application:', createError);
             }
@@ -255,7 +257,7 @@ export default function StepPage() {
               console.log('✅ Updated application:', updatedApp);
             } catch (updateError) {
               console.error('❌ Failed to update application with user_id:', updateError);
-              console.error('❌ Update error details:', updateError.message);
+              console.error('❌ Update error details:', updateError instanceof Error ? updateError.message : 'Unknown error');
             }
           } else {
             console.warn('⚠️ No applicationId found in localStorage');
