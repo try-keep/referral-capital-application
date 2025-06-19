@@ -98,6 +98,71 @@ export default function StepPage() {
       }
     }
     
+    // Trigger background compliance checks at key steps
+    const triggerComplianceChecks = async () => {
+      const applicationId = localStorage.getItem('applicationId');
+      const allFormData = { ...formData, ...stepData };
+      
+      try {
+        // Step 10: Website URL provided - trigger website compliance check
+        if (currentStep === 10 && stepData.websiteUrl) {
+          const businessName = allFormData.businessName || allFormData.legalBusinessName || allFormData.companyName;
+          
+          fetch('/api/compliance/website-check', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ 
+              businessWebsite: stepData.websiteUrl, 
+              businessName,
+              applicationId 
+            })
+          }).catch(err => console.log('Website compliance check failed:', err));
+        }
+        
+        // Step 4: Manual business name entered - trigger AI categorization
+        if (currentStep === 4 && (stepData.businessName || stepData.legalBusinessName)) {
+          const businessName = stepData.businessName || stepData.legalBusinessName;
+          fetch('/api/compliance/ai-categorization', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ 
+              businessName,
+              businessDescription: stepData.businessDescription,
+              applicationId 
+            })
+          }).catch(err => console.log('AI categorization check failed:', err));
+        }
+        
+        // Step 7: Personal information completed - trigger adverse media check
+        if (currentStep === 7) {
+          const businessName = allFormData.businessName || allFormData.legalBusinessName || allFormData.companyName;
+          const businessWebsite = allFormData.websiteUrl;
+          
+          if (businessName) {
+            fetch('/api/compliance/adverse-media', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ 
+                businessName,
+                businessWebsite,
+                applicationId 
+              })
+            }).catch(err => console.log('Adverse media check failed:', err));
+          }
+        }
+        
+      } catch (error) {
+        console.log('Compliance checks error:', error);
+      }
+    };
+    
+    // Run compliance checks in background (non-blocking)
+    triggerComplianceChecks();
+    
+    // Debug logging
+    console.log(`Step ${currentStep} completed with data:`, stepData);
+    console.log('All form data:', { ...formData, ...stepData });
+    
     if (currentStep < 14) {
       // Handle conditional navigation
       let nextStep = currentStep + 1;
@@ -269,7 +334,8 @@ function Step10Form({ onNext, formData, isSubmitting }: { onNext: (data: FormDat
   const [localData, setLocalData] = useState({
     businessType: formData.businessType || '',
     businessAge: formData.businessAge || '',
-    numberOfEmployees: formData.numberOfEmployees || ''
+    numberOfEmployees: formData.numberOfEmployees || '',
+    websiteUrl: formData.websiteUrl || ''
   });
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -344,6 +410,23 @@ function Step10Form({ onNext, formData, isSubmitting }: { onNext: (data: FormDat
           <option value="51-100">51-100 employees</option>
           <option value="over-100">Over 100 employees</option>
         </select>
+      </div>
+      
+      <div className="mb-8">
+        <label htmlFor="websiteUrl" className="block text-sm font-medium text-gray-700 mb-2">
+          Business Website (Optional)
+        </label>
+        <input
+          type="url"
+          id="websiteUrl"
+          placeholder="www.yourbusiness.com"
+          value={localData.websiteUrl}
+          onChange={(e) => setLocalData({...localData, websiteUrl: e.target.value})}
+          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+        />
+        <p className="text-sm text-gray-500 mt-1">
+          Enter your business website URL if you have one. This helps us verify your business information.
+        </p>
       </div>
       
       <div className="mt-8">
@@ -1778,7 +1861,6 @@ function Step13Form({ onNext, formData, isSubmitting }: { onNext: (data: FormDat
   const [localData, setLocalData] = useState({
     businessAddress: formData.businessAddress || '',
     businessPhone: formData.businessPhone || '',
-    websiteUrl: formData.websiteUrl || '',
     additionalInfo: formData.additionalInfo || ''
   });
 
@@ -1836,14 +1918,7 @@ function Step13Form({ onNext, formData, isSubmitting }: { onNext: (data: FormDat
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
-    // Auto-prepend http:// if URL is provided but has no protocol
-    let finalData = { ...localData };
-    if (localData.websiteUrl && !localData.websiteUrl.match(/^https?:\/\//)) {
-      finalData.websiteUrl = `http://${localData.websiteUrl}`;
-    }
-    
-    onNext(finalData);
+    onNext(localData);
   };
 
   return (
@@ -1916,23 +1991,6 @@ function Step13Form({ onNext, formData, isSubmitting }: { onNext: (data: FormDat
             placeholder="(555) 123-4567"
             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           />
-        </div>
-
-        <div>
-          <label htmlFor="websiteUrl" className="block text-sm font-medium text-gray-700 mb-2">
-            Website URL (Optional)
-          </label>
-          <input
-            type="text"
-            id="websiteUrl"
-            value={localData.websiteUrl}
-            onChange={(e) => setLocalData({...localData, websiteUrl: e.target.value})}
-            placeholder="example.com or https://example.com"
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-          />
-          <p className="text-sm text-gray-500 mt-1">
-            Enter your website URL (e.g., example.com). We'll add http:// if needed.
-          </p>
         </div>
 
         <div>
