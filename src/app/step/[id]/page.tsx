@@ -108,48 +108,40 @@ export default function StepPage() {
         if (currentStep === 10 && stepData.websiteUrl) {
           const businessName = allFormData.businessName || allFormData.legalBusinessName || allFormData.companyName;
           
-          fetch('/api/compliance/website-check', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ 
-              businessWebsite: stepData.websiteUrl, 
-              businessName,
-              applicationId 
-            })
-          }).catch(err => console.log('Website compliance check failed:', err));
-        }
-        
-        // Step 4: Manual business name entered - trigger AI categorization
-        if (currentStep === 4 && (stepData.businessName || stepData.legalBusinessName)) {
-          const businessName = stepData.businessName || stepData.legalBusinessName;
-          fetch('/api/compliance/ai-categorization', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ 
-              businessName,
-              businessDescription: stepData.businessDescription,
-              applicationId 
-            })
-          }).catch(err => console.log('AI categorization check failed:', err));
-        }
-        
-        // Step 7: Personal information completed - trigger adverse media check
-        if (currentStep === 7) {
-          const businessName = allFormData.businessName || allFormData.legalBusinessName || allFormData.companyName;
-          const businessWebsite = allFormData.websiteUrl;
+          console.log('🔍 DEBUGGING Step 10 compliance trigger:');
+          console.log('Step Data:', stepData);
+          console.log('Website URL:', stepData.websiteUrl);
+          console.log('Business Name:', businessName);
+          console.log('Application ID:', applicationId);
+          console.log('All Form Data:', allFormData);
           
-          if (businessName) {
-            fetch('/api/compliance/adverse-media', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ 
-                businessName,
-                businessWebsite,
-                applicationId 
-              })
-            }).catch(err => console.log('Adverse media check failed:', err));
-          }
+          const payload = { 
+            businessWebsite: stepData.websiteUrl, 
+            businessName,
+            applicationId 
+          };
+          
+          console.log('API Payload:', payload);
+          
+          fetch('/api/compliance/comprehensive-check', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+          })
+          .then(response => {
+            console.log('✅ Comprehensive Compliance API Response Status:', response.status);
+            return response.json();
+          })
+          .then(data => {
+            console.log('✅ Comprehensive Compliance API Response Data:', data);
+          })
+          .catch(err => {
+            console.error('❌ Comprehensive compliance check failed:', err);
+          });
         }
+        
+        // Note: AI categorization and adverse media checks are now included 
+        // in the comprehensive compliance check at Step 10
         
       } catch (error) {
         console.log('Compliance checks error:', error);
@@ -417,15 +409,15 @@ function Step10Form({ onNext, formData, isSubmitting }: { onNext: (data: FormDat
           Business Website (Optional)
         </label>
         <input
-          type="url"
+          type="text"
           id="websiteUrl"
-          placeholder="www.yourbusiness.com"
+          placeholder="trykeep.com or www.yourbusiness.com"
           value={localData.websiteUrl}
           onChange={(e) => setLocalData({...localData, websiteUrl: e.target.value})}
           className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
         />
         <p className="text-sm text-gray-500 mt-1">
-          Enter your business website URL if you have one. This helps us verify your business information.
+          Enter your business website (e.g., trykeep.com, www.example.com, or https://example.com). We'll format it automatically.
         </p>
       </div>
       

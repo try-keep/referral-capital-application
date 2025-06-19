@@ -10,7 +10,9 @@
     "dev:backend": "cd backend && npm run dev",
     "start:backend": "cd backend && npm start",
     "dev:all": "concurrently \"npm run dev:backend\" \"npm run dev\"",
-    "install:backend": "cd backend && npm install"
+    "install:backend": "cd backend && npm install",
+    "test:compliance": "node test-compliance.js",
+    "test:compliance:prod": "TEST_URL=https://referral-capital-application-1gv42zxj3-try-keep.vercel.app node test-compliance.js"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.50.0",

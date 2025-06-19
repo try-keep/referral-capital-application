@@ -1,12 +1,4 @@
-import { createClient } from '@supabase/supabase-js';
-
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-
-// Create Supabase client only if environment variables are available
-const supabase = supabaseUrl && supabaseServiceKey 
-  ? createClient(supabaseUrl, supabaseServiceKey)
-  : null;
+import { supabase } from './supabase';
 
 export interface ComplianceCheck {
   id?: number;
@@ -58,28 +50,20 @@ export interface AICategorization {
 
 // Database operations
 export async function saveComplianceCheck(check: ComplianceCheck): Promise<number> {
-  if (!supabase) {
-    throw new Error('Supabase client not initialized - missing environment variables');
-  }
-
   const { data, error } = await supabase
     .from('compliance_checks')
-    .insert(check)
-    .select('id')
-    .single();
+    .insert([check])
+    .select()
 
   if (error) {
-    throw new Error(`Failed to save compliance check: ${error.message}`);
+    console.error('Error saving compliance check:', error)
+    throw error
   }
 
-  return data.id;
+  return data[0].id;
 }
 
 export async function updateComplianceCheck(id: number, updates: Partial<ComplianceCheck>): Promise<void> {
-  if (!supabase) {
-    throw new Error('Supabase client not initialized - missing environment variables');
-  }
-
   const { error } = await supabase
     .from('compliance_checks')
     .update({
@@ -89,15 +73,12 @@ export async function updateComplianceCheck(id: number, updates: Partial<Complia
     .eq('id', id);
 
   if (error) {
-    throw new Error(`Failed to update compliance check: ${error.message}`);
+    console.error('Error updating compliance check:', error)
+    throw error
   }
 }
 
 export async function getComplianceChecks(applicationId: number): Promise<ComplianceCheck[]> {
-  if (!supabase) {
-    throw new Error('Supabase client not initialized - missing environment variables');
-  }
-
   const { data, error } = await supabase
     .from('compliance_checks')
     .select('*')
@@ -105,7 +86,8 @@ export async function getComplianceChecks(applicationId: number): Promise<Compli
     .order('created_at', { ascending: false });
 
   if (error) {
-    throw new Error(`Failed to get compliance checks: ${error.message}`);
+    console.error('Error fetching compliance checks:', error)
+    throw error
   }
 
   return data || [];

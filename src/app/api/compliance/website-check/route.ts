@@ -8,7 +8,10 @@ import {
 
 export async function POST(request: NextRequest) {
   try {
+    console.log('Website check API called');
     const body = await request.json();
+    console.log('Request body:', body);
+    
     const { businessWebsite, businessName, applicationId } = body;
     
     if (!businessWebsite) {
@@ -18,6 +21,8 @@ export async function POST(request: NextRequest) {
       );
     }
     
+    console.log('Processing website check for:', businessWebsite);
+    
     // Create initial compliance check record
     const checkId = await saveComplianceCheck({
       application_id: applicationId,
@@ -25,10 +30,13 @@ export async function POST(request: NextRequest) {
       status: 'pending',
       input_data: { businessWebsite, businessName }
     });
+    console.log('Created compliance check with ID:', checkId);
     
     try {
       // Scrape website metadata
+      console.log('Starting website scraping for:', businessWebsite);
       const metadata: WebsiteMetadata = await scrapeWebsiteMetadata(businessWebsite);
+      console.log('Website scraping completed. Success:', metadata.success);
       
       // Calculate a basic risk score based on website quality
       let riskScore = 0.0;
@@ -83,15 +91,21 @@ export async function POST(request: NextRequest) {
           }
         }
       });
+      console.log('Updated compliance check in database');
       
-      return NextResponse.json({ 
+      const responseData = { 
         success: true, 
         checkId,
         riskScore,
         metadata 
-      });
+      };
+      
+      console.log('✅ Sending response:', JSON.stringify(responseData, null, 2));
+      return NextResponse.json(responseData);
       
     } catch (error) {
+      console.error('Website check processing error:', error);
+      
       // Update compliance check with error
       await updateComplianceCheck(checkId, {
         status: 'failed',
