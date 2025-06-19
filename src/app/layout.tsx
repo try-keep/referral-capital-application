@@ -10,7 +10,7 @@ const inter = Inter({
 
 export const metadata: Metadata = {
   title: "Referral Capital Application",
-  description: "Multi-step referral application for capital funding",
+  description: "Keep Capital Application",
 };
 
 export default function RootLayout({
