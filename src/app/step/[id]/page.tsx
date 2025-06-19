@@ -10,7 +10,6 @@ declare global {
   }
 }
 import Navbar from '@/components/Navbar';
-import Footer from '@/components/Footer';
 import { submitApplication, type ApplicationData } from '@/lib/api';
 import { searchCanadianBusinesses, formatBusinessDataForForm, type BusinessRegistryResult } from '@/lib/businessRegistry';
 import { saveOrUpdateBusiness, saveManualBusiness, saveApplication, updateApplication, type UserData } from '@/lib/supabase';
@@ -439,7 +438,6 @@ export default function StepPage() {
             </button>
           </div>
         </main>
-        <Footer />
       </div>
     );
   }
@@ -495,8 +493,6 @@ export default function StepPage() {
           )}
         </div>
       </main>
-      
-      <Footer />
     </div>
   );
 }
