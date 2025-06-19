@@ -13,7 +13,7 @@ import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import { submitApplication, type ApplicationData } from '@/lib/api';
 import { searchCanadianBusinesses, formatBusinessDataForForm, type BusinessRegistryResult } from '@/lib/businessRegistry';
-import { saveOrUpdateBusiness, saveManualBusiness, upsertUser, linkApplicationToUser, type UserData } from '@/lib/supabase';
+import { saveOrUpdateBusiness, saveManualBusiness, saveApplication, updateApplication, type UserData } from '@/lib/supabase';
 import { getUserIpAddress } from '@/lib/ipAddress';
 import { searchAddresses, type GeoapifyFeature } from '@/lib/geoapify';
 
@@ -84,6 +84,52 @@ export default function StepPage() {
     setIsSubmitting(true);
     saveFormData(stepData);
     
+    // Create minimal application record at step 1 for linking purposes
+    if (currentStep === 1) {
+      try {
+        const userIpAddress = await getUserIpAddress();
+        
+        const minimalApplicationData = {
+          loan_type: stepData.loanType,
+          status: 'in_progress',
+          ip_address: userIpAddress || undefined,
+          // Required fields with placeholder values (will be updated in later steps)
+          is_business_owner: '',
+          monthly_sales: '',
+          has_existing_loans: '',
+          business_name: '',
+          first_name: '',
+          last_name: '',
+          email: '',
+          phone: '',
+          title: '', // Required field for applications table
+          ssn_last_4: '', // Required field for applications table
+          funding_amount: '',
+          funding_timeline: '',
+          funding_purpose: '',
+          business_type: '',
+          business_age: '',
+          number_of_employees: '',
+          annual_revenue: '',
+          cash_flow: '',
+          credit_score: '',
+          time_in_business: '',
+          business_address: '',
+          business_phone: '',
+          agrees_to_terms: false
+        };
+        
+        const savedApplication = await saveApplication(minimalApplicationData);
+        localStorage.setItem('applicationId', savedApplication.id.toString());
+        console.log('✅ Minimal application created:', savedApplication.id);
+        console.log('✅ Application data:', savedApplication);
+        
+      } catch (error) {
+        console.error('❌ Error creating application:', error);
+        // Don't block the flow if application creation fails
+      }
+    }
+    
     // Fire Facebook Pixel events at key conversion points
     if (typeof window !== 'undefined' && window.fbq) {
       if (currentStep === 1) {
@@ -126,17 +172,96 @@ export default function StepPage() {
         
         console.log('Creating user at step 2:', userData);
         
-        const user = await upsertUser(userData);
-        console.log('User created/updated:', user);
-        
-        // Store user ID for linking to application later
-        localStorage.setItem('userId', user.id);
-        
-        // If we have an existing application, link it to the user
+        // Use API endpoint instead of direct Supabase call
         const applicationId = localStorage.getItem('applicationId');
-        if (applicationId) {
-          await linkApplicationToUser(parseInt(applicationId), user.id);
-          console.log('Application linked to user:', applicationId, user.id);
+        const response = await fetch('/api/users/upsert', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            userData,
+            applicationId: applicationId ? parseInt(applicationId) : undefined
+          })
+        });
+        
+        const result = await response.json();
+        
+        if (result.success && result.user) {
+          console.log('User created/updated:', result.user);
+          localStorage.setItem('userId', result.user.id);
+          
+          // Update the application record with the user_id
+          let applicationId = localStorage.getItem('applicationId');
+          console.log('🔍 Debug: applicationId from localStorage:', applicationId);
+          
+          // Fallback: Create application if it doesn't exist
+          if (!applicationId) {
+            console.warn('⚠️ No applicationId found, creating application now...');
+            try {
+              const userIpAddress = await getUserIpAddress();
+              const minimalApplicationData = {
+                loan_type: formData.loanType || 'term-loan',
+                status: 'in_progress',
+                ip_address: userIpAddress || undefined,
+                is_business_owner: '',
+                monthly_sales: '',
+                has_existing_loans: '',
+                business_name: '',
+                first_name: '',
+                last_name: '',
+                email: '',
+                phone: '',
+                title: '', // Required field for applications table
+                ssn_last_4: '', // Required field for applications table
+                funding_amount: '',
+                funding_timeline: '',
+                funding_purpose: '',
+                business_type: '',
+                business_age: '',
+                number_of_employees: '',
+                annual_revenue: '',
+                cash_flow: '',
+                credit_score: '',
+                time_in_business: '',
+                business_address: '',
+                business_phone: '',
+                agrees_to_terms: false
+              };
+              
+              const savedApplication = await saveApplication(minimalApplicationData);
+              applicationId = savedApplication.id.toString();
+              localStorage.setItem('applicationId', applicationId);
+              console.log('✅ Fallback application created:', applicationId);
+            } catch (createError) {
+              console.error('❌ Failed to create fallback application:', createError);
+            }
+          }
+          
+          if (applicationId) {
+            try {
+              const updateData = {
+                user_id: result.user.id,
+                // Also update personal info in application
+                first_name: result.user.first_name,
+                last_name: result.user.last_name,
+                email: result.user.email,
+                phone: result.user.phone || ''
+              };
+              console.log('🔍 Debug: Updating application with data:', updateData);
+              
+              const updatedApp = await updateApplication(parseInt(applicationId), updateData);
+              console.log('✅ Application updated with user_id:', result.user.id);
+              console.log('✅ Updated application:', updatedApp);
+            } catch (updateError) {
+              console.error('❌ Failed to update application with user_id:', updateError);
+              console.error('❌ Update error details:', updateError.message);
+            }
+          } else {
+            console.warn('⚠️ No applicationId found in localStorage');
+          }
+        } else {
+          console.error('User creation failed:', result.error);
         }
         
       } catch (error) {
@@ -224,7 +349,10 @@ export default function StepPage() {
     } else {
       // Submit to backend for final step
       try {
-        const finalData = { ...formData, ...stepData };
+        const finalData = { 
+          ...formData, 
+          ...stepData
+        };
         const response = await submitApplication(finalData as unknown as ApplicationData);
         
         // Fire Facebook Pixel conversion event for successful application submission
