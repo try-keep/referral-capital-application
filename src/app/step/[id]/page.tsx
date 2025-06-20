@@ -64,16 +64,8 @@ export default function StepPage() {
 
   const saveFormData = (data: FormData) => {
     const updatedData = { ...formData, ...data };
-    console.log('💾 Saving form data:', updatedData);
-    console.log('💾 Previous formData was:', formData);
-    console.log('💾 New stepData is:', data);
-    console.log('💾 Merged data being saved:', updatedData);
     setFormData(updatedData);
     localStorage.setItem('referralApplicationData', JSON.stringify(updatedData));
-    
-    // Verify it was saved
-    const savedCheck = localStorage.getItem('referralApplicationData');
-    console.log('💾 Verification - data in localStorage:', savedCheck);
   };
 
   // Check if a step is accessible based on completed previous steps
@@ -184,51 +176,7 @@ export default function StepPage() {
     setIsSubmitting(true);
     saveFormData(stepData);
     
-    // Create minimal application record at step 1 for linking purposes
-    if (currentStep === 1) {
-      try {
-        const userIpAddress = await getUserIpAddress();
-        
-        const minimalApplicationData = {
-          loan_type: stepData.loanType,
-          status: 'in_progress',
-          ip_address: userIpAddress || undefined,
-          // Required fields with placeholder values (will be updated in later steps)
-          is_business_owner: '',
-          monthly_sales: '',
-          has_existing_loans: '',
-          business_name: '',
-          first_name: '',
-          last_name: '',
-          email: '',
-          phone: '',
-          title: '', // Required field for applications table
-          ssn_last_4: '', // Required field for applications table
-          funding_amount: '',
-          funding_timeline: '',
-          funding_purpose: '',
-          business_type: '',
-          business_age: '',
-          number_of_employees: '',
-          annual_revenue: '',
-          cash_flow: '',
-          credit_score: '',
-          time_in_business: '',
-          business_address: '',
-          business_phone: '',
-          agrees_to_terms: false
-        };
-        
-        const savedApplication = await saveApplication(minimalApplicationData);
-        localStorage.setItem('applicationId', savedApplication.id.toString());
-        console.log('✅ Minimal application created:', savedApplication.id);
-        console.log('✅ Application data:', savedApplication);
-        
-      } catch (error) {
-        console.error('❌ Error creating application:', error);
-        // Don't block the flow if application creation fails
-      }
-    }
+    // NOTE: Application is only created at final submission (step 14), not here
     
     // Fire Facebook Pixel events at key conversion points
     if (typeof window !== 'undefined' && window.fbq) {
@@ -277,16 +225,15 @@ export default function StepPage() {
           
           console.log('Creating user at step 2:', userData);
         
-        // Use API endpoint instead of direct Supabase call
-        const applicationId = localStorage.getItem('applicationId');
+        // Create user without linking to application (application will be created at final submission)
         const response = await fetch('/api/users/upsert', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            userData,
-            applicationId: applicationId ? parseInt(applicationId) : undefined
+            userData
+            // No applicationId - will be linked at final submission
           })
         });
         
@@ -295,81 +242,9 @@ export default function StepPage() {
         if (result.success && result.user) {
           console.log('User created/updated:', result.user);
           localStorage.setItem('userId', result.user.id);
-          
-          // Update the application record with the user_id
-          let applicationId = localStorage.getItem('applicationId');
-          console.log('🔍 Debug: applicationId from localStorage:', applicationId);
-          
-          // Fallback: Create application if it doesn't exist
-          if (!applicationId) {
-            console.warn('⚠️ No applicationId found, creating application now...');
-            try {
-              const userIpAddress = await getUserIpAddress();
-              const minimalApplicationData = {
-                loan_type: formData.loanType || 'term-loan',
-                status: 'in_progress',
-                ip_address: userIpAddress || undefined,
-                is_business_owner: '',
-                monthly_sales: '',
-                has_existing_loans: '',
-                business_name: '',
-                first_name: '',
-                last_name: '',
-                email: '',
-                phone: '',
-                title: '', // Required field for applications table
-                ssn_last_4: '', // Required field for applications table
-                funding_amount: '',
-                funding_timeline: '',
-                funding_purpose: '',
-                business_type: '',
-                business_age: '',
-                number_of_employees: '',
-                annual_revenue: '',
-                cash_flow: '',
-                credit_score: '',
-                time_in_business: '',
-                business_address: '',
-                business_phone: '',
-                agrees_to_terms: false
-              };
-              
-              const savedApplication = await saveApplication(minimalApplicationData);
-              applicationId = savedApplication.id.toString();
-              if (applicationId) {
-                localStorage.setItem('applicationId', applicationId);
-                console.log('✅ Fallback application created:', applicationId);
-              }
-            } catch (createError) {
-              console.error('❌ Failed to create fallback application:', createError);
-            }
-          }
-          
-          if (applicationId) {
-            try {
-              const updateData = {
-                user_id: result.user.id,
-                // Also update personal info in application
-                first_name: result.user.first_name,
-                last_name: result.user.last_name,
-                email: result.user.email,
-                phone: result.user.phone || ''
-              };
-              console.log('🔍 Debug: Updating application with data:', updateData);
-              
-              const updatedApp = await updateApplication(parseInt(applicationId), updateData);
-              console.log('✅ Application updated with user_id:', result.user.id);
-              console.log('✅ Updated application:', updatedApp);
-            } catch (updateError) {
-              console.error('❌ Failed to update application with user_id:', updateError);
-              console.error('❌ Update error details:', updateError instanceof Error ? updateError.message : 'Unknown error');
-            }
-          } else {
-            console.warn('⚠️ No applicationId found in localStorage');
-          }
-          } else {
-            console.error('User creation failed:', result.error);
-          }
+        } else {
+          console.error('User creation failed:', result.error);
+        }
         }
         
       } catch (error) {

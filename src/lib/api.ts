@@ -165,6 +165,12 @@ export async function submitApplication(data: ApplicationData): Promise<Applicat
     // Transform the data to Supabase format
     const supabaseData = transformToSupabaseFormat(data);
     
+    // Check if there's a user to link to this application
+    const userId = typeof window !== 'undefined' ? localStorage.getItem('userId') : null;
+    if (userId) {
+      supabaseData.user_id = userId;
+    }
+    
     // Save to Supabase
     const savedApplication = await saveApplication(supabaseData);
     
