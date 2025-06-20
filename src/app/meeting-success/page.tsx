@@ -1,8 +1,11 @@
 import Link from 'next/link';
+import Navbar from '@/components/Navbar';
 
 export default function MeetingSuccessPage() {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-50 to-blue-50 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-to-br from-green-50 to-blue-50">
+      <Navbar />
+      <div className="flex items-center justify-center p-4" style={{minHeight: 'calc(100vh - 80px)'}}>
       <div className="max-w-2xl mx-auto text-center">
         {/* Success Icon */}
         <div className="mx-auto flex items-center justify-center h-20 w-20 rounded-full bg-green-100 mb-8">
@@ -123,6 +126,7 @@ export default function MeetingSuccessPage() {
             <div className="text-xs text-gray-400">🤝 Dedicated Support</div>
           </div>
         </div>
+      </div>
       </div>
     </div>
   );
