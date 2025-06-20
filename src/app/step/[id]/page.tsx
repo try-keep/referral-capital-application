@@ -2045,6 +2045,33 @@ function Step11Form({ onNext, formData, isSubmitting }: { onNext: (data: FormDat
     });
   }, [formData]);
 
+  // Credit score options mapping
+  const creditScoreOptions = {
+    'excellent': 'Excellent (750+)',
+    'good': 'Good (700-749)',
+    'fair': 'Fair (650-699)',
+    'below-average': 'Below Average (600-649)',
+    'poor': '(551-599)',
+    'very-poor': '(below 550)'
+  };
+
+  const handleCreditScoreChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const value = e.target.value;
+    const label = value ? creditScoreOptions[value as keyof typeof creditScoreOptions] : '';
+    // Combine both value and label in the creditScore field
+    const combinedValue = value && label ? `${value}|${label}` : value;
+    setLocalData({
+      ...localData, 
+      creditScore: combinedValue
+    });
+  };
+
+  // Helper function to extract the value part from combined creditScore
+  const getCreditScoreValue = () => {
+    if (!localData.creditScore) return '';
+    return localData.creditScore.includes('|') ? localData.creditScore.split('|')[0] : localData.creditScore;
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     onNext(localData);
@@ -2106,8 +2133,8 @@ function Step11Form({ onNext, formData, isSubmitting }: { onNext: (data: FormDat
           <select
             id="creditScore"
             required
-            value={localData.creditScore}
-            onChange={(e) => setLocalData({...localData, creditScore: e.target.value})}
+            value={getCreditScoreValue()}
+            onChange={handleCreditScoreChange}
             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           >
             <option value="">Select Credit Score Range</option>
