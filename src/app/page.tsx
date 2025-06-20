@@ -24,6 +24,11 @@ export default function HomePage() {
         * {
           box-sizing: border-box;
         }
+        /* Add scroll padding for FAQ anchor links to account for fixed navbar */
+        html {
+          scroll-padding-top: 7rem;
+          scroll-behavior: smooth;
+        }
       `}</style>
       
       <div className="page-wrapper">
