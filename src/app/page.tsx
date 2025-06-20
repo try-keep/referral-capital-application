@@ -446,10 +446,43 @@ export default function HomePage() {
                           </svg>
                         </div>
                       </div>
+                      <div className="spacer-xsmall"></div>
+                      <div className="capital-faq_link-content">
+                        <div className="capital-faq_link-wrapper is-h3">
+                          <a href="#business-eligible" className="capital-faq_link is-h3 w-inline-block">
+                            <div>Is my business eligible?</div>
+                          </a>
+                        </div>
+                        <div className="capital-faq_link-wrapper is-h3">
+                          <a href="#how-apply" className="capital-faq_link is-h3 w-inline-block">
+                            <div>How do I apply?</div>
+                          </a>
+                        </div>
+                        <div className="capital-faq_link-wrapper is-h3">
+                          <a href="#how-much-borrow" className="capital-faq_link is-h3 w-inline-block">
+                            <div>How much can I borrow?</div>
+                          </a>
+                        </div>
+                        <div className="capital-faq_link-wrapper is-h3">
+                          <a href="#interest-rate" className="capital-faq_link is-h3 w-inline-block">
+                            <div>What is the interest rate?</div>
+                          </a>
+                        </div>
+                        <div className="capital-faq_link-wrapper is-h3">
+                          <a href="#any-fees" className="capital-faq_link is-h3 w-inline-block">
+                            <div>Are there any fees?</div>
+                          </a>
+                        </div>
+                        <div className="capital-faq_link-wrapper is-h3">
+                          <a href="#repayment-periods" className="capital-faq_link is-h3 w-inline-block">
+                            <div>What are your repayment periods?</div>
+                          </a>
+                        </div>
+                      </div>
                     </div>
                     <div className="max-width-large">
                       <div className="text-rich-text w-richtext">
-                        <h3>Is my business eligible?</h3>
+                        <h3 id="business-eligible">Is my business eligible?</h3>
                         <p>We work hard to find a funding solution for every Canadian business. Your businesses eligibility depends on a few factor;</p>
                         <ul role="list">
                           <li>For most industries, 6 months trading history</li>
@@ -458,7 +491,7 @@ export default function HomePage() {
                           <li>Incorporated in Canada</li>
                         </ul>
                         <p>We're here to help, so feel free to get in touch and our team will check if you qualify.</p>
-                        <h3>How do I apply?</h3>
+                        <h3 id="how-apply">How do I apply?</h3>
                         <p>Simply complete our online form in as little as 10 minutes and get a decision within a business day – often just a few hours. For all applications, you'll need:</p>
                         <ul role="list">
                           <li>Your driver's license, or other official identification</li>
@@ -466,15 +499,15 @@ export default function HomePage() {
                           <li>Bank statements</li>
                           <li>Some basic financial statements like a P&L and cashflow, for loan amounts above $150K</li>
                         </ul>
-                        <h3>How much can I borrow?</h3>
+                        <h3 id="how-much-borrow">How much can I borrow?</h3>
                         <p>The amount you can borrow depends on several factors, including the financial health of your business, revenue projections and creditworthiness. In our application form, we ask for how much you'd like to borrow. We generally try to offer you the maximum amount possible, and let you tell us if you need a little less.</p>
-                        <h3>What is the interest rate?</h3>
+                        <h3 id="interest-rate">What is the interest rate?</h3>
                         <p>Interest rates for term loans range between 8% and 29%, cents on the dollar (This means the amount of interest paid ranges from $0.08 to $0.29 for each dollar borrowed).</p>
                         <p>When you apply for our business loan, we will assess the risk profile of your business and provide you with a customised offer including loan amount, term and interest rate.</p>
                         <p>We take into account your industry, how long you've been in business, your credit history and the health of your cash flow.</p>
-                        <h3>Are there any fees?</h3>
+                        <h3 id="any-fees">Are there any fees?</h3>
                         <p>We don't charge any hidden fees. You can apply for a loan with Keep, with no upfront cost or obligation to proceed. We also don't charge for our best offer guarantee - where we help find you the best loan between Keep and other lenders, irrespective of who funds your business.</p>
-                        <h3>What are your repayment periods?</h3>
+                        <h3 id="repayment-periods">What are your repayment periods?</h3>
                         <p>We have monthly, weekly, and daily repayment options for our loans. The frequency of payments depends on the size of the loan and the credit worthiness of your business.</p>
                         <p>If we deem a large loan is a little riskier, it's likely that both Keep and other lenders will offer a loan with more frequent repayment periods.</p>
                       </div>
