@@ -86,7 +86,7 @@ export default function StepPage() {
       11: ['annualRevenue', 'cashFlow', 'creditScore'],
       12: ['bankConnectionCompleted'],
       13: ['businessAddress', 'businessPhone'],
-      14: ['agreesToTerms']
+      14: ['agreesToTerms', 'authorizesCreditCheck']
     };
 
     // Check all steps up to the current one
@@ -777,14 +777,16 @@ function Step12Form({ onNext, formData, isSubmitting }: { onNext: (data: FormDat
 // Step 14: Review & Submit
 function Step14Form({ onNext, formData, isSubmitting }: { onNext: (data: FormData) => void, formData: FormData, isSubmitting: boolean }) {
   const [localData, setLocalData] = useState({
-    agreesToTerms: formData.agreesToTerms === 'true'
+    agreesToTerms: formData.agreesToTerms === 'true',
+    authorizesCreditCheck: formData.authorizesCreditCheck === 'true'
   });
 
   // Update local data when formData prop changes (for when user navigates back)
   useEffect(() => {
     console.log('🔄 Step14Form - formData prop changed:', formData);
     setLocalData({
-      agreesToTerms: formData.agreesToTerms === 'true'
+      agreesToTerms: formData.agreesToTerms === 'true',
+      authorizesCreditCheck: formData.authorizesCreditCheck === 'true'
     });
   }, [formData]);
 
@@ -794,12 +796,17 @@ function Step14Form({ onNext, formData, isSubmitting }: { onNext: (data: FormDat
       alert('Please confirm that all information provided is accurate and complete');
       return;
     }
+    if (!localData.authorizesCreditCheck) {
+      alert('Please authorize the credit check to proceed with your application');
+      return;
+    }
     
     // Get user's IP address
     const ipAddress = await getUserIpAddress();
     
     onNext({
       agreesToTerms: localData.agreesToTerms.toString(),
+      authorizesCreditCheck: localData.authorizesCreditCheck.toString(),
       ipAddress: ipAddress || ''
     });
   };
@@ -865,12 +872,25 @@ function Step14Form({ onNext, formData, isSubmitting }: { onNext: (data: FormDat
             </label>
           </div>
           
+          <div className="flex items-start">
+            <input
+              type="checkbox"
+              id="authorizesCreditCheck"
+              checked={localData.authorizesCreditCheck}
+              onChange={(e) => setLocalData({...localData, authorizesCreditCheck: e.target.checked})}
+              className="mt-1 mr-3 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+            />
+            <label htmlFor="authorizesCreditCheck" className="text-sm text-gray-700">
+              I authorize Keep Technologies and its lending partners to obtain and use my personal and business credit information from one or more credit reporting agencies, including a soft or hard inquiry, for the purposes of assessing this application for business financing.
+            </label>
+          </div>
+          
         </div>
         
         <div className="mt-8">
           <button
             type="submit"
-            disabled={isSubmitting || !localData.agreesToTerms}
+            disabled={isSubmitting || !localData.agreesToTerms || !localData.authorizesCreditCheck}
             className="w-full bg-green-600 text-white py-4 px-6 rounded-lg font-semibold hover:bg-green-700 transition-colors disabled:opacity-50 text-lg"
           >
             {isSubmitting ? 'Submitting Application...' : 'Submit Application'}
