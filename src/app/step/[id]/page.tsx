@@ -65,8 +65,15 @@ export default function StepPage() {
   const saveFormData = (data: FormData) => {
     const updatedData = { ...formData, ...data };
     console.log('💾 Saving form data:', updatedData);
+    console.log('💾 Previous formData was:', formData);
+    console.log('💾 New stepData is:', data);
+    console.log('💾 Merged data being saved:', updatedData);
     setFormData(updatedData);
     localStorage.setItem('referralApplicationData', JSON.stringify(updatedData));
+    
+    // Verify it was saved
+    const savedCheck = localStorage.getItem('referralApplicationData');
+    console.log('💾 Verification - data in localStorage:', savedCheck);
   };
 
   // Check if a step is accessible based on completed previous steps
@@ -123,13 +130,23 @@ export default function StepPage() {
 
   useEffect(() => {
     const savedData = localStorage.getItem('referralApplicationData');
+    console.log('📋 Raw saved data from localStorage:', savedData);
     if (savedData) {
       const parsedData = JSON.parse(savedData);
       console.log('📋 Loading saved form data:', parsedData);
+      console.log('📋 Current step is:', currentStep);
+      console.log('📋 Setting formData to:', parsedData);
       setFormData(parsedData);
       
-      // Only check step accessibility on initial load, not during navigation
-      if (initialLoad) {
+      // Only check step accessibility if this is a direct URL access (not programmatic navigation)
+      // Check if we came from programmatic navigation by looking for a flag
+      const isProgrammaticNavigation = sessionStorage.getItem('isProgrammaticNavigation');
+      if (isProgrammaticNavigation) {
+        // Clear the flag and skip step protection
+        sessionStorage.removeItem('isProgrammaticNavigation');
+        console.log('⏭️ Skipping step protection - programmatic navigation');
+      } else if (initialLoad) {
+        // Only run step protection for direct URL access
         setTimeout(() => {
           if (!isStepAccessible(currentStep)) {
             console.log(`🚫 Redirecting from step ${currentStep} - requirements not met`);
@@ -145,8 +162,8 @@ export default function StepPage() {
             router.push(`/step/${accessibleStep}`);
           }
         }, 100); // Small delay to ensure formData is set
-        setInitialLoad(false);
       }
+      setInitialLoad(false);
     } else {
       console.log('📋 No saved form data found');
       // If no saved data and not on step 1, redirect to step 1
@@ -436,6 +453,8 @@ export default function StepPage() {
       }
       
       await new Promise(resolve => setTimeout(resolve, 500));
+      // Set flag to indicate this is programmatic navigation
+      sessionStorage.setItem('isProgrammaticNavigation', 'true');
       router.push(`/step/${nextStep}`);
     } else {
       // Submit to backend for final step
@@ -451,7 +470,12 @@ export default function StepPage() {
           window.fbq('track', 'CompleteRegistration');
         }
         
-        // Store application ID for success page
+        // Clear form data after successful submission so user can start fresh
+        localStorage.removeItem('referralApplicationData');
+        localStorage.removeItem('userId');
+        console.log('🧹 Form data and user session cleared after successful submission');
+        
+        // Store application ID for success page (after clearing old data)
         localStorage.setItem('applicationId', response.applicationId.toString());
         localStorage.setItem('submissionSuccess', 'true');
         
@@ -466,6 +490,8 @@ export default function StepPage() {
 
   const handleBack = () => {
     if (currentStep > 1) {
+      // Set flag to indicate this is programmatic navigation
+      sessionStorage.setItem('isProgrammaticNavigation', 'true');
       router.push(`/step/${currentStep - 1}`);
     } else {
       router.push('/');
@@ -475,39 +501,39 @@ export default function StepPage() {
   const renderStepContent = () => {
     switch (currentStep) {
       case 1:
-        return <Step1Form onNext={handleNext} formData={formData} isSubmitting={isSubmitting} />;
+        return <Step1Form key={`step1-${currentStep}`} onNext={handleNext} formData={formData} isSubmitting={isSubmitting} />;
       case 2:
         // Personal Information (moved from step 7)
-        return <Step7Form onNext={handleNext} formData={formData} isSubmitting={isSubmitting} />;
+        return <Step7Form key={`step7-${currentStep}`} onNext={handleNext} formData={formData} isSubmitting={isSubmitting} />;
       case 3:
         // Business Owner (moved from step 2)
-        return <Step2Form onNext={handleNext} formData={formData} isSubmitting={isSubmitting} />;
+        return <Step2Form key={`step2-${currentStep}`} onNext={handleNext} formData={formData} isSubmitting={isSubmitting} />;
       case 4:
         // Business Search (moved from step 3)
-        return <BusinessSearchForm onNext={handleNext} formData={formData} isSubmitting={isSubmitting} />;
+        return <BusinessSearchForm key={`business-search-${currentStep}`} onNext={handleNext} formData={formData} isSubmitting={isSubmitting} />;
       case 5:
         // Step 5 is dedicated to manual business name entry (conditional)
-        return <Step6Form onNext={handleNext} formData={formData} isSubmitting={isSubmitting} />;
+        return <Step6Form key={`step6-${currentStep}`} onNext={handleNext} formData={formData} isSubmitting={isSubmitting} />;
       case 6:
         // Monthly Sales (moved from step 5)
-        return <Step3Form onNext={handleNext} formData={formData} isSubmitting={isSubmitting} />;
+        return <Step3Form key={`step3-${currentStep}`} onNext={handleNext} formData={formData} isSubmitting={isSubmitting} />;
       case 7:
         // Existing Loans (moved from step 6)
-        return <Step4Form onNext={handleNext} formData={formData} isSubmitting={isSubmitting} />;
+        return <Step4Form key={`step4-${currentStep}`} onNext={handleNext} formData={formData} isSubmitting={isSubmitting} />;
       case 8:
-        return <Step8Form onNext={handleNext} formData={formData} isSubmitting={isSubmitting} />;
+        return <Step8Form key={`step8-${currentStep}`} onNext={handleNext} formData={formData} isSubmitting={isSubmitting} />;
       case 9:
-        return <Step9Form onNext={handleNext} formData={formData} isSubmitting={isSubmitting} />;
+        return <Step9Form key={`step9-${currentStep}`} onNext={handleNext} formData={formData} isSubmitting={isSubmitting} />;
       case 10:
-        return <Step10Form onNext={handleNext} formData={formData} isSubmitting={isSubmitting} />;
+        return <Step10Form key={`step10-${currentStep}`} onNext={handleNext} formData={formData} isSubmitting={isSubmitting} />;
       case 11:
-        return <Step11Form onNext={handleNext} formData={formData} isSubmitting={isSubmitting} />;
+        return <Step11Form key={`step11-${currentStep}`} onNext={handleNext} formData={formData} isSubmitting={isSubmitting} />;
       case 12:
-        return <Step12Form onNext={handleNext} formData={formData} isSubmitting={isSubmitting} />;
+        return <Step12Form key={`step12-${currentStep}`} onNext={handleNext} formData={formData} isSubmitting={isSubmitting} />;
       case 13:
-        return <Step13Form onNext={handleNext} formData={formData} isSubmitting={isSubmitting} />;
+        return <Step13Form key={`step13-${currentStep}`} onNext={handleNext} formData={formData} isSubmitting={isSubmitting} />;
       case 14:
-        return <Step14Form onNext={handleNext} formData={formData} isSubmitting={isSubmitting} />;
+        return <Step14Form key={`step14-${currentStep}`} onNext={handleNext} formData={formData} isSubmitting={isSubmitting} />;
       default:
         return <div>Step not found</div>;
     }
@@ -595,6 +621,17 @@ function Step10Form({ onNext, formData, isSubmitting }: { onNext: (data: FormDat
     numberOfEmployees: formData.numberOfEmployees || '',
     websiteUrl: formData.websiteUrl || ''
   });
+
+  // Update local data when formData prop changes (for when user navigates back)
+  useEffect(() => {
+    console.log('🔄 Step10Form - formData prop changed:', formData);
+    setLocalData({
+      businessType: formData.businessType || '',
+      businessAge: formData.businessAge || '',
+      numberOfEmployees: formData.numberOfEmployees || '',
+      websiteUrl: formData.websiteUrl || ''
+    });
+  }, [formData]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -708,6 +745,15 @@ function Step6Form({ onNext, formData, isSubmitting }: { onNext: (data: FormData
   });
   const [isSubmittingInternal, setIsSubmittingInternal] = useState(false);
 
+  // Update local data when formData prop changes (for when user navigates back)
+  useEffect(() => {
+    console.log('🔄 Step6Form - formData prop changed:', formData);
+    setLocalData({
+      businessName: formData.businessName || '',
+      legalBusinessName: formData.legalBusinessName || ''
+    });
+  }, [formData]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!localData.legalBusinessName) {
@@ -786,6 +832,14 @@ function Step12Form({ onNext, formData, isSubmitting }: { onNext: (data: FormDat
     bankConnectionCompleted: formData.bankConnectionCompleted || false
   });
 
+  // Update local data when formData prop changes (for when user navigates back)
+  useEffect(() => {
+    console.log('🔄 Step12Form - formData prop changed:', formData);
+    setLocalData({
+      bankConnectionCompleted: formData.bankConnectionCompleted || false
+    });
+  }, [formData]);
+
 
   const handleCompleteConnection = () => {
     onNext({ ...localData, bankConnectionCompleted: 'true' });
@@ -850,6 +904,14 @@ function Step14Form({ onNext, formData, isSubmitting }: { onNext: (data: FormDat
   const [localData, setLocalData] = useState({
     agreesToTerms: formData.agreesToTerms === 'true'
   });
+
+  // Update local data when formData prop changes (for when user navigates back)
+  useEffect(() => {
+    console.log('🔄 Step14Form - formData prop changed:', formData);
+    setLocalData({
+      agreesToTerms: formData.agreesToTerms === 'true'
+    });
+  }, [formData]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -956,6 +1018,17 @@ function BusinessSearchForm({ onNext, formData, isSubmitting }: { onNext: (data:
     selectedBusiness: formData.selectedBusiness || '',
     businessConfirmed: formData.businessConfirmed || false
   });
+
+  // Update local data when formData prop changes (for when user navigates back)
+  useEffect(() => {
+    console.log('🔄 BusinessSearchForm - formData prop changed:', formData);
+    setLocalData({
+      businessName: formData.businessName || '',
+      businessSearchQuery: formData.businessSearchQuery || '',
+      selectedBusiness: formData.selectedBusiness || '',
+      businessConfirmed: formData.businessConfirmed || false
+    });
+  }, [formData]);
   
   const [searchResults, setSearchResults] = useState<BusinessRegistryResult[]>([]);
   const [isSearching, setIsSearching] = useState(false);
@@ -1237,6 +1310,14 @@ function Step1Form({ onNext, formData, isSubmitting }: { onNext: (data: FormData
     loanType: formData.loanType || ''
   });
 
+  // Update local data when formData prop changes (for when user navigates back)
+  useEffect(() => {
+    console.log('🔄 Step1Form - formData prop changed:', formData);
+    setLocalData({
+      loanType: formData.loanType || ''
+    });
+  }, [formData]);
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!localData.loanType) {
@@ -1348,6 +1429,14 @@ function Step2Form({ onNext, formData, isSubmitting }: { onNext: (data: FormData
     isBusinessOwner: formData.isBusinessOwner || ''
   });
 
+  // Update local data when formData prop changes (for when user navigates back)
+  useEffect(() => {
+    console.log('🔄 Step2Form - formData prop changed:', formData);
+    setLocalData({
+      isBusinessOwner: formData.isBusinessOwner || ''
+    });
+  }, [formData]);
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!localData.isBusinessOwner) {
@@ -1440,6 +1529,14 @@ function Step3Form({ onNext, formData, isSubmitting }: { onNext: (data: FormData
     monthlySales: formData.monthlySales || ''
   });
 
+  // Update local data when formData prop changes (for when user navigates back)
+  useEffect(() => {
+    console.log('🔄 Step3Form - formData prop changed:', formData);
+    setLocalData({
+      monthlySales: formData.monthlySales || ''
+    });
+  }, [formData]);
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!localData.monthlySales) {
@@ -1518,6 +1615,15 @@ function Step4Form({ onNext, formData, isSubmitting }: { onNext: (data: FormData
     hasExistingLoans: formData.hasExistingLoans || '',
     totalLoanAmount: formData.totalLoanAmount || ''
   });
+
+  // Update local data when formData prop changes (for when user navigates back)
+  useEffect(() => {
+    console.log('🔄 Step4Form - formData prop changed:', formData);
+    setLocalData({
+      hasExistingLoans: formData.hasExistingLoans || '',
+      totalLoanAmount: formData.totalLoanAmount || ''
+    });
+  }, [formData]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -1802,10 +1908,15 @@ function Step7Form({ onNext, formData, isSubmitting }: { onNext: (data: FormData
     phone: formData.phone || ''
   });
 
-  // Debug logging to see if data is being received
+  // Update local data when formData prop changes (for when user navigates back)
   useEffect(() => {
-    console.log('👤 Step7Form received formData:', formData);
-    console.log('👤 Step7Form localData initialized:', localData);
+    console.log('🔄 Step7Form - formData prop changed:', formData);
+    setLocalData({
+      firstName: formData.firstName || '',
+      lastName: formData.lastName || '',
+      email: formData.email || '',
+      phone: formData.phone || ''
+    });
   }, [formData]);
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -1895,6 +2006,15 @@ function Step8Form({ onNext, formData, isSubmitting }: { onNext: (data: FormData
     fundingTimeline: formData.fundingTimeline || ''
   });
 
+  // Update local data when formData prop changes (for when user navigates back)
+  useEffect(() => {
+    console.log('🔄 Step8Form - formData prop changed:', formData);
+    setLocalData({
+      fundingAmount: formData.fundingAmount || '',
+      fundingTimeline: formData.fundingTimeline || ''
+    });
+  }, [formData]);
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     onNext(localData);
@@ -1959,6 +2079,14 @@ function Step9Form({ onNext, formData, isSubmitting }: { onNext: (data: FormData
     fundingPurpose: formData.fundingPurpose || ''
   });
 
+  // Update local data when formData prop changes (for when user navigates back)
+  useEffect(() => {
+    console.log('🔄 Step9Form - formData prop changed:', formData);
+    setLocalData({
+      fundingPurpose: formData.fundingPurpose || ''
+    });
+  }, [formData]);
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     onNext(localData);
@@ -2010,6 +2138,17 @@ function Step11Form({ onNext, formData, isSubmitting }: { onNext: (data: FormDat
     creditScore: formData.creditScore || '',
     timeInBusiness: formData.timeInBusiness || ''
   });
+
+  // Update local data when formData prop changes (for when user navigates back)
+  useEffect(() => {
+    console.log('🔄 Step11Form - formData prop changed:', formData);
+    setLocalData({
+      annualRevenue: formData.annualRevenue || '',
+      cashFlow: formData.cashFlow || '',
+      creditScore: formData.creditScore || '',
+      timeInBusiness: formData.timeInBusiness || ''
+    });
+  }, [formData]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -2127,6 +2266,16 @@ function Step13Form({ onNext, formData, isSubmitting }: { onNext: (data: FormDat
     businessPhone: formData.businessPhone || '',
     additionalInfo: formData.additionalInfo || ''
   });
+
+  // Update local data when formData prop changes (for when user navigates back)
+  useEffect(() => {
+    console.log('🔄 Step13Form - formData prop changed:', formData);
+    setLocalData({
+      businessAddress: formData.businessAddress || '',
+      businessPhone: formData.businessPhone || '',
+      additionalInfo: formData.additionalInfo || ''
+    });
+  }, [formData]);
 
   // Address autocomplete state
   const [addressSuggestions, setAddressSuggestions] = useState<GeoapifyFeature[]>([]);
