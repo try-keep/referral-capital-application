@@ -235,14 +235,16 @@ export default function HomePage() {
                           <p>Available to businesses with more than $10,000 per month in revenue</p>
                         </div>
                       </div>
-                      <div className="spacer-medium"></div>
-                      <div className="header-capital-loan_button-wrapper">
-                        <a href="/step/1" className="button is-primary w-inline-block">
-                          <div>Get My Offer</div>
-                        </a>
-                        <a href="/referral-meeting" className="button is-secondary w-inline-block">
-                          <div>Book a Call</div>
-                        </a>
+                      <div className="spacer-medium hide-mobile-landscape"></div>
+                      <div className="button-group hide-mobile-landscape">
+                        <div className="card-cta">
+                          <div className="card-cta_wrapper">
+                            <a href="/step/1" className="button is-xlarge w-button">Get My Offer</a>
+                            <a href="/referral-meeting" className="button is-secondary is-xlarge w-button">Book a Call</a>
+                          </div>
+                          <div className="spacer-xsmall"></div>
+                          <p className="text-size-small text-color-secondary">Applications do not impact your credit score<sup>1</sup></p>
+                        </div>
                       </div>
                     </div>
                     <div className="header-capital-loan_image-wrapper">
@@ -613,8 +615,6 @@ export default function HomePage() {
         </div>
       </div>
 
-      {/* Scripts */}
-      <Script src="/js/keep-capital.js" strategy="afterInteractive" />
     </>
   );
 }
