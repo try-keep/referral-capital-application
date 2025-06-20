@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 
 // Declare Facebook Pixel types
@@ -61,28 +61,102 @@ export default function StepPage() {
   const [formData, setFormData] = useState<FormData>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  useEffect(() => {
-    const savedData = localStorage.getItem('referralApplicationData');
-    if (savedData) {
-      const parsedData = JSON.parse(savedData);
-      console.log('📋 Loading saved form data:', parsedData);
-      setFormData(parsedData);
-    } else {
-      console.log('📋 No saved form data found');
-    }
-    
-    // Fire Facebook Pixel event for application start page view
-    if (currentStep === 1 && typeof window !== 'undefined' && window.fbq) {
-      window.fbq('track', 'ViewContent', { content_name: 'Application Start' });
-    }
-  }, [currentStep]);
-
   const saveFormData = (data: FormData) => {
     const updatedData = { ...formData, ...data };
     console.log('💾 Saving form data:', updatedData);
     setFormData(updatedData);
     localStorage.setItem('referralApplicationData', JSON.stringify(updatedData));
   };
+
+  // Check if a step is accessible based on completed previous steps
+  const isStepAccessible = useCallback((step: number): boolean => {
+    if (step === 1) return true; // Step 1 is always accessible
+    
+    // Check if all previous steps have been completed
+    const requiredFields: Record<number, (keyof FormData)[]> = {
+      2: ['loanType'],
+      3: ['firstName', 'lastName', 'email'], // Personal info (now at step 2)
+      4: ['isBusinessOwner'], // Business owner (now at step 3)
+      5: ['businessName'], // Business search/name (conditional: only if businessConfirmed exists)
+      6: ['monthlySales'],
+      7: ['hasExistingLoans'],
+      8: ['fundingAmount', 'fundingTimeline'],
+      9: ['fundingPurpose'],
+      10: ['businessType', 'businessAge', 'numberOfEmployees'],
+      11: ['annualRevenue', 'cashFlow', 'creditScore'],
+      12: ['bankConnectionCompleted'],
+      13: ['businessAddress', 'businessPhone'],
+      14: ['agreesToTerms']
+    };
+
+    // Check all steps up to the current one
+    for (let i = 2; i <= step; i++) {
+      const fields = requiredFields[i] || [];
+      
+      // Special handling for conditional steps
+      if (i === 5) {
+        // Step 5 (manual business entry) is only required if business search wasn't verified
+        // If businessConfirmed is 'true', skip step 5 validation
+        if (formData.businessConfirmed === 'true') {
+          continue; // Skip step 5 validation
+        }
+        // If businessConfirmed is 'false', then we need businessName from manual entry
+        if (formData.businessConfirmed === 'false' && !formData.businessName) {
+          console.log(`🚫 Step ${step} not accessible: missing manual businessName from step 5`);
+          return false;
+        }
+        continue;
+      }
+      
+      // Regular field validation
+      for (const field of fields) {
+        if (!formData[field]) {
+          console.log(`🚫 Step ${step} not accessible: missing ${field} from step ${i}`);
+          return false;
+        }
+      }
+    }
+    
+    return true;
+  }, [formData]);
+
+  useEffect(() => {
+    const savedData = localStorage.getItem('referralApplicationData');
+    if (savedData) {
+      const parsedData = JSON.parse(savedData);
+      console.log('📋 Loading saved form data:', parsedData);
+      setFormData(parsedData);
+      
+      // Check if current step is accessible after loading form data
+      setTimeout(() => {
+        if (!isStepAccessible(currentStep)) {
+          console.log(`🚫 Redirecting from step ${currentStep} - requirements not met`);
+          // Find the highest accessible step
+          let accessibleStep = 1;
+          for (let i = 1; i <= 14; i++) {
+            if (isStepAccessible(i)) {
+              accessibleStep = i;
+            } else {
+              break;
+            }
+          }
+          router.push(`/step/${accessibleStep}`);
+        }
+      }, 100); // Small delay to ensure formData is set
+    } else {
+      console.log('📋 No saved form data found');
+      // If no saved data and not on step 1, redirect to step 1
+      if (currentStep !== 1) {
+        console.log(`🚫 No saved data, redirecting from step ${currentStep} to step 1`);
+        router.push('/step/1');
+      }
+    }
+    
+    // Fire Facebook Pixel event for application start page view
+    if (currentStep === 1 && typeof window !== 'undefined' && window.fbq) {
+      window.fbq('track', 'ViewContent', { content_name: 'Application Start' });
+    }
+  }, [currentStep, router, isStepAccessible]);
 
   const handleNext = async (stepData: FormData) => {
     setIsSubmitting(true);
