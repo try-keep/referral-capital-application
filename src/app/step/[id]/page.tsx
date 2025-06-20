@@ -60,6 +60,7 @@ export default function StepPage() {
   const currentStep = parseInt(params.id as string);
   const [formData, setFormData] = useState<FormData>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [initialLoad, setInitialLoad] = useState(true);
 
   const saveFormData = (data: FormData) => {
     const updatedData = { ...formData, ...data };
@@ -127,22 +128,25 @@ export default function StepPage() {
       console.log('📋 Loading saved form data:', parsedData);
       setFormData(parsedData);
       
-      // Check if current step is accessible after loading form data
-      setTimeout(() => {
-        if (!isStepAccessible(currentStep)) {
-          console.log(`🚫 Redirecting from step ${currentStep} - requirements not met`);
-          // Find the highest accessible step
-          let accessibleStep = 1;
-          for (let i = 1; i <= 14; i++) {
-            if (isStepAccessible(i)) {
-              accessibleStep = i;
-            } else {
-              break;
+      // Only check step accessibility on initial load, not during navigation
+      if (initialLoad) {
+        setTimeout(() => {
+          if (!isStepAccessible(currentStep)) {
+            console.log(`🚫 Redirecting from step ${currentStep} - requirements not met`);
+            // Find the highest accessible step
+            let accessibleStep = 1;
+            for (let i = 1; i <= 14; i++) {
+              if (isStepAccessible(i)) {
+                accessibleStep = i;
+              } else {
+                break;
+              }
             }
+            router.push(`/step/${accessibleStep}`);
           }
-          router.push(`/step/${accessibleStep}`);
-        }
-      }, 100); // Small delay to ensure formData is set
+        }, 100); // Small delay to ensure formData is set
+        setInitialLoad(false);
+      }
     } else {
       console.log('📋 No saved form data found');
       // If no saved data and not on step 1, redirect to step 1
@@ -150,13 +154,14 @@ export default function StepPage() {
         console.log(`🚫 No saved data, redirecting from step ${currentStep} to step 1`);
         router.push('/step/1');
       }
+      setInitialLoad(false);
     }
     
     // Fire Facebook Pixel event for application start page view
     if (currentStep === 1 && typeof window !== 'undefined' && window.fbq) {
       window.fbq('track', 'ViewContent', { content_name: 'Application Start' });
     }
-  }, [currentStep, router, isStepAccessible]);
+  }, [currentStep, router]);
 
   const handleNext = async (stepData: FormData) => {
     setIsSubmitting(true);
