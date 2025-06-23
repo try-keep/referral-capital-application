@@ -163,7 +163,7 @@ export default function HomePage() {
                   <a href="#faq" aria-label="Link to FAQ Section" className="navbar_navlink w-nav-link">FAQ</a>
                 </div>
                 <div>
-                  <a href="#" aria-label="Link to Testimonials Section" className="navbar_navlink w-nav-link">Testimonials</a>
+                  <a href="#testimonials" aria-label="Link to Testimonials Section" className="navbar_navlink w-nav-link">Testimonials</a>
                 </div>
               </div>
               <div className="navbar_right-content-wrapper back-light-7">
@@ -244,8 +244,8 @@ export default function HomePage() {
                       <div className="button-group hide-mobile-landscape">
                         <div className="card-cta">
                           <div className="card-cta_wrapper">
-                            <a href="/step/1" className="button is-xlarge w-button">Get My Offer</a>
-                            <a href="/referral-meeting" className="button is-secondary is-xlarge w-button">Book a Call</a>
+                            <a href="/step/1" className="button is-xlarge w-button">Apply in Minutes</a>
+                            <a href="/referral-meeting" className="button is-secondary is-xlarge w-button">Speak to a Lending Expert</a>
                           </div>
                           <div className="spacer-xsmall"></div>
                           <p className="text-size-small text-color-secondary">Applications do not impact your credit score<sup>1</sup></p>
