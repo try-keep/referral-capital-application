@@ -74,18 +74,19 @@ export default function StepPage() {
     
     // Check if all previous steps have been completed
     const requiredFields: Record<number, (keyof FormData)[]> = {
-      2: ['loanType'],
-      3: ['firstName', 'lastName', 'email'], // Personal info (now at step 2)
-      4: ['isBusinessOwner'], // Business owner (now at step 3)
-      5: ['businessName'], // Business search/name (conditional: only if businessConfirmed exists)
-      6: ['monthlySales'],
-      7: ['hasExistingLoans'],
-      8: ['fundingAmount', 'fundingTimeline'],
-      9: ['fundingPurpose'],
-      10: ['businessType', 'businessAge', 'numberOfEmployees'],
-      11: ['annualRevenue', 'cashFlow', 'creditScore'],
-      12: ['bankConnectionCompleted'],
-      13: ['businessAddress', 'businessPhone'],
+      1: ['loanType'],
+      2: ['firstName', 'lastName', 'email', 'addressLine1', 'city', 'province', 'postalCode'], // Personal info with address
+      3: ['isBusinessOwner'], // Business owner
+      4: ['businessName'], // Business search/name (conditional: only if businessConfirmed exists)
+      5: ['monthlySales'],
+      6: ['hasExistingLoans'],
+      7: ['fundingAmount', 'fundingTimeline'],
+      8: ['fundingPurpose'],
+      9: ['businessType', 'businessAge', 'numberOfEmployees'],
+      10: ['annualRevenue', 'cashFlow', 'creditScore'],
+      11: ['bankConnectionCompleted'],
+      12: ['businessAddress', 'businessPhone'],
+      13: [], // Additional Details - no required fields
       14: ['agreesToTerms', 'authorizesCreditCheck']
     };
 
@@ -94,15 +95,15 @@ export default function StepPage() {
       const fields = requiredFields[i] || [];
       
       // Special handling for conditional steps
-      if (i === 5) {
-        // Step 5 (manual business entry) is only required if business search wasn't verified
-        // If businessConfirmed is 'true', skip step 5 validation
+      if (i === 4) {
+        // Step 4 (manual business entry) is only required if business search wasn't verified
+        // If businessConfirmed is 'true', skip step 4 validation
         if (formData.businessConfirmed === 'true') {
-          continue; // Skip step 5 validation
+          continue; // Skip step 4 validation
         }
         // If businessConfirmed is 'false', then we need businessName from manual entry
         if (formData.businessConfirmed === 'false' && !formData.businessName) {
-          console.log(`🚫 Step ${step} not accessible: missing manual businessName from step 5`);
+          console.log(`🚫 Step ${step} not accessible: missing manual businessName from step 4`);
           return false;
         }
         continue;
