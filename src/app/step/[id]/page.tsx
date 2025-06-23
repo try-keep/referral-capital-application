@@ -208,6 +208,11 @@ export default function StepPage() {
             last_name: stepData.lastName || '',
             email: stepData.email || '',
             phone: stepData.phone || '',
+            address_line1: stepData.addressLine1 || '',
+            address_line2: stepData.addressLine2 || '',
+            city: stepData.city || '',
+            province: stepData.province || '',
+            postal_code: stepData.postalCode || '',
             role_in_business: stepData.roleInBusiness || '',
             ownership_percentage: stepData.ownershipPercentage ? parseInt(stepData.ownershipPercentage) : undefined,
             source: 'referral_application',
@@ -1800,7 +1805,12 @@ function Step7Form({ onNext, formData, isSubmitting }: { onNext: (data: FormData
     firstName: formData.firstName || '',
     lastName: formData.lastName || '',
     email: formData.email || '',
-    phone: formData.phone || ''
+    phone: formData.phone || '',
+    addressLine1: formData.addressLine1 || '',
+    addressLine2: formData.addressLine2 || '',
+    city: formData.city || '',
+    province: formData.province || '',
+    postalCode: formData.postalCode || ''
   });
 
   // Update local data when formData prop changes (for when user navigates back)
@@ -1810,7 +1820,12 @@ function Step7Form({ onNext, formData, isSubmitting }: { onNext: (data: FormData
       firstName: formData.firstName || '',
       lastName: formData.lastName || '',
       email: formData.email || '',
-      phone: formData.phone || ''
+      phone: formData.phone || '',
+      addressLine1: formData.addressLine1 || '',
+      addressLine2: formData.addressLine2 || '',
+      city: formData.city || '',
+      province: formData.province || '',
+      postalCode: formData.postalCode || ''
     });
   }, [formData]);
 
@@ -1878,6 +1893,101 @@ function Step7Form({ onNext, formData, isSubmitting }: { onNext: (data: FormData
             onChange={(e) => setLocalData({...localData, phone: e.target.value})}
             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           />
+        </div>
+      </div>
+      
+      <div className="mt-6">
+        <h3 className="text-lg font-medium text-gray-900 mb-4">Address Information</h3>
+        
+        <div className="mb-6">
+          <label htmlFor="addressLine1" className="block text-sm font-medium text-gray-700 mb-2">
+            Street Address *
+          </label>
+          <input
+            type="text"
+            id="addressLine1"
+            required
+            value={localData.addressLine1}
+            onChange={(e) => setLocalData({...localData, addressLine1: e.target.value})}
+            placeholder="123 Main Street"
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          />
+        </div>
+        
+        <div className="mb-6">
+          <label htmlFor="addressLine2" className="block text-sm font-medium text-gray-700 mb-2">
+            Apartment, suite, etc. (Optional)
+          </label>
+          <input
+            type="text"
+            id="addressLine2"
+            value={localData.addressLine2}
+            onChange={(e) => setLocalData({...localData, addressLine2: e.target.value})}
+            placeholder="Suite 100"
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          />
+        </div>
+        
+        <div className="grid md:grid-cols-3 gap-6">
+          <div>
+            <label htmlFor="city" className="block text-sm font-medium text-gray-700 mb-2">
+              City *
+            </label>
+            <input
+              type="text"
+              id="city"
+              required
+              value={localData.city}
+              onChange={(e) => setLocalData({...localData, city: e.target.value})}
+              placeholder="Toronto"
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            />
+          </div>
+          
+          <div>
+            <label htmlFor="province" className="block text-sm font-medium text-gray-700 mb-2">
+              Province *
+            </label>
+            <select
+              id="province"
+              required
+              value={localData.province}
+              onChange={(e) => setLocalData({...localData, province: e.target.value})}
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            >
+              <option value="">Select Province</option>
+              <option value="AB">Alberta</option>
+              <option value="BC">British Columbia</option>
+              <option value="MB">Manitoba</option>
+              <option value="NB">New Brunswick</option>
+              <option value="NL">Newfoundland and Labrador</option>
+              <option value="NS">Nova Scotia</option>
+              <option value="ON">Ontario</option>
+              <option value="PE">Prince Edward Island</option>
+              <option value="QC">Quebec</option>
+              <option value="SK">Saskatchewan</option>
+              <option value="NT">Northwest Territories</option>
+              <option value="NU">Nunavut</option>
+              <option value="YT">Yukon</option>
+            </select>
+          </div>
+          
+          <div>
+            <label htmlFor="postalCode" className="block text-sm font-medium text-gray-700 mb-2">
+              Postal Code *
+            </label>
+            <input
+              type="text"
+              id="postalCode"
+              required
+              value={localData.postalCode}
+              onChange={(e) => setLocalData({...localData, postalCode: e.target.value.toUpperCase()})}
+              placeholder="M5V 3A8"
+              pattern="[A-Z][0-9][A-Z] [0-9][A-Z][0-9]"
+              maxLength={7}
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            />
+          </div>
         </div>
       </div>
       
