@@ -1832,6 +1832,55 @@ function Step7Form({ onNext, formData, isSubmitting }: { onNext: (data: FormData
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Validate required fields
+    if (!localData.firstName.trim()) {
+      alert('Please enter your first name');
+      return;
+    }
+    if (!localData.lastName.trim()) {
+      alert('Please enter your last name');
+      return;
+    }
+    if (!localData.email.trim()) {
+      alert('Please enter your email address');
+      return;
+    }
+    if (!localData.phone.trim()) {
+      alert('Please enter your phone number');
+      return;
+    }
+    if (!localData.addressLine1.trim()) {
+      alert('Please enter your street address');
+      return;
+    }
+    if (!localData.city.trim()) {
+      alert('Please enter your city');
+      return;
+    }
+    if (!localData.province.trim()) {
+      alert('Please select your province');
+      return;
+    }
+    if (!localData.postalCode.trim()) {
+      alert('Please enter your postal code');
+      return;
+    }
+    
+    // Basic email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(localData.email)) {
+      alert('Please enter a valid email address');
+      return;
+    }
+    
+    // Basic Canadian postal code validation
+    const postalCodeRegex = /^[A-Z]\d[A-Z]\s?\d[A-Z]\d$/;
+    if (!postalCodeRegex.test(localData.postalCode.toUpperCase())) {
+      alert('Please enter a valid Canadian postal code (e.g., M5V 3A8)');
+      return;
+    }
+    
     onNext(localData);
   };
 
@@ -1897,8 +1946,11 @@ function Step7Form({ onNext, formData, isSubmitting }: { onNext: (data: FormData
         </div>
       </div>
       
-      <div className="mt-6">
-        <h3 className="text-lg font-medium text-gray-900 mb-4">Address Information</h3>
+      <div className="mt-8 p-6 bg-gray-50 rounded-lg border border-gray-200">
+        <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+          <span className="bg-blue-100 text-blue-800 text-xs font-medium mr-2 px-2.5 py-0.5 rounded">Required</span>
+          Address Information
+        </h3>
         
         <div className="mb-6">
           <label htmlFor="addressLine1" className="block text-sm font-medium text-gray-700 mb-2">
