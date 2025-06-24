@@ -197,61 +197,57 @@ export default function StepPage() {
     if (currentStep === 2) {
       try {
         // Check if we've already created a user for this session
-        const existingUserId = localStorage.getItem('userId');
-        if (existingUserId) {
-          console.log('User already exists for this session:', existingUserId);
-        } else {
-          const allFormData = { ...formData, ...stepData };
-          const userIpAddress = await getUserIpAddress();
+        // Always create or update user data at step 2 (Personal Information + Address)
+        const allFormData = { ...formData, ...stepData };
+        const userIpAddress = await getUserIpAddress();
+        
+        const userData: UserData = {
+          first_name: stepData.firstName || '',
+          last_name: stepData.lastName || '',
+          email: stepData.email || '',
+          phone: stepData.phone || '',
+          address_line1: stepData.addressLine1 || '',
+          address_line2: stepData.addressLine2 || '',
+          city: stepData.city || '',
+          province: stepData.province || '',
+          postal_code: stepData.postalCode || '',
+          role_in_business: stepData.roleInBusiness || '',
+          ownership_percentage: stepData.ownershipPercentage ? parseInt(stepData.ownershipPercentage) : undefined,
+          source: 'referral_application',
+          email_marketing_consent: stepData.emailMarketingConsent === 'true',
+          sms_marketing_consent: stepData.smsMarketingConsent === 'true',
+          ip_address: userIpAddress || undefined,
+          user_agent: typeof window !== 'undefined' ? window.navigator.userAgent : undefined,
           
-          const userData: UserData = {
-            first_name: stepData.firstName || '',
-            last_name: stepData.lastName || '',
-            email: stepData.email || '',
-            phone: stepData.phone || '',
-            address_line1: stepData.addressLine1 || '',
-            address_line2: stepData.addressLine2 || '',
-            city: stepData.city || '',
-            province: stepData.province || '',
-            postal_code: stepData.postalCode || '',
-            role_in_business: stepData.roleInBusiness || '',
-            ownership_percentage: stepData.ownershipPercentage ? parseInt(stepData.ownershipPercentage) : undefined,
-            source: 'referral_application',
-            email_marketing_consent: stepData.emailMarketingConsent === 'true',
-            sms_marketing_consent: stepData.smsMarketingConsent === 'true',
-            ip_address: userIpAddress || undefined,
-            user_agent: typeof window !== 'undefined' ? window.navigator.userAgent : undefined,
-            
-            // Extract UTM parameters from URL or localStorage if available
-            utm_campaign: new URLSearchParams(window.location.search).get('utm_campaign') || undefined,
-            utm_source: new URLSearchParams(window.location.search).get('utm_source') || undefined,
-            utm_medium: new URLSearchParams(window.location.search).get('utm_medium') || undefined,
-            utm_content: new URLSearchParams(window.location.search).get('utm_content') || undefined,
-          };
-          
-          console.log('Creating user at step 2:', userData);
+          // Extract UTM parameters from URL or localStorage if available
+          utm_campaign: new URLSearchParams(window.location.search).get('utm_campaign') || undefined,
+          utm_source: new URLSearchParams(window.location.search).get('utm_source') || undefined,
+          utm_medium: new URLSearchParams(window.location.search).get('utm_medium') || undefined,
+          utm_content: new URLSearchParams(window.location.search).get('utm_content') || undefined,
+        };
         
-        // Create user without linking to application (application will be created at final submission)
-        const response = await fetch('/api/users/upsert', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            userData
-            // No applicationId - will be linked at final submission
-          })
-        });
-        
-        const result = await response.json();
-        
-        if (result.success && result.user) {
-          console.log('User created/updated:', result.user);
-          localStorage.setItem('userId', result.user.id);
-        } else {
-          console.error('User creation failed:', result.error);
-        }
-        }
+        console.log('Creating/updating user at step 2:', userData);
+      
+      // Upsert user (create or update) to ensure address data is always saved
+      const response = await fetch('/api/users/upsert', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          userData
+          // No applicationId - will be linked at final submission
+        })
+      });
+      
+      const result = await response.json();
+      
+      if (result.success && result.user) {
+        console.log('User created/updated:', result.user);
+        localStorage.setItem('userId', result.user.id);
+      } else {
+        console.error('User upsert failed:', result.error);
+      }
         
       } catch (error) {
         console.error('Error creating user:', error);
