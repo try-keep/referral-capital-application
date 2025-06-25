@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 
 // Declare Facebook Pixel types
@@ -706,20 +706,108 @@ function Step6Form({ onNext, formData, isSubmitting }: { onNext: (data: FormData
 // Step 12: Bank Information
 function Step12Form({ onNext, formData, isSubmitting }: { onNext: (data: FormData) => void, formData: FormData, isSubmitting: boolean }) {
   const [localData, setLocalData] = useState({
-    bankConnectionCompleted: formData.bankConnectionCompleted || false
+    bankConnectionCompleted: formData.bankConnectionCompleted || false,
+    loginId: formData.loginId || '',
+    institution: formData.institution || ''
   });
+
+  // Track if we've already handled the redirect to prevent duplicate calls
+  const hasHandledRedirect = useRef(false);
+  
+  // Track connection status for UI feedback
+  const [connectionStatus, setConnectionStatus] = useState<'connecting' | 'success' | 'error'>('connecting');
+
+  // Check if bank connection is already completed
+  const isConnectionCompleted = localData.bankConnectionCompleted === 'true' || localData.bankConnectionCompleted === true;
 
   // Update local data when formData prop changes (for when user navigates back)
   useEffect(() => {
     console.log('🔄 Step12Form - formData prop changed:', formData);
     setLocalData({
-      bankConnectionCompleted: formData.bankConnectionCompleted || false
+      bankConnectionCompleted: formData.bankConnectionCompleted || false,
+      loginId: formData.loginId || '',
+      institution: formData.institution || ''
     });
+    
+    // If connection is already completed, set status to success
+    if (formData.bankConnectionCompleted === 'true' || formData.bankConnectionCompleted === true) {
+      setConnectionStatus('success');
+    }
   }, [formData]);
 
+  // Listen for Flinks redirect event
+  useEffect(() => {
+    function handleFlinksRedirect(event: MessageEvent) {
+      // Check if this is a Flinks redirect message
+      if (
+        event.data &&
+        typeof event.data === 'object' &&
+        event.data.step === 'REDIRECT' &&
+        !hasHandledRedirect.current
+      ) {
+        console.log('🎉 Flinks redirect event received:', event.data);
+        hasHandledRedirect.current = true;
+        
+        // Show success status
+        setConnectionStatus('success');
+        
+        // Extract loginId and institution from the URL if needed
+        let loginId: string = '';
+        let institution: string = '';
+        
+        if (event.data.url) {
+          try {
+            const url = new URL(event.data.url);
+            loginId = url.searchParams.get('loginId') || '';
+            institution = url.searchParams.get('institution') || '';
+            console.log('🔗 Flinks connection details:', { loginId, institution });
+          } catch (error) {
+            console.error('Error parsing Flinks URL:', error);
+          }
+        }
+        
+        // Save connection data to localStorage immediately
+        const connectionData = {
+          ...localData,
+          bankConnectionCompleted: 'true',
+          loginId,
+          institution
+        };
+        
+        // Update localStorage with the connection data
+        const existingData = localStorage.getItem('referralApplicationData');
+        if (existingData) {
+          const parsedData = JSON.parse(existingData);
+          const updatedData = { ...parsedData, ...connectionData };
+          localStorage.setItem('referralApplicationData', JSON.stringify(updatedData));
+          console.log('💾 Bank connection data saved to localStorage');
+        }
+        
+        // Add 2-second timeout before proceeding to next step
+        setTimeout(() => {
+          console.log('⏰ Proceeding to next step after 1-second timeout');
+          onNext(connectionData);
+        }, 2000);
+      }
+    }
 
-  const handleCompleteConnection = () => {
-    onNext({ ...localData, bankConnectionCompleted: 'true' });
+    // Only add event listener if connection is not already completed
+    if (!isConnectionCompleted) {
+      window.addEventListener('message', handleFlinksRedirect);
+      
+      // Cleanup event listener on unmount
+      return () => {
+        window.removeEventListener('message', handleFlinksRedirect);
+      };
+    }
+  }, [localData, onNext, isConnectionCompleted]);
+
+  // Handle manual next button click for completed connections
+  const handleNextClick = () => {
+    onNext({
+      ...localData,
+      bankConnectionCompleted: 'true'
+    });
   };
 
   return (
@@ -737,41 +825,74 @@ function Step12Form({ onNext, formData, isSubmitting }: { onNext: (data: FormDat
         </p>
       </div>
 
-      {/* Flinks iframe */}
-      <div className="mb-8">
-        <iframe
-          src="https://trykeep-iframe.private.fin.ag/v2?customerName=Keep&daysOfTransactions=Days365&scheduleRefresh=false&consentEnable=true&detailsAndStatementEnable=true&monthsOfStatements=Months12&enhancedMFA=false&maximumRetry=3&tag=capitalApplication"
-          width="100%"
-          height="600"
-          frameBorder="0"
-          style={{ border: 'none', borderRadius: '8px' }}
-          title="Bank Connection"
-        />
-      </div>
-
-      {/* Action button */}
-      <div className="mt-6">
-        <button
-          onClick={handleCompleteConnection}
-          disabled={isSubmitting}
-          className="w-full bg-blue-600 text-white py-3 px-6 rounded-lg font-semibold hover:bg-blue-700 transition-colors disabled:opacity-50"
-        >
-          {isSubmitting ? 'Processing...' : 'I Connected My Bank'}
-        </button>
-      </div>
-
-      {/* Security note */}
-      <div className="mt-6 p-4 bg-gray-50 rounded-lg">
-        <div className="flex items-start space-x-3">
-          <svg className="w-5 h-5 text-green-500 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-            <path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd" />
-          </svg>
-          <div>
-            <p className="text-sm font-medium text-gray-900">Bank-grade security</p>
-            <p className="text-sm text-gray-600">Your banking information is encrypted and secure. We cannot see your login credentials.</p>
+      {/* Show different content based on connection status */}
+      {isConnectionCompleted ? (
+        // Connection already completed - show success message and next button
+        <div className="text-center">
+          <div className="mb-6 p-6 bg-green-50 border border-green-200 rounded-lg">
+            <div className="flex items-center justify-center space-x-3 mb-4">
+              <svg className="w-8 h-8 text-green-500 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+              </svg>
+            </div>
+            <h3 className="text-lg font-semibold text-green-800 mb-2">Bank Connection Completed!</h3>
+            <p className="text-green-600 mb-4">
+              Your business bank account has been successfully connected. Your banking information is securely stored and ready for processing.
+            </p>
           </div>
+          
+          <button
+            onClick={handleNextClick}
+            disabled={isSubmitting}
+            className="w-full bg-blue-600 text-white py-3 px-6 rounded-lg font-semibold hover:bg-blue-700 transition-colors disabled:opacity-50"
+          >
+            {isSubmitting ? 'Processing...' : 'Continue to Next Step'}
+          </button>
         </div>
-      </div>
+      ) : (
+        // Connection not completed - show iframe and connection flow
+        <>
+          {/* Success message when connection is completed */}
+          {connectionStatus === 'success' && (
+            <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg">
+              <div className="flex items-center space-x-3">
+                <svg className="w-5 h-5 text-green-500 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                </svg>
+                <div>
+                  <p className="text-sm font-medium text-green-800">Bank connection successful!</p>
+                  <p className="text-sm text-green-600">Redirecting to next step in 1 second...</p>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Flinks iframe */}
+          <div className="mb-8">
+            <iframe
+              src="https://trykeep-iframe.private.fin.ag/v2?customerName=Keep&daysOfTransactions=Days365&scheduleRefresh=false&consentEnable=true&detailsAndStatementEnable=true&monthsOfStatements=Months12&enhancedMFA=false&maximumRetry=3&tag=capitalApplication"
+              width="100%"
+              height="600"
+              frameBorder="0"
+              style={{ border: 'none', borderRadius: '8px' }}
+              title="Bank Connection"
+            />
+          </div>
+
+          {/* Security note */}
+          <div className="mt-6 p-4 bg-gray-50 rounded-lg">
+            <div className="flex items-start space-x-3">
+              <svg className="w-5 h-5 text-green-500 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd" />
+              </svg>
+              <div>
+                <p className="text-sm font-medium text-gray-900">Bank-grade security</p>
+                <p className="text-sm text-gray-600">Your banking information is encrypted and secure. We cannot see your login credentials.</p>
+              </div>
+            </div>
+          </div>
+        </>
+      )}
     </div>
   );
 }
