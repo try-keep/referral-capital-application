@@ -417,7 +417,7 @@ export default function HomePage() {
                       <div className="capital-solutions_card-content">
                         <h3 className="heading-style-h4">Business Credit Card</h3>
                         <div className="spacer-xsmall"></div>
-                        <p className="text-color-secondary">More rewards that Amex and the Big 5 Banks and the most interest free days in Canada.</p>
+                        <p className="text-color-secondary">More rewards than Amex and the Big 5 Banks and the most interest free days in Canada.</p>
                       </div>
                       <div className="capital-solutions_card-image-wrapper">
                         <img sizes="(max-width: 832px) 100vw, 832px" 
