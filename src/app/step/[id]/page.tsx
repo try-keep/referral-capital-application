@@ -730,7 +730,7 @@ function Step12Form({ onNext, formData, isSubmitting }: { onNext: (data: FormDat
     });
     
     // If connection is already completed, set status to success
-    if (formData.bankConnectionCompleted === 'true' || formData.bankConnectionCompleted === true) {
+    if (formData.bankConnectionCompleted === 'true') {
       setConnectionStatus('success');
     }
   }, [formData]);
