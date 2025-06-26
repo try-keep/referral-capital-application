@@ -1924,6 +1924,7 @@ function Step7Form({ onNext, formData, isSubmitting }: { onNext: (data: FormData
     lastName: formData.lastName || '',
     email: formData.email || '',
     phone: formData.phone || '',
+    dateOfBirth: formData.dateOfBirth || '',
     addressLine1: formData.addressLine1 || '',
     addressLine2: formData.addressLine2 || '',
     city: formData.city || '',
@@ -1939,6 +1940,7 @@ function Step7Form({ onNext, formData, isSubmitting }: { onNext: (data: FormData
       lastName: formData.lastName || '',
       email: formData.email || '',
       phone: formData.phone || '',
+      dateOfBirth: formData.dateOfBirth || '',
       addressLine1: formData.addressLine1 || '',
       addressLine2: formData.addressLine2 || '',
       city: formData.city || '',
@@ -1965,6 +1967,10 @@ function Step7Form({ onNext, formData, isSubmitting }: { onNext: (data: FormData
     }
     if (!localData.phone.trim()) {
       alert('Please enter your phone number');
+      return;
+    }
+    if (!localData.dateOfBirth.trim()) {
+      alert('Please enter your date of birth');
       return;
     }
     if (!localData.addressLine1.trim()) {
@@ -2062,7 +2068,25 @@ function Step7Form({ onNext, formData, isSubmitting }: { onNext: (data: FormData
           />
         </div>
       </div>
-      
+
+      <div className="mt-6">
+        <div>
+          <label htmlFor="dateOfBirth" className="block text-sm font-medium text-gray-700 mb-2">
+            Date of Birth *
+          </label>
+          <input
+            type="date"
+            id="dateOfBirth"
+            required
+            value={localData.dateOfBirth}
+            onChange={(e) => setLocalData({ ...localData, dateOfBirth: e.target.value })}
+
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          />
+
+        </div>
+      </div>
+
       <div className="mt-8 p-6 bg-gray-50 rounded-lg border border-gray-200">
         <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
           <span className="bg-blue-100 text-blue-800 text-xs font-medium mr-2 px-2.5 py-0.5 rounded">Required</span>
