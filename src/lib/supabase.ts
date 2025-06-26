@@ -99,6 +99,7 @@ export interface ApplicationData {
   last_name: string
   email: string
   phone: string
+  date_of_birth?: string
   title?: string
   ssn_last_4?: string
   

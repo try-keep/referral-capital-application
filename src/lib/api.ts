@@ -33,6 +33,7 @@ export interface ApplicationData {
   lastName: string;
   email: string;
   phone: string;
+  dateOfBirth?: string;
   ssn?: string;
   
   // Step 8: Funding Amount
@@ -116,6 +117,7 @@ function transformToSupabaseFormat(data: ApplicationData): SupabaseApplicationDa
     last_name: data.lastName,
     email: data.email,
     phone: data.phone,
+    date_of_birth: data.dateOfBirth,
     title: '', // Default empty since removed from form
     ssn_last_4: '', // Default empty since removed from form
     
