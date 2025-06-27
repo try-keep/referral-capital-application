@@ -621,9 +621,8 @@ export default function StepPage() {
                 {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14].map((step) => (
                   <div
                     key={step}
-                    className={`w-2 h-2 rounded-full ${
-                      step <= currentStep ? 'bg-blue-600' : 'bg-gray-300'
-                    }`}
+                    className={`w-2 h-2 rounded-full ${step <= currentStep ? 'bg-blue-600' : 'bg-gray-300'
+                      }`}
                   />
                 ))}
               </div>
@@ -1041,6 +1040,16 @@ function Step12Form({
     });
   };
 
+  const flinksTags: Record<string, string> = {
+    source: 'capitalApplication',
+    userId: localStorage.getItem('userId') ?? ''
+  };
+
+  let formattedFlinksTags = ''
+  for (const key in flinksTags) {
+    formattedFlinksTags += `${key}=${flinksTags[key]},`
+  }
+
   return (
     <div className="bg-white rounded-lg shadow-lg p-8">
       {/* Header */}
@@ -1137,7 +1146,7 @@ function Step12Form({
           {/* Flinks iframe */}
           <div className="mb-8">
             <iframe
-              src="https://trykeep-iframe.private.fin.ag/v2?customerName=Keep&daysOfTransactions=Days365&scheduleRefresh=false&consentEnable=true&detailsAndStatementEnable=true&monthsOfStatements=Months12&enhancedMFA=false&maximumRetry=3&tag=capitalApplication"
+              src={`https://trykeep-iframe.private.fin.ag/v2?customerName=Keep&daysOfTransactions=Days365&scheduleRefresh=false&consentEnable=true&detailsAndStatementEnable=true&monthsOfStatements=Months12&enhancedMFA=false&maximumRetry=3&tag=${formattedFlinksTags}`}
               width="100%"
               height="600"
               frameBorder="0"
@@ -1809,11 +1818,10 @@ function Step1Form({
           <button
             type="button"
             onClick={() => handleLoanTypeSelect('business-loan')}
-            className={`p-8 border-2 rounded-lg text-center transition-all hover:border-green-300 ${
-              localData.loanType === 'business-loan'
-                ? 'border-green-500 bg-green-50'
-                : 'border-gray-200 bg-white'
-            }`}
+            className={`p-8 border-2 rounded-lg text-center transition-all hover:border-green-300 ${localData.loanType === 'business-loan'
+              ? 'border-green-500 bg-green-50'
+              : 'border-gray-200 bg-white'
+              }`}
           >
             <div className="flex justify-center mb-4">
               <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
@@ -1828,11 +1836,10 @@ function Step1Form({
           <button
             type="button"
             onClick={() => handleLoanTypeSelect('line-of-credit')}
-            className={`p-8 border-2 rounded-lg text-center transition-all hover:border-green-300 ${
-              localData.loanType === 'line-of-credit'
-                ? 'border-green-500 bg-green-50'
-                : 'border-gray-200 bg-white'
-            }`}
+            className={`p-8 border-2 rounded-lg text-center transition-all hover:border-green-300 ${localData.loanType === 'line-of-credit'
+              ? 'border-green-500 bg-green-50'
+              : 'border-gray-200 bg-white'
+              }`}
           >
             <div className="flex justify-center mb-4">
               <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
@@ -1849,11 +1856,10 @@ function Step1Form({
           <button
             type="button"
             onClick={() => handleLoanTypeSelect('both')}
-            className={`w-full p-8 border-2 rounded-lg text-center transition-all hover:border-green-300 ${
-              localData.loanType === 'both'
-                ? 'border-green-500 bg-green-50'
-                : 'border-gray-200 bg-white'
-            }`}
+            className={`w-full p-8 border-2 rounded-lg text-center transition-all hover:border-green-300 ${localData.loanType === 'both'
+              ? 'border-green-500 bg-green-50'
+              : 'border-gray-200 bg-white'
+              }`}
           >
             <div className="flex justify-center mb-4">
               <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
@@ -1955,11 +1961,10 @@ function Step2Form({
           <button
             type="button"
             onClick={() => handleOwnerSelect('yes')}
-            className={`p-8 border-2 rounded-lg text-center transition-all hover:border-green-300 ${
-              localData.isBusinessOwner === 'yes'
-                ? 'border-green-500 bg-green-50'
-                : 'border-gray-200 bg-white'
-            }`}
+            className={`p-8 border-2 rounded-lg text-center transition-all hover:border-green-300 ${localData.isBusinessOwner === 'yes'
+              ? 'border-green-500 bg-green-50'
+              : 'border-gray-200 bg-white'
+              }`}
           >
             <div className="flex justify-center mb-4">
               <svg
@@ -1982,11 +1987,10 @@ function Step2Form({
           <button
             type="button"
             onClick={() => handleOwnerSelect('no')}
-            className={`p-8 border-2 rounded-lg text-center transition-all hover:border-red-300 ${
-              localData.isBusinessOwner === 'no'
-                ? 'border-red-500 bg-red-50'
-                : 'border-gray-200 bg-white'
-            }`}
+            className={`p-8 border-2 rounded-lg text-center transition-all hover:border-red-300 ${localData.isBusinessOwner === 'no'
+              ? 'border-red-500 bg-red-50'
+              : 'border-gray-200 bg-white'
+              }`}
           >
             <div className="flex justify-center mb-4">
               <svg
@@ -2224,11 +2228,10 @@ function Step4Form({
           <button
             type="button"
             onClick={() => handleLoanStatusSelect('yes')}
-            className={`p-8 border-2 rounded-lg text-center transition-all hover:border-blue-300 ${
-              localData.hasExistingLoans === 'yes'
-                ? 'border-blue-500 bg-blue-50'
-                : 'border-gray-200 bg-white'
-            }`}
+            className={`p-8 border-2 rounded-lg text-center transition-all hover:border-blue-300 ${localData.hasExistingLoans === 'yes'
+              ? 'border-blue-500 bg-blue-50'
+              : 'border-gray-200 bg-white'
+              }`}
           >
             <div className="flex justify-center mb-4">
               <svg
@@ -2253,11 +2256,10 @@ function Step4Form({
           <button
             type="button"
             onClick={() => handleLoanStatusSelect('no')}
-            className={`p-8 border-2 rounded-lg text-center transition-all hover:border-green-300 ${
-              localData.hasExistingLoans === 'no'
-                ? 'border-green-500 bg-green-50'
-                : 'border-gray-200 bg-white'
-            }`}
+            className={`p-8 border-2 rounded-lg text-center transition-all hover:border-green-300 ${localData.hasExistingLoans === 'no'
+              ? 'border-green-500 bg-green-50'
+              : 'border-gray-200 bg-white'
+              }`}
           >
             <div className="flex justify-center mb-4">
               <svg
@@ -2489,11 +2491,10 @@ function RemovedStep6Form({
           <button
             type="button"
             onClick={() => handleConnectionSelect('connect-now')}
-            className={`w-full p-6 border-2 rounded-lg text-left transition-all hover:border-blue-300 ${
-              localData.bankConnected === 'connect-now'
-                ? 'border-blue-500 bg-blue-50'
-                : 'border-gray-200 bg-white'
-            }`}
+            className={`w-full p-6 border-2 rounded-lg text-left transition-all hover:border-blue-300 ${localData.bankConnected === 'connect-now'
+              ? 'border-blue-500 bg-blue-50'
+              : 'border-gray-200 bg-white'
+              }`}
           >
             <div className="text-lg font-medium text-gray-700 mb-2">
               Connect Bank Account Now
@@ -2506,11 +2507,10 @@ function RemovedStep6Form({
           <button
             type="button"
             onClick={() => handleConnectionSelect('connect-later')}
-            className={`w-full p-6 border-2 rounded-lg text-left transition-all hover:border-gray-300 ${
-              localData.bankConnected === 'connect-later'
-                ? 'border-gray-500 bg-gray-50'
-                : 'border-gray-200 bg-white'
-            }`}
+            className={`w-full p-6 border-2 rounded-lg text-left transition-all hover:border-gray-300 ${localData.bankConnected === 'connect-later'
+              ? 'border-gray-500 bg-gray-50'
+              : 'border-gray-200 bg-white'
+              }`}
           >
             <div className="text-lg font-medium text-gray-700 mb-2">
               Connect Later
@@ -2749,7 +2749,7 @@ function Step7Form({
           <span className="bg-blue-100 text-blue-800 text-xs font-medium mr-2 px-2.5 py-0.5 rounded">
             Required
           </span>
-          Personal Address
+          Address Information
         </h3>
 
         <div className="mb-6">
