@@ -82,7 +82,7 @@ export default function StepPage() {
       6: ['hasExistingLoans'],
       7: ['fundingAmount', 'fundingTimeline'],
       8: ['fundingPurpose'],
-      9: ['businessType', 'businessAge', 'numberOfEmployees'],
+      9: ['businessType', 'numberOfEmployees'],
       10: ['annualRevenue', 'cashFlow', 'creditScore'],
       11: ['bankConnectionCompleted'],
       12: ['businessAddress', 'businessPhone'],
@@ -494,7 +494,6 @@ export default function StepPage() {
 function Step10Form({ onNext, formData, isSubmitting }: { onNext: (data: FormData) => void, formData: FormData, isSubmitting: boolean }) {
   const [localData, setLocalData] = useState({
     businessType: formData.businessType || '',
-    businessAge: formData.businessAge || '',
     numberOfEmployees: formData.numberOfEmployees || '',
     websiteUrl: formData.websiteUrl || ''
   });
@@ -504,7 +503,6 @@ function Step10Form({ onNext, formData, isSubmitting }: { onNext: (data: FormDat
     console.log('🔄 Step10Form - formData prop changed:', formData);
     setLocalData({
       businessType: formData.businessType || '',
-      businessAge: formData.businessAge || '',
       numberOfEmployees: formData.numberOfEmployees || '',
       websiteUrl: formData.websiteUrl || ''
     });
@@ -539,26 +537,6 @@ function Step10Form({ onNext, formData, isSubmitting }: { onNext: (data: FormDat
           <option value="transportation">Transportation</option>
           <option value="real-estate">Real Estate</option>
           <option value="other">Other</option>
-        </select>
-      </div>
-      
-      <div className="mb-6">
-        <label htmlFor="businessAge" className="block text-sm font-medium text-gray-700 mb-2">
-          How long has your business been operating? *
-        </label>
-        <select
-          id="businessAge"
-          required
-          value={localData.businessAge}
-          onChange={(e) => setLocalData({...localData, businessAge: e.target.value})}
-          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-        >
-          <option value="">Select Business Age</option>
-          <option value="under-1-year">Under 1 year</option>
-          <option value="1-2-years">1-2 years</option>
-          <option value="2-5-years">2-5 years</option>
-          <option value="5-10-years">5-10 years</option>
-          <option value="over-10-years">Over 10 years</option>
         </select>
       </div>
       
@@ -1115,7 +1093,6 @@ function BusinessSearchForm({ onNext, formData, isSubmitting }: { onNext: (data:
         businessAddress: `${selectedBusinessData.Reg_office_city || selectedBusinessData.City}, ${selectedBusinessData.Reg_office_province}`,
         businessPhone: '', // Will be filled in step 13
         businessType: businessData.businessType,
-        businessAge: businessData.businessAge,
         numberOfEmployees: '', // Will be filled in step 10
         
         // Business registry data for reference
@@ -1924,6 +1901,7 @@ function Step7Form({ onNext, formData, isSubmitting }: { onNext: (data: FormData
     lastName: formData.lastName || '',
     email: formData.email || '',
     phone: formData.phone || '',
+    dateOfBirth: formData.dateOfBirth || '',
     addressLine1: formData.addressLine1 || '',
     addressLine2: formData.addressLine2 || '',
     city: formData.city || '',
@@ -1939,6 +1917,7 @@ function Step7Form({ onNext, formData, isSubmitting }: { onNext: (data: FormData
       lastName: formData.lastName || '',
       email: formData.email || '',
       phone: formData.phone || '',
+      dateOfBirth: formData.dateOfBirth || '',
       addressLine1: formData.addressLine1 || '',
       addressLine2: formData.addressLine2 || '',
       city: formData.city || '',
@@ -1965,6 +1944,10 @@ function Step7Form({ onNext, formData, isSubmitting }: { onNext: (data: FormData
     }
     if (!localData.phone.trim()) {
       alert('Please enter your phone number');
+      return;
+    }
+    if (!localData.dateOfBirth.trim()) {
+      alert('Please enter your date of birth');
       return;
     }
     if (!localData.addressLine1.trim()) {
@@ -2062,7 +2045,25 @@ function Step7Form({ onNext, formData, isSubmitting }: { onNext: (data: FormData
           />
         </div>
       </div>
-      
+
+      <div className="mt-6">
+        <div>
+          <label htmlFor="dateOfBirth" className="block text-sm font-medium text-gray-700 mb-2">
+            Date of Birth *
+          </label>
+          <input
+            type="date"
+            id="dateOfBirth"
+            required
+            value={localData.dateOfBirth}
+            onChange={(e) => setLocalData({ ...localData, dateOfBirth: e.target.value })}
+
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          />
+
+        </div>
+      </div>
+
       <div className="mt-8 p-6 bg-gray-50 rounded-lg border border-gray-200">
         <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
           <span className="bg-blue-100 text-blue-800 text-xs font-medium mr-2 px-2.5 py-0.5 rounded">Required</span>
@@ -2311,7 +2312,6 @@ function Step11Form({ onNext, formData, isSubmitting }: { onNext: (data: FormDat
     annualRevenue: formData.annualRevenue || '',
     cashFlow: formData.cashFlow || '',
     creditScore: formData.creditScore || '',
-    timeInBusiness: formData.timeInBusiness || ''
   });
 
   // Update local data when formData prop changes (for when user navigates back)
@@ -2321,7 +2321,6 @@ function Step11Form({ onNext, formData, isSubmitting }: { onNext: (data: FormDat
       annualRevenue: formData.annualRevenue || '',
       cashFlow: formData.cashFlow || '',
       creditScore: formData.creditScore || '',
-      timeInBusiness: formData.timeInBusiness || ''
     });
   }, [formData]);
 
@@ -2427,25 +2426,6 @@ function Step11Form({ onNext, formData, isSubmitting }: { onNext: (data: FormDat
           </select>
         </div>
 
-        <div>
-          <label htmlFor="timeInBusiness" className="block text-sm font-medium text-gray-700 mb-2">
-            Time in Business *
-          </label>
-          <select
-            id="timeInBusiness"
-            required
-            value={localData.timeInBusiness}
-            onChange={(e) => setLocalData({...localData, timeInBusiness: e.target.value})}
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-          >
-            <option value="">Select Time Range</option>
-            <option value="under-6-months">Under 6 months</option>
-            <option value="6-12-months">6-12 months</option>
-            <option value="1-2-years">1-2 years</option>
-            <option value="2-5-years">2-5 years</option>
-            <option value="over-5-years">Over 5 years</option>
-          </select>
-        </div>
       </div>
       
       <div className="mt-8">

@@ -20,7 +20,7 @@ This application provides a streamlined process for businesses to apply for capi
 
 ### Prerequisites
 
-- Node.js 18+ 
+- Node.js 22+
 - npm or yarn
 - Supabase account and project
 - API keys (see [API Keys Setup](#api-keys-setup))

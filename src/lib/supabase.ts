@@ -99,6 +99,7 @@ export interface ApplicationData {
   last_name: string
   email: string
   phone: string
+  date_of_birth?: string
   title?: string
   ssn_last_4?: string
   
@@ -111,15 +112,13 @@ export interface ApplicationData {
   
   // Step 10: Business Details
   business_type: string
-  business_age: string
   number_of_employees: string
   
   // Step 11: Financial Information
   annual_revenue: string
   cash_flow: string
   credit_score: string
-  time_in_business: string
-  
+
   // Step 12: Bank Information
   bank_connection_completed?: boolean
   skipped_bank_connection?: boolean
