@@ -1041,6 +1041,16 @@ function Step12Form({
     });
   };
 
+  const flinksTags: Record<string, string> = {
+    source: 'capitalApplication',
+    userId: localStorage.getItem('userId') ?? '',
+  };
+
+  let formattedFlinksTags = '';
+  for (const key in flinksTags) {
+    formattedFlinksTags += `${key}=${flinksTags[key]},`;
+  }
+
   return (
     <div className="bg-white rounded-lg shadow-lg p-8">
       {/* Header */}
@@ -1137,7 +1147,7 @@ function Step12Form({
           {/* Flinks iframe */}
           <div className="mb-8">
             <iframe
-              src="https://trykeep-iframe.private.fin.ag/v2?customerName=Keep&daysOfTransactions=Days365&scheduleRefresh=false&consentEnable=true&detailsAndStatementEnable=true&monthsOfStatements=Months12&enhancedMFA=false&maximumRetry=3&tag=capitalApplication"
+              src={`https://trykeep-iframe.private.fin.ag/v2?customerName=Keep&daysOfTransactions=Days365&scheduleRefresh=false&consentEnable=true&detailsAndStatementEnable=true&monthsOfStatements=Months12&enhancedMFA=false&maximumRetry=3&tag=${formattedFlinksTags}`}
               width="100%"
               height="600"
               frameBorder="0"
@@ -2749,7 +2759,7 @@ function Step7Form({
           <span className="bg-blue-100 text-blue-800 text-xs font-medium mr-2 px-2.5 py-0.5 rounded">
             Required
           </span>
-          Personal Address
+          Address Information
         </h3>
 
         <div className="mb-6">
