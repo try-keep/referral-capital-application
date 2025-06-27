@@ -45,7 +45,6 @@ export interface ApplicationData {
   
   // Step 10: Business Details
   businessType: string;
-  businessAge: string;
   numberOfEmployees: string;
   
   // Step 11: Financial Information
@@ -130,15 +129,13 @@ function transformToSupabaseFormat(data: ApplicationData): SupabaseApplicationDa
     
     // Step 10: Business Details
     business_type: data.businessType,
-    business_age: data.businessAge,
     number_of_employees: data.numberOfEmployees,
     
     // Step 11: Financial Information
     annual_revenue: data.annualRevenue,
     cash_flow: data.cashFlow,
     credit_score: data.creditScore,
-    time_in_business: data.timeInBusiness,
-    
+
     // Step 12: Bank Information
     bank_connection_completed: data.bankConnectionCompleted || false,
     skipped_bank_connection: data.skippedBankConnection || false,
