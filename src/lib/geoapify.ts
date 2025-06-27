@@ -30,7 +30,9 @@ export interface GeoapifyResponse {
   };
 }
 
-export async function searchAddresses(query: string): Promise<GeoapifyFeature[]> {
+export async function searchAddresses(
+  query: string
+): Promise<GeoapifyFeature[]> {
   if (!query || query.trim().length < 3) {
     return [];
   }

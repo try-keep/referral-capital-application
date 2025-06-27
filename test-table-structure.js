@@ -9,28 +9,30 @@ const supabase = createClient(
 
 async function testTableStructure() {
   console.log('🔍 Testing table structure and access...\n');
-  
+
   try {
     // Test raw SQL query to see what tables exist
     console.log('1️⃣ Checking available tables...');
-    
-    const { data: tables, error: tablesError } = await supabase
-      .rpc('get_table_names', {});
-    
+
+    const { data: tables, error: tablesError } = await supabase.rpc(
+      'get_table_names',
+      {}
+    );
+
     if (tablesError) {
       console.log('RPC not available, trying direct table access...');
-      
+
       // Just try to access the tables directly
       const testTables = ['applications', 'businesses'];
-      
+
       for (const tableName of testTables) {
         console.log(`\n2️⃣ Testing ${tableName} table...`);
-        
+
         const { data, error } = await supabase
           .from(tableName)
           .select('*')
           .limit(1);
-        
+
         if (error) {
           console.log(`❌ ${tableName} table error:`, error.message);
           console.log('Error code:', error.code);
@@ -47,7 +49,6 @@ async function testTableStructure() {
     } else {
       console.log('Available tables:', tables);
     }
-    
   } catch (error) {
     console.error('❌ Test failed:', error.message);
   }

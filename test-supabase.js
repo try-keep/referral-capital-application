@@ -15,25 +15,25 @@ const supabase = createClient(supabaseUrl, supabaseAnonKey);
 const testApplicationData = {
   // Step 1: Loan Type
   loan_type: 'business-loan',
-  
+
   // Step 2: Business Owner
   is_business_owner: 'yes',
-  
+
   // Step 3: Monthly Sales
   monthly_sales: '50000',
-  
+
   // Step 4: Existing Loans
   has_existing_loans: 'no',
   total_loan_amount: '0',
-  
+
   // Step 5: Business Search
   business_name: 'Test Business LLC',
   business_search_verified: 'verified',
-  
+
   // Step 6: Bank Connection
   bank_connected: 'connect-now',
   bank_connection_method: 'flinks',
-  
+
   // Step 7: Personal Information
   first_name: 'John',
   last_name: 'Doe',
@@ -41,57 +41,59 @@ const testApplicationData = {
   phone: '555-123-4567',
   title: 'CEO',
   ssn_last_4: '1234',
-  
+
   // Step 8: Funding Amount
   funding_amount: '250000',
   funding_timeline: 'within-30-days',
-  
+
   // Step 9: Funding Purpose
   funding_purpose: 'working-capital',
-  
+
   // Step 10: Business Details
   business_type: 'technology',
   business_age: '2-5-years',
   number_of_employees: '6-10',
-  
+
   // Step 11: Financial Information
   annual_revenue: '600000',
   cash_flow: '25000',
   credit_score: 'good',
   time_in_business: '3 years 2 months',
-  
+
   // Step 12: Bank Information
   bank_connection_completed: true,
   skipped_bank_connection: false,
-  
+
   // Step 13: Additional Details
   business_address: '123 Main Street, Suite 100, San Francisco, CA 94102',
   business_phone: '555-987-6543',
   website_url: 'https://www.testbusiness.com',
   additional_info: 'Looking for working capital to expand our tech operations',
-  
+
   // Step 14: Review & Submit
   agrees_to_terms: true,
   authorizes_credit_check: true,
-  
+
   // Application Status
   status: 'submitted',
-  submitted_at: new Date().toISOString()
+  submitted_at: new Date().toISOString(),
 };
 
 async function testSupabaseIntegration() {
   console.log('🧪 Testing Supabase Integration...\n');
-  
+
   try {
     // Test 1: Check if table exists
     console.log('1️⃣ Testing table access...');
     const { data: tableCheck, error: tableError } = await supabase
       .from('applications')
       .select('count(*)', { count: 'exact', head: true });
-    
+
     if (tableError) {
       console.error('❌ Table access failed:', tableError.message);
-      console.log('💡 Make sure you ran the SQL setup in your Supabase dashboard');
+      console.log(
+        '💡 Make sure you ran the SQL setup in your Supabase dashboard'
+      );
       return;
     }
     console.log('✅ Table access successful');
@@ -107,7 +109,7 @@ async function testSupabaseIntegration() {
       console.error('❌ Insert failed:', insertError.message);
       return;
     }
-    
+
     const insertedApp = insertData[0];
     console.log('✅ Test application inserted successfully!');
     console.log(`📋 Application ID: ${insertedApp.id}`);
@@ -126,7 +128,7 @@ async function testSupabaseIntegration() {
       console.error('❌ Query failed:', queryError.message);
       return;
     }
-    
+
     console.log('✅ Query successful!');
     console.log('📊 Application Details:');
     console.log(`   • ID: ${queryData.id}`);
@@ -152,13 +154,13 @@ async function testSupabaseIntegration() {
       console.error('❌ Count failed:', countError.message);
       return;
     }
-    
+
     console.log(`✅ Total applications in database: ${count}`);
 
     // Test 5: Test the API transformation function
     console.log('\n5️⃣ Testing API transformation...');
     const { submitApplication } = require('./src/lib/api.ts');
-    
+
     const testFormData = {
       loanType: 'line-of-credit',
       isBusinessOwner: 'yes',
@@ -190,7 +192,7 @@ async function testSupabaseIntegration() {
       websiteUrl: 'https://apitestcompany.com',
       additionalInfo: 'Need funding for store expansion',
       agreesToTerms: true,
-      authorizesCreditCheck: true
+      authorizesCreditCheck: true,
     };
 
     const apiResult = await submitApplication(testFormData);
@@ -200,8 +202,9 @@ async function testSupabaseIntegration() {
 
     console.log('\n🎉 All Tests Passed!');
     console.log('🔗 View your data in Supabase dashboard:');
-    console.log(`   https://app.supabase.com/project/gtogvkaukyxxwvxenfit/editor`);
-    
+    console.log(
+      `   https://app.supabase.com/project/gtogvkaukyxxwvxenfit/editor`
+    );
   } catch (error) {
     console.error('\n❌ Test failed with error:', error.message);
     console.log('\n🔧 Troubleshooting steps:');

@@ -23,7 +23,7 @@ async function testUserCreation() {
       .from('users')
       .select('id')
       .limit(1);
-      
+
     if (tableError) {
       console.error('❌ Users table error:', tableError);
       if (tableError.code === '42P01') {
@@ -33,7 +33,7 @@ async function testUserCreation() {
     } else {
       console.log('✅ Users table exists and is accessible');
     }
-    
+
     // Test creating a user
     console.log('🧪 Testing user creation...');
     const testUser = {
@@ -47,32 +47,31 @@ async function testUserCreation() {
       email_marketing_consent: true,
       sms_marketing_consent: false,
       ip_address: '127.0.0.1',
-      user_agent: 'Test User Agent'
+      user_agent: 'Test User Agent',
     };
-    
+
     const { data, error } = await supabase
       .from('users')
       .insert([testUser])
       .select();
-      
+
     if (error) {
       console.error('❌ Error creating test user:', error);
     } else {
       console.log('✅ Test user created successfully:', data[0]);
-      
+
       // Clean up - delete the test user
       const { error: deleteError } = await supabase
         .from('users')
         .delete()
         .eq('id', data[0].id);
-        
+
       if (deleteError) {
         console.warn('⚠️ Could not delete test user:', deleteError);
       } else {
         console.log('🧹 Test user cleaned up');
       }
     }
-    
   } catch (error) {
     console.error('❌ Test failed:', error);
   }

@@ -42,7 +42,7 @@ SUPABASE_SERVICE_ROLE_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhY
 # NewsAPI for adverse media monitoring
 NEWSAPI_KEY=your_newsapi_key_here
 
-# OpenAI for AI business categorization  
+# OpenAI for AI business categorization
 OPENAI_API_KEY=sk-your_openai_key_here
 ```
 
@@ -56,11 +56,13 @@ OPENAI_API_KEY=sk-your_openai_key_here
 ## 6. Verify Keys Are Working
 
 Use the debug endpoint to check:
+
 ```bash
 curl http://localhost:3009/api/debug
 ```
 
 Should show all keys as `true`:
+
 ```json
 {
   "env_check": {

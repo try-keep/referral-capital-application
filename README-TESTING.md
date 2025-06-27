@@ -5,6 +5,7 @@ This guide explains how to test the background compliance checking functionality
 ## 🧪 Running the Test Suite
 
 ### Local Testing (Development)
+
 ```bash
 # Start the development server
 npm run dev
@@ -14,6 +15,7 @@ npm run test:compliance
 ```
 
 ### Production Testing
+
 ```bash
 # Test against the live Vercel deployment
 npm run test:compliance:prod
@@ -22,19 +24,23 @@ npm run test:compliance:prod
 ## 🔍 What Gets Tested
 
 ### 1. Website Compliance Checks
+
 - **Valid websites**: google.com, microsoft.com, apple.com
 - **Invalid websites**: nonexistent domains, malformed URLs
 - **Checks**: Website scraping, metadata extraction, risk scoring
 
 ### 2. AI Business Categorization
+
 - **Test businesses**: Restaurant, Tech company, Construction, Crypto (high-risk)
 - **Checks**: Category classification, confidence scores, high-risk detection
 
 ### 3. Adverse Media Monitoring
+
 - **Test entities**: Microsoft (low risk), ABC Small Business (low risk), Enron (high risk)
 - **Checks**: News article search, sentiment analysis, risk scoring
 
 ### 4. Database Integration
+
 - **Compliance results retrieval**: Check if data is properly saved
 - **Data persistence**: Verify compliance checks are stored for review
 
@@ -43,6 +49,7 @@ npm run test:compliance:prod
 ### Test Individual APIs Directly
 
 **Website Compliance:**
+
 ```bash
 curl -X POST http://localhost:3009/api/test-compliance \
   -H "Content-Type: application/json" \
@@ -50,6 +57,7 @@ curl -X POST http://localhost:3009/api/test-compliance \
 ```
 
 **AI Categorization:**
+
 ```bash
 curl -X POST http://localhost:3009/api/test-compliance \
   -H "Content-Type: application/json" \
@@ -57,6 +65,7 @@ curl -X POST http://localhost:3009/api/test-compliance \
 ```
 
 **Adverse Media:**
+
 ```bash
 curl -X POST http://localhost:3009/api/test-compliance \
   -H "Content-Type: application/json" \
@@ -64,6 +73,7 @@ curl -X POST http://localhost:3009/api/test-compliance \
 ```
 
 **Get All Results:**
+
 ```bash
 curl http://localhost:3009/api/test-compliance
 ```
@@ -84,6 +94,7 @@ curl http://localhost:3009/api/test-compliance
 ### Browser Console Monitoring
 
 Open browser DevTools and watch for:
+
 - POST requests to `/api/compliance/*` endpoints
 - Debug logs showing step completion and triggers
 - Any error messages in console
@@ -102,6 +113,7 @@ SUPABASE_SERVICE_ROLE_KEY=your_supabase_service_key
 ## 📈 Expected Results
 
 ### Successful Test Output Example:
+
 ```
 🧪 Compliance System Test Suite
 ================================
@@ -155,16 +167,19 @@ Testing: Microsoft
 ## 📝 Test Results Analysis
 
 ### Website Compliance:
+
 - **Low Risk (0.0-0.3)**: Professional website with contact info
 - **Medium Risk (0.3-0.7)**: Missing some business information
 - **High Risk (0.7-1.0)**: Poor website quality or inaccessible
 
 ### AI Categorization:
+
 - **Confidence > 0.8**: High confidence classification
 - **High-risk similarity > 0.5**: Potential regulatory concern
 - **Categories**: Standard business vs. high-risk industries
 
 ### Adverse Media:
+
 - **Low Risk**: Minimal negative news coverage
 - **Medium Risk**: Some adverse mentions
 - **High Risk**: Significant negative coverage or scandals

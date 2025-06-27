@@ -8,15 +8,17 @@ const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 async function createTable() {
   console.log('🚀 Creating applications table in Supabase...');
-  
+
   try {
     // Create the table using raw SQL
     const { data, error } = await supabase.rpc('create_applications_table');
-    
+
     if (error) {
-      console.log('⚠️  RPC method not available. Please run this SQL manually in your Supabase dashboard:');
+      console.log(
+        '⚠️  RPC method not available. Please run this SQL manually in your Supabase dashboard:'
+      );
       console.log('\n--- COPY AND PASTE THIS SQL ---\n');
-      
+
       const sql = `
 -- Create the applications table
 CREATE TABLE IF NOT EXISTS applications (
@@ -107,21 +109,22 @@ CREATE POLICY "Anyone can insert applications" ON applications
 CREATE POLICY "Anyone can read applications" ON applications
   FOR SELECT USING (true);
 `;
-      
+
       console.log(sql);
       console.log('\n--- END COPY ---\n');
-      
+
       console.log('📋 Instructions:');
-      console.log('1. Go to https://app.supabase.com/project/gtogvkaukyxxwvxenfit/sql');
+      console.log(
+        '1. Go to https://app.supabase.com/project/gtogvkaukyxxwvxenfit/sql'
+      );
       console.log('2. Paste the SQL above');
       console.log('3. Click "Run"');
       console.log('4. Then run: node test-supabase.js');
-      
+
       return;
     }
-    
+
     console.log('✅ Table created successfully!');
-    
   } catch (error) {
     console.error('❌ Error:', error.message);
   }

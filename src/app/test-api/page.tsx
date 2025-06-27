@@ -15,7 +15,7 @@ export default function TestAPIPage() {
     const testData = {
       businessWebsite: 'trykeep.com',
       businessName: 'Test Company',
-      applicationId: '123'
+      applicationId: '123',
     };
 
     console.log('🧪 Testing website compliance API...');
@@ -27,11 +27,14 @@ export default function TestAPIPage() {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(testData)
+        body: JSON.stringify(testData),
       });
 
       console.log('Response status:', response.status);
-      console.log('Response headers:', Object.fromEntries(response.headers.entries()));
+      console.log(
+        'Response headers:',
+        Object.fromEntries(response.headers.entries())
+      );
 
       if (!response.ok) {
         throw new Error(`HTTP ${response.status}: ${response.statusText}`);
@@ -40,7 +43,6 @@ export default function TestAPIPage() {
       const data = await response.json();
       console.log('✅ Success! Response data:', data);
       setResult(data);
-
     } catch (err) {
       console.error('❌ Error:', err);
       setError(err instanceof Error ? err.message : 'Unknown error');
@@ -57,7 +59,7 @@ export default function TestAPIPage() {
     const testData = {
       businessName: 'Microsoft',
       businessWebsite: 'microsoft.com',
-      applicationId: '123'
+      applicationId: '123',
     };
 
     console.log('🧪 Testing adverse media API...');
@@ -69,7 +71,7 @@ export default function TestAPIPage() {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(testData)
+        body: JSON.stringify(testData),
       });
 
       console.log('Response status:', response.status);
@@ -82,7 +84,6 @@ export default function TestAPIPage() {
       const data = await response.json();
       console.log('✅ Success! Response data:', data);
       setResult(data);
-
     } catch (err) {
       console.error('❌ Error:', err);
       setError(err instanceof Error ? err.message : 'Unknown error');
@@ -98,7 +99,7 @@ export default function TestAPIPage() {
 
     const testData = {
       businessName: 'ABC Restaurant',
-      applicationId: '123'
+      applicationId: '123',
     };
 
     console.log('🧪 Testing AI categorization API...');
@@ -110,7 +111,7 @@ export default function TestAPIPage() {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(testData)
+        body: JSON.stringify(testData),
       });
 
       console.log('Response status:', response.status);
@@ -123,7 +124,6 @@ export default function TestAPIPage() {
       const data = await response.json();
       console.log('✅ Success! Response data:', data);
       setResult(data);
-
     } catch (err) {
       console.error('❌ Error:', err);
       setError(err instanceof Error ? err.message : 'Unknown error');
@@ -135,13 +135,17 @@ export default function TestAPIPage() {
   return (
     <div className="min-h-screen bg-gray-50 py-12">
       <div className="max-w-4xl mx-auto px-4">
-        <h1 className="text-3xl font-bold text-gray-900 mb-8">Compliance API Test Page</h1>
-        
+        <h1 className="text-3xl font-bold text-gray-900 mb-8">
+          Compliance API Test Page
+        </h1>
+
         <div className="bg-white rounded-lg shadow-lg p-8">
           <div className="space-y-4 mb-8">
-            <h2 className="text-xl font-semibold text-gray-800">Test Compliance APIs</h2>
+            <h2 className="text-xl font-semibold text-gray-800">
+              Test Compliance APIs
+            </h2>
             <p className="text-gray-600">
-              Click the buttons below to test each compliance API endpoint. 
+              Click the buttons below to test each compliance API endpoint.
               Check the browser console for detailed logs.
             </p>
           </div>
@@ -181,7 +185,9 @@ export default function TestAPIPage() {
 
           {result && (
             <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-              <h3 className="text-green-800 font-semibold mb-2">Success! API Response:</h3>
+              <h3 className="text-green-800 font-semibold mb-2">
+                Success! API Response:
+              </h3>
               <pre className="text-sm text-green-700 bg-green-100 p-3 rounded overflow-auto">
                 {JSON.stringify(result, null, 2)}
               </pre>
@@ -200,11 +206,22 @@ export default function TestAPIPage() {
           </div>
 
           <div className="mt-4 p-4 bg-blue-50 rounded-lg">
-            <h3 className="font-semibold text-blue-800 mb-2">Expected Results:</h3>
+            <h3 className="font-semibold text-blue-800 mb-2">
+              Expected Results:
+            </h3>
             <ul className="list-disc list-inside text-blue-700 space-y-1">
-              <li><strong>Website Check:</strong> Should return success with metadata for trykeep.com</li>
-              <li><strong>Adverse Media:</strong> Might fail without NEWSAPI_KEY environment variable</li>
-              <li><strong>AI Categorization:</strong> Might fail without OPENAI_API_KEY environment variable</li>
+              <li>
+                <strong>Website Check:</strong> Should return success with
+                metadata for trykeep.com
+              </li>
+              <li>
+                <strong>Adverse Media:</strong> Might fail without NEWSAPI_KEY
+                environment variable
+              </li>
+              <li>
+                <strong>AI Categorization:</strong> Might fail without
+                OPENAI_API_KEY environment variable
+              </li>
             </ul>
           </div>
         </div>
