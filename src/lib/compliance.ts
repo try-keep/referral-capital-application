@@ -49,36 +49,44 @@ export interface AICategorization {
 }
 
 // Database operations
-export async function saveComplianceCheck(check: ComplianceCheck): Promise<number> {
+export async function saveComplianceCheck(
+  check: ComplianceCheck
+): Promise<number> {
   const { data, error } = await supabase
     .from('compliance_checks')
     .insert([check])
-    .select()
+    .select();
 
   if (error) {
-    console.error('Error saving compliance check:', error)
-    throw error
+    console.error('Error saving compliance check:', error);
+    throw error;
   }
 
   return data[0].id;
 }
 
-export async function updateComplianceCheck(id: number, updates: Partial<ComplianceCheck>): Promise<void> {
+export async function updateComplianceCheck(
+  id: number,
+  updates: Partial<ComplianceCheck>
+): Promise<void> {
   const { error } = await supabase
     .from('compliance_checks')
     .update({
       ...updates,
-      completed_at: updates.status === 'completed' ? new Date().toISOString() : undefined
+      completed_at:
+        updates.status === 'completed' ? new Date().toISOString() : undefined,
     })
     .eq('id', id);
 
   if (error) {
-    console.error('Error updating compliance check:', error)
-    throw error
+    console.error('Error updating compliance check:', error);
+    throw error;
   }
 }
 
-export async function getComplianceChecks(applicationId: number): Promise<ComplianceCheck[]> {
+export async function getComplianceChecks(
+  applicationId: number
+): Promise<ComplianceCheck[]> {
   const { data, error } = await supabase
     .from('compliance_checks')
     .select('*')
@@ -86,8 +94,8 @@ export async function getComplianceChecks(applicationId: number): Promise<Compli
     .order('created_at', { ascending: false });
 
   if (error) {
-    console.error('Error fetching compliance checks:', error)
-    throw error
+    console.error('Error fetching compliance checks:', error);
+    throw error;
   }
 
   return data || [];
@@ -105,7 +113,7 @@ export function extractPhoneNumbers(text: string): string[] {
     /(\+?44[-.\s]?)?(\d{4})[-.\s]?(\d{6})/g, // UK format
     /(\+?1[-.\s]?)?(\d{3})[-.\s]?(\d{3})[-.\s]?(\d{4})/g, // General format
   ];
-  
+
   const phoneNumbers: string[] = [];
   for (const pattern of phonePatterns) {
     const matches = text.matchAll(pattern);
@@ -116,7 +124,7 @@ export function extractPhoneNumbers(text: string): string[] {
       }
     }
   }
-  
+
   return [...new Set(phoneNumbers)]; // Remove duplicates
 }
 
@@ -126,7 +134,10 @@ export function extractEmails(text: string): string[] {
   return [...new Set(emails)]; // Remove duplicates
 }
 
-export function extractSocialMediaLinks(html: string, baseUrl: string): Record<string, string[]> {
+export function extractSocialMediaLinks(
+  html: string,
+  baseUrl: string
+): Record<string, string[]> {
   const socialPlatforms = {
     facebook: ['facebook.com', 'fb.com'],
     twitter: ['twitter.com', 'x.com'],
@@ -134,19 +145,19 @@ export function extractSocialMediaLinks(html: string, baseUrl: string): Record<s
     instagram: ['instagram.com'],
     youtube: ['youtube.com', 'youtu.be'],
     tiktok: ['tiktok.com'],
-    pinterest: ['pinterest.com']
+    pinterest: ['pinterest.com'],
   };
-  
+
   const socialLinks: Record<string, string[]> = {};
-  
+
   // Simple regex to find href attributes
   const hrefPattern = /href=["']([^"']+)["']/gi;
   const matches = html.matchAll(hrefPattern);
-  
+
   for (const match of matches) {
     const href = match[1];
     let fullUrl = href;
-    
+
     // Convert relative URLs to absolute
     if (href.startsWith('/')) {
       const url = new URL(baseUrl);
@@ -154,7 +165,7 @@ export function extractSocialMediaLinks(html: string, baseUrl: string): Record<s
     } else if (!href.startsWith('http')) {
       continue;
     }
-    
+
     // Check if it's a social media link
     for (const [platform, domains] of Object.entries(socialPlatforms)) {
       for (const domain of domains) {
@@ -167,16 +178,18 @@ export function extractSocialMediaLinks(html: string, baseUrl: string): Record<s
       }
     }
   }
-  
+
   // Remove duplicates
   for (const platform in socialLinks) {
     socialLinks[platform] = [...new Set(socialLinks[platform])];
   }
-  
+
   return socialLinks;
 }
 
-export async function scrapeWebsiteMetadata(domain: string): Promise<WebsiteMetadata> {
+export async function scrapeWebsiteMetadata(
+  domain: string
+): Promise<WebsiteMetadata> {
   // Ensure the domain has a protocol
   const urlsToTry = [];
   if (!domain.startsWith('http://') && !domain.startsWith('https://')) {
@@ -184,36 +197,43 @@ export async function scrapeWebsiteMetadata(domain: string): Promise<WebsiteMeta
   } else {
     urlsToTry.push(domain);
   }
-  
+
   let lastError = '';
-  
+
   for (const url of urlsToTry) {
     try {
       const response = await fetch(url, {
         method: 'GET',
         headers: {
-          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
-          'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+          'User-Agent':
+            'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
+          Accept:
+            'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
         },
         signal: AbortSignal.timeout(10000), // 10 second timeout
       });
-      
+
       if (!response.ok) {
         throw new Error(`HTTP ${response.status}: ${response.statusText}`);
       }
-      
+
       const html = await response.text();
-      
+
       // Parse HTML to extract metadata
       const titleMatch = html.match(/<title[^>]*>([^<]+)<\/title>/i);
-      const descMatch = html.match(/<meta[^>]*name=["']description["'][^>]*content=["']([^"']+)["']/i);
-      const keywordsMatch = html.match(/<meta[^>]*name=["']keywords["'][^>]*content=["']([^"']+)["']/i);
-      
-      const pageText = html.replace(/<script[^>]*>[\s\S]*?<\/script>/gi, '')
-                           .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, '')
-                           .replace(/<[^>]+>/g, ' ')
-                           .replace(/\s+/g, ' ');
-      
+      const descMatch = html.match(
+        /<meta[^>]*name=["']description["'][^>]*content=["']([^"']+)["']/i
+      );
+      const keywordsMatch = html.match(
+        /<meta[^>]*name=["']keywords["'][^>]*content=["']([^"']+)["']/i
+      );
+
+      const pageText = html
+        .replace(/<script[^>]*>[\s\S]*?<\/script>/gi, '')
+        .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, '')
+        .replace(/<[^>]+>/g, ' ')
+        .replace(/\s+/g, ' ');
+
       return {
         url,
         status_code: response.status,
@@ -225,13 +245,12 @@ export async function scrapeWebsiteMetadata(domain: string): Promise<WebsiteMeta
         social_media_links: extractSocialMediaLinks(html, url),
         success: true,
       };
-      
     } catch (error) {
       lastError = error instanceof Error ? error.message : 'Unknown error';
       continue;
     }
   }
-  
+
   return {
     url: domain,
     title: '',

@@ -8,26 +8,26 @@ const supabase = createClient(
 
 async function simpleTest() {
   console.log('🧪 Testing Supabase connection...\n');
-  
+
   try {
     // Test table access
     const { data, error } = await supabase
       .from('applications')
       .select('count(*)', { count: 'exact', head: true });
-    
+
     if (error) {
       console.error('❌ Error:', error.message);
       console.log('💡 Make sure you created the table in Supabase dashboard');
       return;
     }
-    
+
     console.log('✅ Supabase connection successful!');
     console.log(`📊 Current applications in database: ${data.count || 0}`);
-    
+
     // Insert a simple test record
     const testData = {
       loan_type: 'business-loan',
-      is_business_owner: 'yes', 
+      is_business_owner: 'yes',
       monthly_sales: '50000',
       has_existing_loans: 'no',
       business_name: 'Quick Test Company',
@@ -52,27 +52,28 @@ async function simpleTest() {
       business_address: '123 Test St, Test City, TC 12345',
       business_phone: '555-0124',
       agrees_to_terms: true,
-      authorizes_credit_check: true
+      authorizes_credit_check: true,
     };
-    
+
     const { data: insertData, error: insertError } = await supabase
       .from('applications')
       .insert([testData])
       .select();
-    
+
     if (insertError) {
       console.error('❌ Insert error:', insertError.message);
       return;
     }
-    
+
     console.log('✅ Test record inserted successfully!');
     console.log(`📋 Application ID: ${insertData[0].id}`);
     console.log(`🏢 Business: ${insertData[0].business_name}`);
     console.log(`📧 Email: ${insertData[0].email}`);
-    
+
     console.log('\n🎉 Supabase integration is working perfectly!');
-    console.log('🔗 View data: https://app.supabase.com/project/gtogvkaukyxxwvxenfit/editor');
-    
+    console.log(
+      '🔗 View data: https://app.supabase.com/project/gtogvkaukyxxwvxenfit/editor'
+    );
   } catch (error) {
     console.error('❌ Test failed:', error.message);
   }

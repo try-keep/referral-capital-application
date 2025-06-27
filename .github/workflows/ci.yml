@@ -15,8 +15,8 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: "22"
-          cache: "npm"
+          node-version: '22'
+          cache: 'npm'
 
       - name: Install frontend dependencies
         run: npm ci
@@ -48,6 +48,9 @@ jobs:
 
       - name: TypeScript check
         run: npx tsc --noEmit
+
+      - name: Check code formatting
+        run: npm run format:check
 
       - name: Lint frontend
         run: npm run lint

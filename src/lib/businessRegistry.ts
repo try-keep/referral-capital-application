@@ -30,31 +30,35 @@ export interface BusinessRegistryResponse {
 }
 
 // Search for businesses in the Canadian Business Registry
-export async function searchCanadianBusinesses(businessName: string): Promise<BusinessRegistryResponse> {
+export async function searchCanadianBusinesses(
+  businessName: string
+): Promise<BusinessRegistryResponse> {
   try {
     // Clean and encode the business name for the API
     const encodedName = encodeURIComponent(`{${businessName.toUpperCase()}}`);
     const apiUrl = `https://ised-isde.canada.ca/cbr/srch/api/v1/search?fq=keyword:${encodedName}&lang=en&queryaction=fieldquery&sortfield=score&sortorder=desc`;
-    
+
     console.log('Searching Canadian Business Registry for:', businessName);
     console.log('API URL:', apiUrl);
-    
+
     const response = await fetch(apiUrl, {
       method: 'GET',
       headers: {
-        'Accept': 'application/json',
-        'User-Agent': 'Business Application Form'
-      }
+        Accept: 'application/json',
+        'User-Agent': 'Business Application Form',
+      },
     });
 
     if (!response.ok) {
-      throw new Error(`API request failed: ${response.status} ${response.statusText}`);
+      throw new Error(
+        `API request failed: ${response.status} ${response.statusText}`
+      );
     }
 
     const data: BusinessRegistryResponse = await response.json();
-    
+
     console.log('Search results:', data);
-    
+
     return data;
   } catch (error) {
     console.error('Error searching Canadian Business Registry:', error);
@@ -77,18 +81,18 @@ export function formatBusinessDataForForm(business: BusinessRegistryResult) {
     registrySource: business.Registry_Source,
     // These can be used to prefill other form fields
     businessAge: calculateBusinessAge(business.Date_Incorporated),
-    businessType: mapEntityTypeToBusinessType(business.Entity_Type)
+    businessType: mapEntityTypeToBusinessType(business.Entity_Type),
   };
 }
 
 // Calculate business age based on incorporation date
 function calculateBusinessAge(incorporationDate: string): string {
   if (!incorporationDate) return '';
-  
+
   const incorporationYear = new Date(incorporationDate).getFullYear();
   const currentYear = new Date().getFullYear();
   const yearsInBusiness = currentYear - incorporationYear;
-  
+
   if (yearsInBusiness < 1) return 'under-1-year';
   if (yearsInBusiness <= 2) return '1-2-years';
   if (yearsInBusiness <= 5) return '2-5-years';
@@ -99,8 +103,9 @@ function calculateBusinessAge(incorporationDate: string): string {
 // Map entity type to our business type options
 function mapEntityTypeToBusinessType(entityType: string): string {
   const type = entityType.toLowerCase();
-  
-  if (type.includes('corp') || type.includes('corporation')) return 'professional-services';
+
+  if (type.includes('corp') || type.includes('corporation'))
+    return 'professional-services';
   if (type.includes('partnership')) return 'professional-services';
   if (type.includes('sole')) return 'professional-services';
   if (type.includes('restaurant') || type.includes('food')) return 'restaurant';
@@ -111,7 +116,7 @@ function mapEntityTypeToBusinessType(entityType: string): string {
   if (type.includes('manufact')) return 'manufacturing';
   if (type.includes('transport')) return 'transportation';
   if (type.includes('real estate')) return 'real-estate';
-  
+
   // Default to professional services for corporations
   return 'professional-services';
 }

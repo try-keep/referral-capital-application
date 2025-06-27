@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { 
-  saveComplianceCheck, 
+import {
+  saveComplianceCheck,
   updateComplianceCheck,
-  AICategorization 
+  AICategorization,
 } from '@/lib/compliance';
 
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
@@ -21,7 +21,7 @@ const HIGH_RISK_CATEGORIES = [
   'Money Services and Remittance',
   'Cannabis and CBD Products',
   'Political Organizations',
-  'Religious Organizations'
+  'Religious Organizations',
 ];
 
 // Standard business categories
@@ -46,20 +46,23 @@ const BUSINESS_CATEGORIES = [
   'Sports and Recreation',
   'Legal Services',
   'Marketing and Advertising',
-  'Other'
+  'Other',
 ];
 
-async function categorizeBusinessWithAI(businessName: string, businessDescription?: string): Promise<AICategorization> {
+async function categorizeBusinessWithAI(
+  businessName: string,
+  businessDescription?: string
+): Promise<AICategorization> {
   if (!OPENAI_API_KEY) {
     throw new Error('OpenAI API key not configured');
   }
-  
-  const businessInfo = businessDescription 
+
+  const businessInfo = businessDescription
     ? `${businessName} - ${businessDescription}`
     : businessName;
-  
+
   const categories = [...BUSINESS_CATEGORIES, ...HIGH_RISK_CATEGORIES];
-  
+
   const prompt = `Analyze the following business and categorize it. Respond with a JSON object containing:
 1. "category": The most appropriate category from the provided list
 2. "confidence_score": A number from 0.0 to 1.0 indicating confidence in the categorization
@@ -79,7 +82,7 @@ Respond only with valid JSON in this format:
   const response = await fetch('https://api.openai.com/v1/chat/completions', {
     method: 'POST',
     headers: {
-      'Authorization': `Bearer ${OPENAI_API_KEY}`,
+      Authorization: `Bearer ${OPENAI_API_KEY}`,
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
@@ -87,50 +90,55 @@ Respond only with valid JSON in this format:
       messages: [
         {
           role: 'user',
-          content: prompt
-        }
+          content: prompt,
+        },
       ],
       max_tokens: 200,
-      temperature: 0.1
-    })
+      temperature: 0.1,
+    }),
   });
-  
+
   if (!response.ok) {
-    throw new Error(`OpenAI API error: ${response.status} ${response.statusText}`);
+    throw new Error(
+      `OpenAI API error: ${response.status} ${response.statusText}`
+    );
   }
-  
+
   const data = await response.json();
   const responseText = data.choices[0]?.message?.content?.trim();
-  
+
   try {
     const result = JSON.parse(responseText);
-    
+
     // Calculate high-risk similarity if applicable
     let highRiskSimilarity = 0;
     const matchedHighRiskCategories: string[] = [];
-    
+
     if (HIGH_RISK_CATEGORIES.includes(result.category)) {
       highRiskSimilarity = 1.0;
       matchedHighRiskCategories.push(result.category);
     } else {
       // Check if business might be similar to high-risk categories
       for (const riskCategory of HIGH_RISK_CATEGORIES) {
-        if (businessInfo.toLowerCase().includes(riskCategory.toLowerCase().split(' ')[0])) {
+        if (
+          businessInfo
+            .toLowerCase()
+            .includes(riskCategory.toLowerCase().split(' ')[0])
+        ) {
           highRiskSimilarity = Math.max(highRiskSimilarity, 0.3);
           matchedHighRiskCategories.push(riskCategory);
         }
       }
     }
-    
+
     return {
       business_name: businessName,
       category: result.category,
       confidence_score: Math.max(0, Math.min(1, result.confidence_score)),
       summary: result.summary,
       high_risk_similarity: highRiskSimilarity,
-      high_risk_categories: matchedHighRiskCategories
+      high_risk_categories: matchedHighRiskCategories,
     };
-    
   } catch (error) {
     throw new Error(`Failed to parse AI response: ${responseText}`);
   }
@@ -140,63 +148,67 @@ export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
     const { businessName, businessDescription, applicationId } = body;
-    
+
     if (!businessName) {
       return NextResponse.json(
-        { error: 'Business name is required' }, 
+        { error: 'Business name is required' },
         { status: 400 }
       );
     }
-    
+
     // Create initial compliance check record
     const checkId = await saveComplianceCheck({
       application_id: applicationId,
       check_type: 'ai_categorization',
       status: 'pending',
-      input_data: { businessName, businessDescription }
+      input_data: { businessName, businessDescription },
     });
-    
+
     try {
       // Run AI categorization
-      const result = await categorizeBusinessWithAI(businessName, businessDescription);
-      
+      const result = await categorizeBusinessWithAI(
+        businessName,
+        businessDescription
+      );
+
       // Calculate risk score based on categorization
       let riskScore = result.high_risk_similarity || 0;
-      
+
       // Adjust risk score based on confidence
       if (result.confidence_score < 0.5) {
         riskScore += 0.1; // Increase risk for uncertain categorizations
       }
-      
+
       // Ensure risk score is between 0 and 1
       riskScore = Math.max(0, Math.min(1, riskScore));
-      
+
       // Update compliance check with results
       await updateComplianceCheck(checkId, {
         status: 'completed',
         risk_score: riskScore,
-        results: result
+        results: result,
       });
-      
-      return NextResponse.json({ 
-        success: true, 
+
+      return NextResponse.json({
+        success: true,
         checkId,
-        result 
+        result,
       });
-      
     } catch (error) {
       // Update compliance check with error
       await updateComplianceCheck(checkId, {
         status: 'failed',
-        error_message: error instanceof Error ? error.message : 'Unknown error'
+        error_message: error instanceof Error ? error.message : 'Unknown error',
       });
-      
+
       return NextResponse.json(
-        { error: 'Failed to process AI categorization', details: error instanceof Error ? error.message : 'Unknown error' },
+        {
+          error: 'Failed to process AI categorization',
+          details: error instanceof Error ? error.message : 'Unknown error',
+        },
         { status: 500 }
       );
     }
-    
   } catch (error) {
     console.error('AI categorization error:', error);
     return NextResponse.json(

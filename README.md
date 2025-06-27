@@ -51,6 +51,7 @@ The application will be available at `http://localhost:3009`
 ## 📊 Tech Stack
 
 ### Frontend
+
 - **Framework**: Next.js 13 (App Router)
 - **Language**: TypeScript
 - **Styling**: Tailwind CSS
@@ -58,12 +59,14 @@ The application will be available at `http://localhost:3009`
 - **State Management**: React hooks and localStorage
 
 ### Backend & Database
+
 - **Database**: Supabase (PostgreSQL)
 - **Authentication**: Supabase Auth (for admin features)
 - **API**: Next.js API Routes
 - **File Storage**: Supabase Storage
 
 ### External Integrations
+
 - **Business Data**: Canadian Business Registry API
 - **Compliance**: NewsAPI, OpenAI
 - **Analytics**: Microsoft Clarity, Google Tag Manager, Facebook Pixel
@@ -146,16 +149,19 @@ node setup-users-table.js
 Detailed instructions for obtaining required API keys:
 
 ### 1. Supabase
+
 1. Create project at [supabase.com](https://supabase.com)
 2. Get URL and anon key from Settings → API
 3. Get service role key for server operations
 
 ### 2. NewsAPI (Compliance)
+
 1. Sign up at [newsapi.org](https://newsapi.org)
 2. Free tier: 1,000 requests/month
 3. Used for adverse media monitoring
 
 ### 3. OpenAI (AI Categorization)
+
 1. Get API key from [openai.com/api](https://openai.com/api)
 2. Used for business categorization (~$0.002/request)
 
@@ -164,6 +170,7 @@ See [get-api-keys.md](./get-api-keys.md) for detailed setup instructions.
 ## 🎯 Application Flow
 
 ### User Journey
+
 1. **Homepage** - Landing page with CTA
 2. **Step 1: Loan Type** - Select funding type
 3. **Step 2: Personal Info** - Contact details + address
@@ -180,6 +187,7 @@ See [get-api-keys.md](./get-api-keys.md) for detailed setup instructions.
 14. **Step 13: Review & Submit** - Final submission
 
 ### Data Flow
+
 1. **Form Data**: Stored in localStorage during completion
 2. **User Creation**: Personal data saved at Step 2
 3. **Business Verification**: Registry lookup at Step 4
@@ -202,6 +210,12 @@ npm start
 
 # Run linting
 npm run lint
+
+# Check code formatting
+npm run format:check
+
+# Format code
+npm run format
 
 # Test compliance system
 npm run test:compliance
@@ -239,6 +253,7 @@ node test-compliance.js
 The application is configured for deployment on Vercel:
 
 1. **Connect Repository**
+
    ```bash
    vercel --prod
    ```
@@ -252,6 +267,7 @@ The application is configured for deployment on Vercel:
    - Static assets served from `/public`
 
 ### Production URLs
+
 - **Staging**: `https://referral-capital-application-1gv42zxj3-try-keep.vercel.app`
 - **Production**: Configure custom domain in Vercel
 
@@ -275,12 +291,14 @@ For production deployment:
 ## 🔒 Security
 
 ### Data Protection
+
 - All PII encrypted in database
 - RLS (Row Level Security) enabled
 - API rate limiting implemented
 - Input validation on all endpoints
 
 ### Compliance Features
+
 - Adverse media monitoring
 - Business verification
 - Credit check authorization
@@ -289,12 +307,14 @@ For production deployment:
 ## 📈 Analytics & Tracking
 
 ### Integrated Analytics
+
 - **Microsoft Clarity**: Heatmaps and session recordings
 - **Google Tag Manager**: Custom event tracking
 - **Facebook Pixel**: Conversion tracking
 - **UTM Tracking**: Campaign attribution
 
 ### Custom Events
+
 - Form step completions
 - Business search interactions
 - Application submissions
@@ -303,18 +323,43 @@ For production deployment:
 ## 🛠️ Development
 
 ### Code Organization
+
 - **Monolithic Form**: Single 2000+ line form component (needs refactoring)
 - **API Layer**: Organized by feature in `/api` directory
 - **Type Safety**: TypeScript interfaces for all data
 - **Validation**: Client and server-side validation
 
+### Code Quality
+
+- **Linting**: ESLint with Next.js configuration for code quality
+- **Formatting**: Prettier for consistent code formatting
+- **Type Checking**: TypeScript for compile-time error detection
+
+**Code Quality Commands:**
+
+```bash
+# Check and fix linting issues
+npm run lint
+
+# Check code formatting
+npm run format:check
+
+# Auto-format code
+npm run format
+
+# Type checking
+npx tsc --noEmit
+```
+
 ### Known Technical Debt
+
 1. **Large Form Component**: Step components should be extracted
 2. **State Management**: Consider Redux/Zustand for complex state
 3. **Error Handling**: Needs centralized error boundary
 4. **Testing**: Unit tests needed for critical paths
 
 ### Recommended Refactoring
+
 See development notes for breaking down the monolithic form into manageable components.
 
 ## 🐛 Troubleshooting
@@ -322,6 +367,7 @@ See development notes for breaking down the monolithic form into manageable comp
 ### Common Issues
 
 **Build Errors**
+
 ```bash
 # Clear cache and reinstall
 rm -rf .next node_modules
@@ -330,18 +376,21 @@ npm run build
 ```
 
 **Database Connection**
+
 ```bash
 # Test Supabase connection
 node test-supabase-connection.js
 ```
 
 **API Keys**
+
 ```bash
 # Verify all keys are configured
 curl http://localhost:3009/api/debug
 ```
 
 ### Debug Tools
+
 - `/api/debug` - Environment check
 - Browser DevTools - Network and console logs
 - Supabase Dashboard - Database queries
@@ -350,10 +399,12 @@ curl http://localhost:3009/api/debug
 ## 📞 Support
 
 ### Documentation
+
 - [API Keys Setup](./get-api-keys.md)
 - [Testing Guide](./README-TESTING.md)
 
 ### Contact
+
 For development questions or issues, please refer to the project repository or contact the development team.
 
 ---

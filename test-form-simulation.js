@@ -14,7 +14,7 @@ async function simulateFormSubmission() {
   const exactPayload = {
     businessWebsite: 'trykeep.com',
     businessName: 'ACME GARAGE (ACME) LTD',
-    applicationId: null
+    applicationId: null,
   };
 
   console.log('Making API call with exact payload from your logs:');
@@ -23,13 +23,13 @@ async function simulateFormSubmission() {
 
   try {
     const startTime = Date.now();
-    
+
     const response = await fetch(`${BASE_URL}/api/compliance/website-check`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify(exactPayload)
+      body: JSON.stringify(exactPayload),
     });
 
     const endTime = Date.now();
@@ -44,13 +44,17 @@ async function simulateFormSubmission() {
       const data = await response.json();
       console.log('✅ SUCCESS! API returned data:');
       console.log(JSON.stringify(data, null, 2));
-      
+
       if (data.success) {
         console.log('\n📊 Compliance Results:');
         console.log(`Risk Score: ${data.riskScore}`);
         console.log(`Website Title: ${data.metadata?.title || 'N/A'}`);
-        console.log(`Phone Numbers: ${data.metadata?.phone_numbers?.length || 0}`);
-        console.log(`Social Media: ${Object.keys(data.metadata?.social_media_links || {}).length} platforms`);
+        console.log(
+          `Phone Numbers: ${data.metadata?.phone_numbers?.length || 0}`
+        );
+        console.log(
+          `Social Media: ${Object.keys(data.metadata?.social_media_links || {}).length} platforms`
+        );
       }
     } else {
       const errorText = await response.text();
@@ -58,7 +62,6 @@ async function simulateFormSubmission() {
       console.log(`Status: ${response.status}`);
       console.log(`Body: ${errorText}`);
     }
-
   } catch (error) {
     console.log('💥 Network/Request Error:');
     console.log(error.message);
@@ -93,38 +96,38 @@ async function testPayloadVariations() {
       payload: {
         businessWebsite: 'trykeep.com',
         businessName: 'Keep',
-        applicationId: '123'
-      }
+        applicationId: '123',
+      },
     },
     {
       name: 'Minimal payload',
       payload: {
-        businessWebsite: 'trykeep.com'
-      }
+        businessWebsite: 'trykeep.com',
+      },
     },
     {
       name: 'Different URL format',
       payload: {
         businessWebsite: 'https://trykeep.com',
         businessName: 'Keep',
-        applicationId: '456'
-      }
-    }
+        applicationId: '456',
+      },
+    },
   ];
 
   for (const variation of variations) {
     console.log(`Testing: ${variation.name}`);
     console.log('Payload:', JSON.stringify(variation.payload, null, 2));
-    
+
     try {
       const response = await fetch(`${BASE_URL}/api/compliance/website-check`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(variation.payload)
+        body: JSON.stringify(variation.payload),
       });
 
       console.log(`Result: ${response.status} ${response.statusText}`);
-      
+
       if (response.ok) {
         const data = await response.json();
         console.log('✅ Success');
@@ -135,7 +138,7 @@ async function testPayloadVariations() {
     } catch (error) {
       console.log('💥 Failed:', error.message);
     }
-    
+
     console.log('');
   }
 }
@@ -143,7 +146,7 @@ async function testPayloadVariations() {
 async function runTests() {
   await simulateFormSubmission();
   await testPayloadVariations();
-  
+
   console.log('\n🎉 Summary:');
   console.log('- Your compliance API is working correctly');
   console.log('- Website scraping is successful');

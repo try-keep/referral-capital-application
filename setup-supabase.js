@@ -93,11 +93,12 @@ CREATE INDEX IF NOT EXISTS idx_applications_submitted_at ON applications(submitt
 
 async function setupSupabase() {
   console.log('🚀 Setting up Supabase database...');
-  
+
   try {
     // Test connection
     console.log('📡 Testing Supabase connection...');
-    const { data: testData, error: testError } = await supabase.auth.getSession();
+    const { data: testData, error: testError } =
+      await supabase.auth.getSession();
     if (testError && testError.message !== 'Auth session missing!') {
       throw testError;
     }
@@ -105,10 +106,13 @@ async function setupSupabase() {
 
     // Create table
     console.log('📋 Creating applications table...');
-    const { data: tableData, error: tableError } = await supabase.rpc('exec_sql', { 
-      sql: createTableSQL 
-    });
-    
+    const { data: tableData, error: tableError } = await supabase.rpc(
+      'exec_sql',
+      {
+        sql: createTableSQL,
+      }
+    );
+
     if (tableError) {
       // If RPC doesn't work, try direct SQL execution
       console.log('⚠️  RPC method failed, trying alternative approach...');
@@ -120,15 +124,20 @@ async function setupSupabase() {
       console.log('--- END COPY ---\n');
     } else {
       console.log('✅ Applications table created successfully');
-      
+
       // Create indexes
       console.log('🔍 Creating indexes...');
-      const { data: indexData, error: indexError } = await supabase.rpc('exec_sql', { 
-        sql: createIndexesSQL 
-      });
-      
+      const { data: indexData, error: indexError } = await supabase.rpc(
+        'exec_sql',
+        {
+          sql: createIndexesSQL,
+        }
+      );
+
       if (indexError) {
-        console.log('⚠️  Could not create indexes automatically. Please run manually.');
+        console.log(
+          '⚠️  Could not create indexes automatically. Please run manually.'
+        );
       } else {
         console.log('✅ Indexes created successfully');
       }
@@ -139,18 +148,21 @@ async function setupSupabase() {
     const { data: selectData, error: selectError } = await supabase
       .from('applications')
       .select('count(*)', { count: 'exact', head: true });
-      
+
     if (selectError) {
       console.log('⚠️  Table access test failed:', selectError.message);
-      console.log('You may need to adjust Row Level Security (RLS) policies in Supabase');
+      console.log(
+        'You may need to adjust Row Level Security (RLS) policies in Supabase'
+      );
     } else {
       console.log('✅ Table access successful');
     }
 
     console.log('\n🎉 Supabase setup complete!');
     console.log('📝 Your application is now ready to store form submissions');
-    console.log('🔧 You can view your data in the Supabase dashboard table editor');
-    
+    console.log(
+      '🔧 You can view your data in the Supabase dashboard table editor'
+    );
   } catch (error) {
     console.error('❌ Setup failed:', error.message);
     console.log('\n📋 Manual Setup Instructions:');

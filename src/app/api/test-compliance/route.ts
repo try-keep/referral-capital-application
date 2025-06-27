@@ -3,14 +3,18 @@ import { createClient } from '@supabase/supabase-js';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-const supabase = supabaseUrl && supabaseServiceKey 
-  ? createClient(supabaseUrl, supabaseServiceKey)
-  : null;
+const supabase =
+  supabaseUrl && supabaseServiceKey
+    ? createClient(supabaseUrl, supabaseServiceKey)
+    : null;
 
 export async function GET(request: NextRequest) {
   try {
     if (!supabase) {
-      return NextResponse.json({ error: 'Supabase not configured' }, { status: 500 });
+      return NextResponse.json(
+        { error: 'Supabase not configured' },
+        { status: 500 }
+      );
     }
 
     // Get all compliance checks
@@ -24,12 +28,11 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
-    return NextResponse.json({ 
-      success: true, 
+    return NextResponse.json({
+      success: true,
       checks: data,
-      total: data.length 
+      total: data.length,
     });
-
   } catch (error) {
     return NextResponse.json(
       { error: 'Failed to get compliance checks' },
@@ -45,34 +48,43 @@ export async function POST(request: NextRequest) {
 
     let result;
     if (type === 'website' && websiteUrl) {
-      result = await fetch(`${request.nextUrl.origin}/api/compliance/website-check`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          businessWebsite: websiteUrl, 
-          businessName: businessName || 'Test Business',
-          applicationId: 999 
-        })
-      });
+      result = await fetch(
+        `${request.nextUrl.origin}/api/compliance/website-check`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            businessWebsite: websiteUrl,
+            businessName: businessName || 'Test Business',
+            applicationId: 999,
+          }),
+        }
+      );
     } else if (type === 'categorization' && businessName) {
-      result = await fetch(`${request.nextUrl.origin}/api/compliance/ai-categorization`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          businessName,
-          applicationId: 999 
-        })
-      });
+      result = await fetch(
+        `${request.nextUrl.origin}/api/compliance/ai-categorization`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            businessName,
+            applicationId: 999,
+          }),
+        }
+      );
     } else if (type === 'adverse-media' && businessName) {
-      result = await fetch(`${request.nextUrl.origin}/api/compliance/adverse-media`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          businessName,
-          websiteUrl,
-          applicationId: 999 
-        })
-      });
+      result = await fetch(
+        `${request.nextUrl.origin}/api/compliance/adverse-media`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            businessName,
+            websiteUrl,
+            applicationId: 999,
+          }),
+        }
+      );
     }
 
     if (result) {
@@ -81,11 +93,7 @@ export async function POST(request: NextRequest) {
     }
 
     return NextResponse.json({ error: 'Invalid test type' }, { status: 400 });
-
   } catch (error) {
-    return NextResponse.json(
-      { error: 'Test failed' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Test failed' }, { status: 500 });
   }
 }
