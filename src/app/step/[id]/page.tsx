@@ -1152,7 +1152,7 @@ function Step12Form({
           {/* Flinks iframe */}
           <div className="mb-8">
             <iframe
-              src={`https://trykeep-iframe.private.fin.ag/v2?customerName=Keep&daysOfTransactions=Days365&scheduleRefresh=false&consentEnable=true&detailsAndStatementEnable=true&monthsOfStatements=Months12&enhancedMFA=false&maximumRetry=3&tag=${formattedFlinksTags}${skipFlinks ? '&demo=true' : ''}`}
+              src={`${process.env.NEXT_PUBLIC_FLINKS_IFRAME_URL}/v2?customerName=Keep&daysOfTransactions=Days365&scheduleRefresh=false&consentEnable=true&detailsAndStatementEnable=true&monthsOfStatements=Months12&enhancedMFA=false&maximumRetry=3&tag=${formattedFlinksTags}${skipFlinks ? '&demo=true' : ''}`}
               width="100%"
               height="600"
               frameBorder="0"
