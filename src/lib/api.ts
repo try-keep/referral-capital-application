@@ -190,33 +190,8 @@ export async function submitApplication(
     // Save to Supabase
     const savedApplication = await saveApplication(supabaseData);
 
-    // Save existing loans if any
-    if (
-      data.hasExistingLoans === 'yes' &&
-      data.existingLoans &&
-      data.existingLoans.length > 0
-    ) {
-      const existingLoansToSave = data.existingLoans
-        .filter((loan) => loan.lenderName.trim() && loan.loanAmount.trim())
-        .map((loan) => ({
-          application_id: savedApplication.id!,
-          lender_name: loan.lenderName.trim(),
-          loan_amount: parseFloat(loan.loanAmount.replace(/,/g, '') || '0'),
-        }));
-
-      if (existingLoansToSave.length > 0) {
-        const { error } = await supabase
-          .from('existing_loans')
-          .insert(existingLoansToSave);
-
-        if (error) {
-          console.error('Error saving existing loans:', error);
-          // Don't throw error - application is already saved
-        }
-      }
-    }
-
-    return {
+    // Prepare response data
+    const responseData = {
       success: true,
       message: 'Application submitted successfully',
       applicationId: savedApplication.id!,
@@ -228,6 +203,34 @@ export async function submitApplication(
         submittedAt: savedApplication.submitted_at || new Date().toISOString(),
       },
     };
+
+    // Early return if no existing loans
+    if (
+      data.hasExistingLoans !== 'yes' ||
+      !data.existingLoans ||
+      data.existingLoans.length === 0
+    ) {
+      return responseData;
+    }
+
+    const existingLoansToSave = data.existingLoans
+      .filter((loan) => loan.lenderName.trim() && loan.loanAmount.trim())
+      .map((loan) => ({
+        application_id: savedApplication.id!,
+        lender_name: loan.lenderName.trim(),
+        loan_amount: parseFloat(loan.loanAmount.replace(/,/g, '') || '0'),
+      }));
+
+    const { error } = await supabase
+      .from('existing_loans')
+      .insert(existingLoansToSave);
+
+    if (error) {
+      console.error('Error saving existing loans:', error);
+      // Don't throw error - application is already saved
+    }
+
+    return responseData;
   } catch (error) {
     console.error('Error submitting application:', error);
     throw error;
