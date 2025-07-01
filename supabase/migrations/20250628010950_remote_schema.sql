@@ -3,7 +3,6 @@
 SET statement_timeout = 0;
 SET lock_timeout = 0;
 SET idle_in_transaction_session_timeout = 0;
-SET transaction_timeout = 0;
 SET client_encoding = 'UTF8';
 SET standard_conforming_strings = on;
 SELECT pg_catalog.set_config('search_path', '', false);
@@ -92,7 +91,7 @@ CREATE OR REPLACE FUNCTION "public"."compute_business_derived_fields"() RETURNS 
 BEGIN
   -- Compute business age category from incorporation date
   IF NEW.date_incorporated IS NOT NULL THEN
-    CASE 
+    CASE
       WHEN EXTRACT(YEAR FROM AGE(NEW.date_incorporated)) < 1 THEN
         NEW.business_age_category := 'under-1-year';
       WHEN EXTRACT(YEAR FROM AGE(NEW.date_incorporated)) <= 2 THEN
@@ -105,10 +104,10 @@ BEGIN
         NEW.business_age_category := 'over-10-years';
     END CASE;
   END IF;
-  
+
   -- Map entity type to our business type options
   IF NEW.entity_type IS NOT NULL THEN
-    CASE 
+    CASE
       WHEN LOWER(NEW.entity_type) LIKE '%restaurant%' OR LOWER(NEW.entity_type) LIKE '%food%' THEN
         NEW.estimated_business_type := 'restaurant';
       WHEN LOWER(NEW.entity_type) LIKE '%retail%' THEN
@@ -129,10 +128,10 @@ BEGIN
         NEW.estimated_business_type := 'professional-services';
     END CASE;
   END IF;
-  
+
   -- Set updated timestamp
   NEW.updated_at := NOW();
-  
+
   RETURN NEW;
 END;
 $$;
