@@ -1,11 +1,18 @@
 import {
   saveApplication,
   ApplicationData as SupabaseApplicationData,
+  supabase,
 } from './supabase';
 
 // Original form data interface (used internally by the form steps)
 export interface FormData {
   [key: string]: string | boolean;
+}
+
+// Existing loan interface
+export interface ExistingLoan {
+  lenderName: string;
+  loanAmount: string;
 }
 
 // Application data interface for submission
@@ -22,6 +29,7 @@ export interface ApplicationData {
   // Step 4: Existing Loans
   hasExistingLoans: string;
   totalLoanAmount?: string;
+  existingLoans?: ExistingLoan[];
 
   // Step 5: Business Search
   businessName: string;
@@ -181,6 +189,32 @@ export async function submitApplication(
 
     // Save to Supabase
     const savedApplication = await saveApplication(supabaseData);
+
+    // Save existing loans if any
+    if (
+      data.hasExistingLoans === 'yes' &&
+      data.existingLoans &&
+      data.existingLoans.length > 0
+    ) {
+      const existingLoansToSave = data.existingLoans
+        .filter((loan) => loan.lenderName.trim() && loan.loanAmount.trim())
+        .map((loan) => ({
+          application_id: savedApplication.id!,
+          lender_name: loan.lenderName.trim(),
+          loan_amount: parseFloat(loan.loanAmount.replace(/,/g, '') || '0'),
+        }));
+
+      if (existingLoansToSave.length > 0) {
+        const { error } = await supabase
+          .from('existing_loans')
+          .insert(existingLoansToSave);
+
+        if (error) {
+          console.error('Error saving existing loans:', error);
+          // Don't throw error - application is already saved
+        }
+      }
+    }
 
     return {
       success: true,
