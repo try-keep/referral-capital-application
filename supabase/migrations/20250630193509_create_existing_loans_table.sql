@@ -4,7 +4,7 @@ CREATE TABLE IF NOT EXISTS "public"."existing_loans" (
     "created_at" timestamp with time zone DEFAULT "now"(),
     "application_id" bigint NOT NULL,
     "lender_name" character varying(255) NOT NULL,
-    "loan_amount" numeric(15, 2) NOT NULL
+    "loan_amount" numeric(10, 2) NOT NULL
 );
 
 ALTER TABLE "public"."existing_loans" OWNER TO "postgres";
