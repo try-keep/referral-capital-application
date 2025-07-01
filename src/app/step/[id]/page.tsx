@@ -1112,11 +1112,15 @@ function Step12Form({
   const [isUploading, setIsUploading] = useState(false);
   const [uploadError, setUploadError] = useState('');
   const [isDragging, setIsDragging] = useState(false);
+  const [applicationUploadId, setApplicationUploadId] = useState<string>('');
 
   // Check if bank connection is already completed
+  // Don't show completed state if we just finished uploading (prevents flash of success screen)
+  const [justUploaded, setJustUploaded] = useState(false);
   const isConnectionCompleted =
-    localData.bankConnectionCompleted === 'true' ||
-    localData.bankConnectionCompleted === true;
+    (localData.bankConnectionCompleted === 'true' ||
+      localData.bankConnectionCompleted === true) &&
+    !justUploaded;
 
   // Update local data when formData prop changes (for when user navigates back)
   useEffect(() => {
@@ -1135,6 +1139,21 @@ function Step12Form({
     // If connection is already completed, set status to success
     if (formData.bankConnectionCompleted === 'true') {
       setConnectionStatus('success');
+    }
+
+    // Generate or retrieve application upload ID
+    const storedData = localStorage.getItem('referralApplicationData');
+    if (storedData) {
+      const parsedData = JSON.parse(storedData);
+      if (!parsedData.applicationUploadId) {
+        // Generate new UUID for this upload session
+        parsedData.applicationUploadId = crypto.randomUUID();
+        localStorage.setItem(
+          'referralApplicationData',
+          JSON.stringify(parsedData)
+        );
+      }
+      setApplicationUploadId(parsedData.applicationUploadId);
     }
   }, [formData]);
 
@@ -1179,13 +1198,18 @@ function Step12Form({
           bankConnectionMethod: 'flinks' as 'flinks',
           loginId,
           institution,
+          applicationUploadId: applicationUploadId,
         };
 
         // Update localStorage with the connection data
         const existingData = localStorage.getItem('referralApplicationData');
         if (existingData) {
           const parsedData = JSON.parse(existingData);
-          const updatedData = { ...parsedData, ...connectionData };
+          const updatedData = {
+            ...parsedData,
+            ...connectionData,
+            applicationUploadId: applicationUploadId,
+          };
           localStorage.setItem(
             'referralApplicationData',
             JSON.stringify(updatedData)
@@ -1193,11 +1217,8 @@ function Step12Form({
           console.log('💾 Bank connection data saved to localStorage');
         }
 
-        // Add 2-second timeout before proceeding to next step
-        setTimeout(() => {
-          console.log('⏰ Proceeding to next step after 1-second timeout');
-          onNext(connectionData);
-        }, 2000);
+        // Proceed to next step without delay to avoid race condition
+        onNext(connectionData);
       }
     }
 
@@ -1218,6 +1239,7 @@ function Step12Form({
       ...localData,
       bankConnectionCompleted: 'true',
       bankConnectionMethod: localData.bankConnectionMethod || 'flinks',
+      applicationUploadId: applicationUploadId,
     });
   };
 
@@ -1225,19 +1247,14 @@ function Step12Form({
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
     const validFiles = files.filter((file) => {
-      const validTypes = [
-        'application/pdf',
-        'image/png',
-        'application/msword',
-        'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-      ];
+      const validTypes = ['application/pdf'];
       const maxSize = 10 * 1024 * 1024; // 10MB
       return validTypes.includes(file.type) && file.size <= maxSize;
     });
 
     if (validFiles.length !== files.length) {
       setUploadError(
-        'Some files were invalid. Please upload PDF, PNG, or DOC files under 10MB.'
+        'Some files were invalid. Please upload PDF files only, under 10MB.'
       );
     } else {
       setUploadError('');
@@ -1276,19 +1293,14 @@ function Step12Form({
 
     const files = Array.from(e.dataTransfer.files);
     const validFiles = files.filter((file) => {
-      const validTypes = [
-        'application/pdf',
-        'image/png',
-        'application/msword',
-        'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-      ];
+      const validTypes = ['application/pdf'];
       const maxSize = 10 * 1024 * 1024; // 10MB
       return validTypes.includes(file.type) && file.size <= maxSize;
     });
 
     if (validFiles.length !== files.length) {
       setUploadError(
-        'Some files were invalid. Please upload PDF, PNG, or DOC files under 10MB.'
+        'Some files were invalid. Please upload PDF files only, under 10MB.'
       );
     } else {
       setUploadError('');
@@ -1308,19 +1320,15 @@ function Step12Form({
     setUploadError('');
 
     try {
+      setJustUploaded(true); // Prevent success screen from showing
       const uploadPromises = uploadedFiles.map(async (file) => {
         const formData = new FormData();
         formData.append('file', file);
 
-        const applicationData = localStorage.getItem('referralApplicationData');
-        const applicationId = applicationData
-          ? JSON.parse(applicationData).applicationId
-          : null;
-
         const response = await fetch('/api/bank-statement', {
           method: 'POST',
           headers: {
-            'X-Application-ID': applicationId || '',
+            'X-Application-Upload-ID': applicationUploadId,
           },
           body: formData,
         });
@@ -1334,12 +1342,30 @@ function Step12Form({
 
       const uploadedStatements = await Promise.all(uploadPromises);
 
-      onNext({
+      // Save the bank statements to formData before proceeding
+      const updatedData = {
         ...localData,
         bankConnectionCompleted: 'true',
-        bankConnectionMethod: 'manual',
+        bankConnectionMethod: 'manual' as 'manual',
         bankStatements: uploadedStatements,
-      });
+        applicationUploadId: applicationUploadId,
+      };
+
+      // Update local storage first
+      const storedData = localStorage.getItem('referralApplicationData');
+      if (storedData) {
+        const parsedData = JSON.parse(storedData);
+        parsedData.bankConnectionCompleted = 'true';
+        parsedData.bankConnectionMethod = 'manual';
+        parsedData.bankStatements = uploadedStatements;
+        localStorage.setItem(
+          'referralApplicationData',
+          JSON.stringify(parsedData)
+        );
+      }
+
+      // Immediately navigate without showing success screen
+      onNext(updatedData);
     } catch (error) {
       console.error('Upload error:', error);
       setUploadError('Failed to upload files. Please try again.');
@@ -1668,14 +1694,12 @@ function Step12Form({
               <p className="text-lg font-medium text-gray-900 mb-1">
                 Drop the files here or upload
               </p>
-              <p className="text-sm text-gray-500">
-                Format: PDF, PNG, DOC (10MB)
-              </p>
+              <p className="text-sm text-gray-500">Format: PDF only (10MB)</p>
               <input
                 id="file-upload"
                 type="file"
                 className="hidden"
-                accept=".pdf,.png,.doc,.docx"
+                accept=".pdf"
                 multiple
                 onChange={handleFileSelect}
               />

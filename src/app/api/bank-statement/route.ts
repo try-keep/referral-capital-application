@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import { randomUUID } from 'crypto';
 
 export async function POST(request: NextRequest) {
   try {
@@ -24,25 +25,21 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'No file provided' }, { status: 400 });
     }
 
-    // Get application ID from headers
-    const applicationId = request.headers.get('X-Application-ID');
+    // Get application upload ID from headers, or generate a new one
+    let applicationUploadId = request.headers.get('X-Application-Upload-ID');
 
-    // Validate file type and size
-    const validTypes = [
-      'application/pdf',
-      'image/png',
-      'image/jpeg',
-      'image/jpg',
-      'application/msword',
-      'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-    ];
+    if (!applicationUploadId) {
+      applicationUploadId = randomUUID();
+    }
+
+    // Validate file type and size - only accept PDFs
+    const validTypes = ['application/pdf'];
     const maxSize = 10 * 1024 * 1024; // 10MB
 
     if (!validTypes.includes(file.type)) {
       return NextResponse.json(
         {
-          error:
-            'Invalid file type. Please upload PDF, PNG, JPEG, or DOC files.',
+          error: 'Invalid file type. Please upload PDF files only.',
         },
         { status: 400 }
       );
@@ -55,12 +52,10 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Generate unique filename
+    // Generate unique filename using applicationUploadId as base path
     const timestamp = Date.now();
-    const randomId = Math.random().toString(36).substring(7);
-    const fileName = applicationId
-      ? `${applicationId}/${timestamp}-${file.name}`
-      : `temp/${randomId}/${timestamp}-${file.name}`;
+    const sanitizedFileName = file.name.replace(/[^a-zA-Z0-9.-]/g, '_');
+    const fileName = `${applicationUploadId}/${timestamp}-${sanitizedFileName}`;
 
     // Upload to Supabase Storage using standard upload
     const { data: uploadData, error: uploadError } = await supabase.storage
@@ -82,7 +77,8 @@ export async function POST(request: NextRequest) {
     const { data: dbData, error: dbError } = await supabase
       .from('bank_statements')
       .insert({
-        application_id: applicationId || null,
+        application_id: null, // Will be filled when application is created
+        application_upload_id: applicationUploadId,
         file_url: fileName, // Store the path
         file_name: file.name,
         file_size: file.size,
@@ -119,6 +115,7 @@ export async function POST(request: NextRequest) {
       fileUrl: signedUrlData?.signedUrl || fileName,
       fileSize: file.size,
       mimeType: file.type,
+      applicationUploadId: applicationUploadId,
     });
   } catch (error) {
     console.error('Server error:', error);

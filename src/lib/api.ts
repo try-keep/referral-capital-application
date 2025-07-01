@@ -85,6 +85,9 @@ export interface ApplicationData {
   agreesToTerms: string;
   authorizesCreditCheck: string;
 
+  // Bank upload tracking
+  applicationUploadId?: string;
+
   // Application Metadata
   ipAddress?: string;
 
@@ -237,18 +240,12 @@ export async function submitApplication(
     }
 
     // Handle bank statements if manual upload was used
-    if (
-      data.bankConnectionMethod === 'manual' &&
-      data.bankStatements &&
-      data.bankStatements.length > 0
-    ) {
-      // Update the bank_statements records with the application_id
-      const statementIds = data.bankStatements.map((stmt: any) => stmt.id);
-
+    if (data.bankConnectionMethod === 'manual' && data.applicationUploadId) {
+      // Update all bank_statements records with this applicationUploadId to link them to the application
       const { error: statementsError } = await supabase
         .from('bank_statements')
         .update({ application_id: savedApplication.id! })
-        .in('id', statementIds);
+        .eq('application_upload_id', data.applicationUploadId);
 
       if (statementsError) {
         console.error('Error linking bank statements:', statementsError);

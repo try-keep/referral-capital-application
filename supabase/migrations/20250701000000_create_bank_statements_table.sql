@@ -2,6 +2,7 @@ CREATE TABLE IF NOT EXISTS "public"."bank_statements" (
     "id" bigint NOT NULL,
     "created_at" timestamp with time zone DEFAULT "now"(),
     "application_id" bigint,
+    "application_upload_id" uuid NOT NULL,
     "file_url" text NOT NULL,
     "file_name" character varying(255) NOT NULL,
     "file_size" bigint,
@@ -31,6 +32,8 @@ ALTER TABLE ONLY "public"."bank_statements"
     ADD CONSTRAINT "bank_statements_application_id_fkey" FOREIGN KEY ("application_id") REFERENCES "public"."applications"("id") ON DELETE CASCADE;
 
 CREATE INDEX "idx_bank_statements_application_id" ON "public"."bank_statements" USING "btree" ("application_id");
+
+CREATE INDEX "idx_bank_statements_application_upload_id" ON "public"."bank_statements" USING "btree" ("application_upload_id");
 
 ALTER TABLE "public"."bank_statements" ENABLE ROW LEVEL SECURITY;
 
