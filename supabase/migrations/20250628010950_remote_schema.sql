@@ -559,7 +559,9 @@ CREATE INDEX "idx_users_status" ON "public"."users" USING "btree" ("status");
 
 
 
-CREATE OR REPLACE TRIGGER "Zapier" AFTER INSERT ON "public"."applications" FOR EACH ROW EXECUTE FUNCTION "supabase_functions"."http_request"('https://hooks.zapier.com/hooks/catch/19644002/uo5k8fe/', 'POST', '{"Content-type":"application/json"}', '{}', '5000');
+-- Need to comment this since this will never run again in production
+-- and cannot be executed in supabase branches
+-- CREATE OR REPLACE TRIGGER "Zapier" AFTER INSERT ON "public"."applications" FOR EACH ROW EXECUTE FUNCTION "supabase_functions"."http_request"('https://hooks.zapier.com/hooks/catch/19644002/uo5k8fe/', 'POST', '{"Content-type":"application/json"}', '{}', '5000');
 
 
 
