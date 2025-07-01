@@ -55,8 +55,6 @@ The application will be available at `http://localhost:3009`
 - **UI Components**: Custom React components
 - **State Management**: React hooks and localStorage
 
-
-
 ### External Integrations
 
 - **Business Data**: Canadian Business Registry API

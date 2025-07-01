@@ -33,9 +33,9 @@ export default function MeetingSuccessPage() {
           </h1>
 
           <p className="text-xl text-gray-600 mb-8">
-            Thank you for scheduling a meeting with our team. We're excited to
-            discuss your business financing needs and help you find the perfect
-            solution.
+            Thank you for scheduling a meeting with our team. We&apos;re excited
+            to discuss your business financing needs and help you find the
+            perfect solution.
           </p>
 
           {/* Additional Information */}
@@ -54,8 +54,8 @@ export default function MeetingSuccessPage() {
                     Confirmation Email
                   </h3>
                   <p className="text-gray-600">
-                    You'll receive a calendar invitation with meeting details
-                    shortly.
+                    You&apos;ll receive a calendar invitation with meeting
+                    details shortly.
                   </p>
                 </div>
               </div>
@@ -80,7 +80,7 @@ export default function MeetingSuccessPage() {
                 <div>
                   <h3 className="font-semibold text-gray-900">Your Meeting</h3>
                   <p className="text-gray-600">
-                    We'll discuss your business goals and present tailored
+                    We&apos;ll discuss your business goals and present tailored
                     funding solutions.
                   </p>
                 </div>
@@ -95,7 +95,7 @@ export default function MeetingSuccessPage() {
             </h3>
             <p className="text-gray-600 mb-4">
               If you need to reschedule or have any questions before our
-              meeting, please don't hesitate to reach out.
+              meeting, please don&apos;t hesitate to reach out.
             </p>
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center">

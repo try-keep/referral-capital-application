@@ -99,8 +99,8 @@ export default function SuccessPage() {
                 <li className="flex items-start space-x-3">
                   <span className="text-blue-600 font-bold text-sm">2</span>
                   <span>
-                    If pre-qualified, we'll contact you to discuss your funding
-                    options
+                    If pre-qualified, we&apos;ll contact you to discuss your
+                    funding options
                   </span>
                 </li>
                 <li className="flex items-start space-x-3">

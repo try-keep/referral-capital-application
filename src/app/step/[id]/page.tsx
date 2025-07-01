@@ -1,5 +1,6 @@
 'use client';
 
+import React from 'react';
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 
@@ -788,7 +789,7 @@ function Step10Form({
         />
         <p className="text-sm text-gray-500 mt-1">
           Enter your business website (e.g., trykeep.com, www.example.com, or
-          https://example.com). We'll format it automatically.
+          https://example.com). We&apos;ll format it automatically.
         </p>
       </div>
 
@@ -869,7 +870,7 @@ function Step6Form({
           Enter Your Legal Business Name
         </h2>
         <p className="text-gray-600">
-          Since we couldn't find your business in the Canadian Business
+          Since we couldn&apos;t find your business in the Canadian Business
           Registry, please enter your legal business name as it appears on your
           registration documents.
         </p>
@@ -1645,7 +1646,7 @@ function BusinessSearchForm({
                     No businesses found
                   </h3>
                   <p className="text-gray-600 mb-4">
-                    We couldn't find your business in the Canadian Business
+                    We couldn&apos;t find your business in the Canadian Business
                     Registry.
                   </p>
                 </div>
@@ -3128,7 +3129,7 @@ function Step11Form({
           Financial Information
         </h2>
         <p className="text-gray-600">
-          Help us understand your business's financial position.
+          Help us understand your business&apos;s financial position.
         </p>
       </div>
 
