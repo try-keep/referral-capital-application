@@ -2486,7 +2486,7 @@ function Step4Form({
                       </span>
                       <input
                         type="text"
-                        placeholder="Amount owed"
+                        placeholder="Amount owed (CAD)"
                         value={loan.loanAmount}
                         onChange={(e) =>
                           updateLoan(index, 'loanAmount', e.target.value)
@@ -2567,7 +2567,14 @@ function Step4Form({
         <div className="mt-8">
           <button
             type="submit"
-            disabled={isSubmitting || !localData.hasExistingLoans}
+            disabled={
+              isSubmitting ||
+              !localData.hasExistingLoans ||
+              (localData.hasExistingLoans === 'yes' &&
+                !localData.existingLoans.some(
+                  (loan) => loan.lenderName.trim() && loan.loanAmount.trim()
+                ))
+            }
             className="w-full bg-black text-white py-3 px-6 rounded-lg font-semibold hover:bg-gray-800 transition-colors disabled:opacity-50"
           >
             {isSubmitting ? 'Saving...' : 'Next'}
