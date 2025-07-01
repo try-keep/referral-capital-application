@@ -35,10 +35,10 @@ export default function HeroSection({ onApplyNow }: HeroSectionProps) {
           </div>
 
           <p className="text-lg text-gray-700 leading-relaxed max-w-xl">
-            Don't let financing hold back your business potential. From covering
-            operational needs to seizing growth opportunities, we make capital
-            accessible when you need it most. Apply today to discover how much
-            you can borrow.
+            Don&apos;t let financing hold back your business potential. From
+            covering operational needs to seizing growth opportunities, we make
+            capital accessible when you need it most. Apply today to discover
+            how much you can borrow.
           </p>
 
           <div className="space-y-4">

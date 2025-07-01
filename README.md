@@ -35,9 +35,6 @@ cd referral-capital-application
 # Install dependencies
 npm install
 
-# Install backend dependencies (if using)
-npm run install:backend
-
 # Set up environment variables
 cp .env.example .env.local
 # Edit .env.local with your configuration
@@ -57,13 +54,6 @@ The application will be available at `http://localhost:3009`
 - **Styling**: Tailwind CSS
 - **UI Components**: Custom React components
 - **State Management**: React hooks and localStorage
-
-### Backend & Database
-
-- **Database**: Supabase (PostgreSQL)
-- **Authentication**: Supabase Auth (for admin features)
-- **API**: Next.js API Routes
-- **File Storage**: Supabase Storage
 
 ### External Integrations
 

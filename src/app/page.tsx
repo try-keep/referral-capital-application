@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { useEffect } from 'react';
 import Script from 'next/script';
 
@@ -235,13 +236,13 @@ export default function HomePage() {
                 >
                   Log in
                 </a>
-                <a
+                <Link
                   aria-label="Apply Now"
                   href="/step/1"
                   className="button hide-tablet back-light-8 w-inline-block"
                 >
                   <div>Apply Now</div>
-                </a>
+                </Link>
               </div>
               <div
                 id="w-node-_497b9016-2905-0b50-62b6-c2f15a8cb717-7e3ea030"
@@ -284,9 +285,9 @@ export default function HomePage() {
                       </div>
                       <div className="spacer-small"></div>
                       <div className="text-size-medium">
-                        We lend money at rates that aren't predatory... And if
-                        we can't finance your business ourselves, we have 30+
-                        other lenders we partner with to get you there.
+                        We lend money at rates that aren&apos;t predatory... And
+                        if we can&apos;t finance your business ourselves, we
+                        have 30+ other lenders we partner with to get you there.
                       </div>
                       <div className="spacer-medium"></div>
                       <div className="header-capital-loan_list-component">
@@ -400,12 +401,12 @@ export default function HomePage() {
                       <div className="button-group hide-mobile-landscape">
                         <div className="card-cta">
                           <div className="card-cta_wrapper">
-                            <a
+                            <Link
                               href="/step/1"
                               className="button is-xlarge w-button"
                             >
                               Apply in Minutes
-                            </a>
+                            </Link>
                             <a
                               href="/referral-meeting"
                               className="button is-secondary is-xlarge w-button"
@@ -447,7 +448,7 @@ export default function HomePage() {
                     <div className="spacer-small"></div>
                     <p className="text-size-medium text-color-secondary">
                       One application - Multiple lenders. We give you the best
-                      deal, whether it's from Keep or another lender.
+                      deal, whether it&apos;s from Keep or another lender.
                     </p>
                   </div>
                   <div className="spacer-xxlarge"></div>
@@ -463,11 +464,11 @@ export default function HomePage() {
                       </div>
                       <div className="spacer-medium"></div>
                       <h3 className="heading-style-h4">
-                        We're making finance honest.
+                        We&apos;re making finance honest.
                       </h3>
                       <div className="spacer-xsmall"></div>
                       <p className="text-color-secondary">
-                        We lend money at rates that aren't predatory
+                        We lend money at rates that aren&apos;t predatory
                       </p>
                     </div>
                     <div className="capital-why_item">
@@ -485,7 +486,8 @@ export default function HomePage() {
                       </h3>
                       <div className="spacer-xsmall"></div>
                       <p className="text-color-secondary">
-                        If we can't finance you, we work with 30+ other lenders
+                        If we can&apos;t finance you, we work with 30+ other
+                        lenders
                       </p>
                     </div>
                     <div className="capital-why_item">
@@ -498,10 +500,12 @@ export default function HomePage() {
                         />
                       </div>
                       <div className="spacer-medium"></div>
-                      <h3 className="heading-style-h4">We don't charge fees</h3>
+                      <h3 className="heading-style-h4">
+                        We don&apos;t charge fees
+                      </h3>
                       <div className="spacer-xsmall"></div>
                       <p className="text-color-secondary">
-                        We're not brokers. No loan origination fees.
+                        We&apos;re not brokers. No loan origination fees.
                       </p>
                     </div>
                     <div className="capital-why_item">
@@ -517,8 +521,8 @@ export default function HomePage() {
                       <h3 className="heading-style-h4">Best offer guarantee</h3>
                       <div className="spacer-xsmall"></div>
                       <p className="text-color-secondary">
-                        If our partners can offer you a better loan, we'll share
-                        their offer with you.
+                        If our partners can offer you a better loan, we&apos;ll
+                        share their offer with you.
                       </p>
                     </div>
                   </div>
@@ -544,7 +548,8 @@ export default function HomePage() {
                         <div className="spacer-small"></div>
                         <p className="text-size-medium text-color-secondary">
                           One application - Multiple lenders. We give you the
-                          best deal, whether it's from Keep or another lender.
+                          best deal, whether it&apos;s from Keep or another
+                          lender.
                         </p>
                       </div>
                       <div className="spacer-xxlarge"></div>
@@ -667,12 +672,12 @@ export default function HomePage() {
                           loading="lazy"
                           className="capital-solutions_card-image"
                         />
-                        <a
+                        <Link
                           href="/step/1"
                           className="capital-solutions_button hide-mobile-landscape w-button"
                         >
                           Apply
-                        </a>
+                        </Link>
                       </div>
                     </div>
                     <div className="capital-solutions_card">
@@ -693,12 +698,12 @@ export default function HomePage() {
                           loading="lazy"
                           className="capital-solutions_card-image"
                         />
-                        <a
+                        <Link
                           href="/step/1"
                           className="capital-solutions_button hide-mobile-landscape w-button"
                         >
                           Apply
-                        </a>
+                        </Link>
                       </div>
                     </div>
                     <div className="capital-solutions_card">
@@ -721,12 +726,12 @@ export default function HomePage() {
                           loading="lazy"
                           className="capital-solutions_card-image"
                         />
-                        <a
+                        <Link
                           href="/step/1"
                           className="capital-solutions_button hide-mobile-landscape w-button"
                         >
                           Apply
-                        </a>
+                        </Link>
                       </div>
                     </div>
                   </div>
@@ -836,19 +841,19 @@ export default function HomePage() {
                           <li>Incorporated in Canada</li>
                         </ul>
                         <p>
-                          We're here to help, so feel free to get in touch and
-                          our team will check if you qualify.
+                          We&apos;re here to help, so feel free to get in touch
+                          and our team will check if you qualify.
                         </p>
                         <h3 id="how-apply">How do I apply?</h3>
                         <p>
                           Simply complete our online form in as little as 10
                           minutes and get a decision within a business day –
-                          often just a few hours. For all applications, you'll
-                          need:
+                          often just a few hours. For all applications,
+                          you&apos;ll need:
                         </p>
                         <ul role="list">
                           <li>
-                            Your driver's license, or other official
+                            Your driver&apos;s license, or other official
                             identification
                           </li>
                           <li>Some basic business details</li>
@@ -863,8 +868,8 @@ export default function HomePage() {
                           The amount you can borrow depends on several factors,
                           including the financial health of your business,
                           revenue projections and creditworthiness. In our
-                          application form, we ask for how much you'd like to
-                          borrow. We generally try to offer you the maximum
+                          application form, we ask for how much you&apos;d like
+                          to borrow. We generally try to offer you the maximum
                           amount possible, and let you tell us if you need a
                           little less.
                         </p>
@@ -882,18 +887,18 @@ export default function HomePage() {
                           interest rate.
                         </p>
                         <p>
-                          We take into account your industry, how long you've
-                          been in business, your credit history and the health
-                          of your cash flow.
+                          We take into account your industry, how long
+                          you&apos;ve been in business, your credit history and
+                          the health of your cash flow.
                         </p>
                         <h3 id="any-fees">Are there any fees?</h3>
                         <p>
-                          We don't charge any hidden fees. You can apply for a
-                          loan with Keep, with no upfront cost or obligation to
-                          proceed. We also don't charge for our best offer
-                          guarantee - where we help find you the best loan
-                          between Keep and other lenders, irrespective of who
-                          funds your business.
+                          We don&apos;t charge any hidden fees. You can apply
+                          for a loan with Keep, with no upfront cost or
+                          obligation to proceed. We also don&apos;t charge for
+                          our best offer guarantee - where we help find you the
+                          best loan between Keep and other lenders, irrespective
+                          of who funds your business.
                         </p>
                         <h3 id="repayment-periods">
                           What are your repayment periods?
@@ -905,7 +910,7 @@ export default function HomePage() {
                           business.
                         </p>
                         <p>
-                          If we deem a large loan is a little riskier, it's
+                          If we deem a large loan is a little riskier, it&apos;s
                           likely that both Keep and other lenders will offer a
                           loan with more frequent repayment periods.
                         </p>
@@ -1079,9 +1084,9 @@ export default function HomePage() {
                       >
                         Legal
                       </a>
-                      <a href="/step/1" className="footer_link">
+                      <Link href="/step/1" className="footer_link">
                         Apply Today
-                      </a>
+                      </Link>
                     </div>
                   </div>
                 </div>
@@ -1204,12 +1209,12 @@ export default function HomePage() {
           <div className="button-group is-center z-index-999">
             <div className="card-cta center">
               <div className="card-cta_wrapper center-2">
-                <a
+                <Link
                   href="/step/1"
                   className="button is-xlarge center-3 w-button"
                 >
                   Apply in Minutes
-                </a>
+                </Link>
               </div>
               <div className="spacer-xsmall center-5"></div>
               <p className="text-size-small text-color-secondary center-6">

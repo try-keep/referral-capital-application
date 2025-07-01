@@ -1,5 +1,6 @@
 'use client';
 
+import React from 'react';
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 
@@ -27,7 +28,8 @@ import { getUserIpAddress } from '@/lib/ipAddress';
 import { searchAddresses, type GeoapifyFeature } from '@/lib/geoapify';
 
 interface FormData {
-  [key: string]: string;
+  [key: string]: any;
+  existingLoans?: Array<{ lenderName: string; loanAmount: string }>;
 }
 
 const stepTitles = {
@@ -788,7 +790,7 @@ function Step10Form({
         />
         <p className="text-sm text-gray-500 mt-1">
           Enter your business website (e.g., trykeep.com, www.example.com, or
-          https://example.com). We'll format it automatically.
+          https://example.com). We&apos;ll format it automatically.
         </p>
       </div>
 
@@ -869,7 +871,7 @@ function Step6Form({
           Enter Your Legal Business Name
         </h2>
         <p className="text-gray-600">
-          Since we couldn't find your business in the Canadian Business
+          Since we couldn&apos;t find your business in the Canadian Business
           Registry, please enter your legal business name as it appears on your
           registration documents.
         </p>
@@ -1051,6 +1053,9 @@ function Step12Form({
     formattedFlinksTags += `${key}=${flinksTags[key]},`;
   }
 
+  // Check if NEXT_PUBLIC_SKIP_FLINKS is explicitly set to 'true'
+  const skipFlinks = process.env.NEXT_PUBLIC_SKIP_FLINKS === 'true';
+
   return (
     <div className="bg-white rounded-lg shadow-lg p-8">
       {/* Header */}
@@ -1147,7 +1152,7 @@ function Step12Form({
           {/* Flinks iframe */}
           <div className="mb-8">
             <iframe
-              src={`https://trykeep-iframe.private.fin.ag/v2?customerName=Keep&daysOfTransactions=Days365&scheduleRefresh=false&consentEnable=true&detailsAndStatementEnable=true&monthsOfStatements=Months12&enhancedMFA=false&maximumRetry=3&tag=${formattedFlinksTags}`}
+              src={`${process.env.NEXT_PUBLIC_FLINKS_IFRAME_URL}/v2?customerName=Keep&daysOfTransactions=Days365&scheduleRefresh=false&consentEnable=true&detailsAndStatementEnable=true&monthsOfStatements=Months12&enhancedMFA=false&maximumRetry=3&tag=${formattedFlinksTags}${skipFlinks ? '&demo=true' : ''}`}
               width="100%"
               height="600"
               frameBorder="0"
@@ -1287,6 +1292,43 @@ function Step14Form({
               <span className="font-medium">Phone:</span> {formData.phone}
             </div>
           )}
+          {formData.hasExistingLoans === 'yes' &&
+            formData.existingLoans &&
+            formData.existingLoans.length > 0 && (
+              <div className="col-span-2">
+                <span className="font-medium">Existing Loans:</span>
+                <ul className="ml-4 mt-1">
+                  {formData.existingLoans
+                    .filter(
+                      (loan: any) =>
+                        loan.lenderName.trim() && loan.loanAmount.trim()
+                    )
+                    .map((loan: any, index: number) => (
+                      <li key={index}>
+                        {loan.lenderName}: $
+                        {parseFloat(
+                          loan.loanAmount.replace(/,/g, '') || '0'
+                        ).toLocaleString()}
+                      </li>
+                    ))}
+                </ul>
+                <div className="mt-1">
+                  <span className="font-medium">Total Owed:</span> $
+                  {formData.existingLoans
+                    .filter(
+                      (loan: any) =>
+                        loan.lenderName.trim() && loan.loanAmount.trim()
+                    )
+                    .reduce(
+                      (sum: number, loan: any) =>
+                        sum +
+                        parseFloat(loan.loanAmount.replace(/,/g, '') || '0'),
+                      0
+                    )
+                    .toLocaleString()}
+                </div>
+              </div>
+            )}
         </div>
       </div>
 
@@ -1645,7 +1687,7 @@ function BusinessSearchForm({
                     No businesses found
                   </h3>
                   <p className="text-gray-600 mb-4">
-                    We couldn't find your business in the Canadian Business
+                    We couldn&apos;t find your business in the Canadian Business
                     Registry.
                   </p>
                 </div>
@@ -2163,6 +2205,9 @@ function Step4Form({
   const [localData, setLocalData] = useState({
     hasExistingLoans: formData.hasExistingLoans || '',
     totalLoanAmount: formData.totalLoanAmount || '',
+    existingLoans: formData.existingLoans || [
+      { lenderName: '', loanAmount: '' },
+    ],
   });
 
   // Update local data when formData prop changes (for when user navigates back)
@@ -2171,6 +2216,9 @@ function Step4Form({
     setLocalData({
       hasExistingLoans: formData.hasExistingLoans || '',
       totalLoanAmount: formData.totalLoanAmount || '',
+      existingLoans: formData.existingLoans || [
+        { lenderName: '', loanAmount: '' },
+      ],
     });
   }, [formData]);
 
@@ -2180,11 +2228,30 @@ function Step4Form({
       alert('Please select whether you have existing loans');
       return;
     }
-    if (localData.hasExistingLoans === 'yes' && !localData.totalLoanAmount) {
-      alert('Please enter the total amount owed');
-      return;
+    if (localData.hasExistingLoans === 'yes') {
+      // Validate that at least one loan is properly filled
+      const hasValidLoan = localData.existingLoans.some(
+        (loan) => loan.lenderName.trim() && loan.loanAmount.trim()
+      );
+      if (!hasValidLoan) {
+        alert('Please add at least one loan with lender name and amount');
+        return;
+      }
+      // Calculate total loan amount
+      const total = localData.existingLoans
+        .filter((loan) => loan.lenderName.trim() && loan.loanAmount.trim())
+        .reduce(
+          (sum, loan) =>
+            sum + parseFloat(loan.loanAmount.replace(/,/g, '') || '0'),
+          0
+        );
+      localData.totalLoanAmount = total.toString();
     }
-    onNext(localData);
+    onNext({
+      hasExistingLoans: localData.hasExistingLoans,
+      totalLoanAmount: localData.totalLoanAmount,
+      existingLoans: localData.existingLoans,
+    });
   };
 
   const handleLoanStatusSelect = (value: string) => {
@@ -2194,8 +2261,47 @@ function Step4Form({
         ...localData,
         hasExistingLoans: value,
         totalLoanAmount: '0',
+        existingLoans: [],
+      });
+    } else if (value === 'yes' && localData.existingLoans.length === 0) {
+      setLocalData({
+        ...localData,
+        hasExistingLoans: value,
+        existingLoans: [{ lenderName: '', loanAmount: '' }],
       });
     }
+  };
+
+  const addLoan = () => {
+    setLocalData({
+      ...localData,
+      existingLoans: [
+        ...localData.existingLoans,
+        { lenderName: '', loanAmount: '' },
+      ],
+    });
+  };
+
+  const removeLoan = (index: number) => {
+    const newLoans = localData.existingLoans.filter((_, i) => i !== index);
+    setLocalData({
+      ...localData,
+      existingLoans:
+        newLoans.length > 0 ? newLoans : [{ lenderName: '', loanAmount: '' }],
+    });
+  };
+
+  const updateLoan = (
+    index: number,
+    field: 'lenderName' | 'loanAmount',
+    value: string
+  ) => {
+    const newLoans = [...localData.existingLoans];
+    newLoans[index][field] = value;
+    setLocalData({
+      ...localData,
+      existingLoans: newLoans,
+    });
   };
 
   return (
@@ -2293,25 +2399,103 @@ function Step4Form({
         {localData.hasExistingLoans === 'yes' && (
           <div className="mb-8">
             <label className="block text-lg font-medium text-gray-700 mb-4 text-center">
-              What is the total amount you currently owe?
+              Please list your existing business loans
             </label>
-            <div className="relative max-w-md mx-auto">
-              <span className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-500 text-xl">
-                $
-              </span>
-              <input
-                type="text"
-                placeholder="50,000"
-                value={localData.totalLoanAmount}
-                onChange={(e) =>
-                  setLocalData({
-                    ...localData,
-                    totalLoanAmount: e.target.value,
-                  })
-                }
-                className="w-full pl-8 pr-4 py-4 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-xl text-center"
-                required={localData.hasExistingLoans === 'yes'}
-              />
+            <div className="space-y-4 max-w-2xl mx-auto">
+              {localData.existingLoans.map((loan, index) => (
+                <div key={index} className="flex gap-4 items-start">
+                  <div className="flex-1">
+                    <input
+                      type="text"
+                      placeholder="Lender name"
+                      value={loan.lenderName}
+                      onChange={(e) =>
+                        updateLoan(index, 'lenderName', e.target.value)
+                      }
+                      className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    />
+                  </div>
+                  <div className="flex-1">
+                    <div className="relative">
+                      <span className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-500">
+                        $
+                      </span>
+                      <input
+                        type="text"
+                        placeholder="Amount owed (CAD)"
+                        value={loan.loanAmount}
+                        onChange={(e) =>
+                          updateLoan(index, 'loanAmount', e.target.value)
+                        }
+                        className="w-full pl-8 pr-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      />
+                    </div>
+                  </div>
+                  {localData.existingLoans.length > 1 && (
+                    <button
+                      type="button"
+                      onClick={() => removeLoan(index)}
+                      className="p-3 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                    >
+                      <svg
+                        className="w-5 h-5"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                        />
+                      </svg>
+                    </button>
+                  )}
+                </div>
+              ))}
+              <button
+                type="button"
+                onClick={addLoan}
+                className="w-full py-3 px-4 border-2 border-dashed border-gray-300 rounded-lg text-gray-600 hover:border-gray-400 hover:text-gray-700 transition-colors flex items-center justify-center gap-2"
+              >
+                <svg
+                  className="w-5 h-5"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M12 6v6m0 0v6m0-6h6m-6 0H6"
+                  />
+                </svg>
+                Add another loan
+              </button>
+              <div className="mt-4 p-4 bg-gray-50 rounded-lg">
+                <div className="flex justify-between items-center">
+                  <span className="font-medium text-gray-700">
+                    Total Amount Owed:
+                  </span>
+                  <span className="text-xl font-semibold text-gray-900">
+                    $
+                    {localData.existingLoans
+                      .filter(
+                        (loan) =>
+                          loan.lenderName.trim() && loan.loanAmount.trim()
+                      )
+                      .reduce(
+                        (sum, loan) =>
+                          sum +
+                          parseFloat(loan.loanAmount.replace(/,/g, '') || '0'),
+                        0
+                      )
+                      .toLocaleString()}
+                  </span>
+                </div>
+              </div>
             </div>
           </div>
         )}
@@ -2319,7 +2503,14 @@ function Step4Form({
         <div className="mt-8">
           <button
             type="submit"
-            disabled={isSubmitting || !localData.hasExistingLoans}
+            disabled={
+              isSubmitting ||
+              !localData.hasExistingLoans ||
+              (localData.hasExistingLoans === 'yes' &&
+                !localData.existingLoans.some(
+                  (loan) => loan.lenderName.trim() && loan.loanAmount.trim()
+                ))
+            }
             className="w-full bg-black text-white py-3 px-6 rounded-lg font-semibold hover:bg-gray-800 transition-colors disabled:opacity-50"
           >
             {isSubmitting ? 'Saving...' : 'Next'}
@@ -3128,7 +3319,7 @@ function Step11Form({
           Financial Information
         </h2>
         <p className="text-gray-600">
-          Help us understand your business's financial position.
+          Help us understand your business&apos;s financial position.
         </p>
       </div>
 

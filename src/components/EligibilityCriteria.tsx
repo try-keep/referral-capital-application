@@ -2,7 +2,7 @@ export default function EligibilityCriteria() {
   return (
     <div className="bg-white rounded-lg border border-gray-200 p-8">
       <h2 className="text-xl font-semibold text-gray-800 mb-6">
-        Let's check if your business meets our minimum criteria:
+        Let&apos;s check if your business meets our minimum criteria:
       </h2>
       <div className="space-y-4">
         <div className="flex items-start space-x-3">

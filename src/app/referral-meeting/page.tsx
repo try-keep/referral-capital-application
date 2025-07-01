@@ -19,8 +19,8 @@ export default function ReferralMeetingPage() {
             </h1>
             <p className="text-xl text-gray-600 max-w-2xl mx-auto">
               Book a meeting with our lending experts to discuss your business
-              financing needs. We'll help you find the perfect funding solution
-              for your business growth.
+              financing needs. We&apos;ll help you find the perfect funding
+              solution for your business growth.
             </p>
           </div>
 
