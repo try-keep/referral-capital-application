@@ -1462,23 +1462,42 @@ function Step12Form({
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {/* Flinks Option */}
             <div
-              className="bg-purple-50 border-2 border-purple-200 rounded-lg p-6 hover:border-purple-400 transition-colors cursor-pointer"
+              className="bg-purple-50 border-2 border-purple-200 rounded-lg p-6 hover:border-purple-400 transition-colors cursor-pointer relative shadow-lg"
               onClick={() => handleMethodSelect('flinks')}
             >
-              <h3 className="text-lg font-semibold mb-2">
+              <div className="flex items-center gap-2 text-purple-600 mb-4">
+                <svg
+                  className="w-5 h-5"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M13 10V3L4 14h7v7l9-11h-7z"
+                  />
+                </svg>
+                <span className="text-sm font-medium">
+                  Faster option. Typically approved within 24 hours
+                </span>
+              </div>
+
+              <h3 className="text-xl font-bold mb-2">
                 Securely Connect your Bank Account
               </h3>
-              <p className="text-sm text-purple-600 mb-4">
+              <p className="text-sm text-gray-600 mb-4">
                 Keep uses Flinks to securely view your banking history — in
-                seconds with no paperwork required
+                seconds with no paperwork required.
               </p>
-              <button className="w-full bg-gradient-to-r from-purple-500 to-blue-500 text-white py-3 px-4 rounded-lg font-medium hover:opacity-90 transition-opacity">
+              <button className="w-full bg-gradient-to-r from-purple-500 to-blue-500 text-white py-3 px-4 rounded-lg font-semibold hover:opacity-90 transition-opacity">
                 Connect your account
               </button>
               <div className="mt-4 space-y-2">
-                <div className="flex items-start text-sm text-gray-600">
+                <div className="flex items-start text-sm text-gray-700">
                   <svg
-                    className="w-5 h-5 text-green-500 mr-2 mt-0.5"
+                    className="w-5 h-5 text-purple-500 mr-2 mt-0.5 flex-shrink-0"
                     fill="currentColor"
                     viewBox="0 0 20 20"
                   >
@@ -1490,9 +1509,9 @@ function Step12Form({
                   </svg>
                   Bank-level security protects your information.
                 </div>
-                <div className="flex items-start text-sm text-gray-600">
+                <div className="flex items-start text-sm text-gray-700">
                   <svg
-                    className="w-5 h-5 text-green-500 mr-2 mt-0.5"
+                    className="w-5 h-5 text-purple-500 mr-2 mt-0.5 flex-shrink-0"
                     fill="currentColor"
                     viewBox="0 0 20 20"
                   >
@@ -1504,9 +1523,9 @@ function Step12Form({
                   </svg>
                   You control what we see - never your passwords.
                 </div>
-                <div className="flex items-start text-sm text-gray-600">
+                <div className="flex items-start text-sm text-gray-700">
                   <svg
-                    className="w-5 h-5 text-green-500 mr-2 mt-0.5"
+                    className="w-5 h-5 text-purple-500 mr-2 mt-0.5 flex-shrink-0"
                     fill="currentColor"
                     viewBox="0 0 20 20"
                   >
@@ -1518,9 +1537,9 @@ function Step12Form({
                   </svg>
                   Faster approval with priority review.
                 </div>
-                <div className="flex items-start text-sm text-gray-600">
+                <div className="flex items-start text-sm text-gray-700">
                   <svg
-                    className="w-5 h-5 text-green-500 mr-2 mt-0.5"
+                    className="w-5 h-5 text-purple-500 mr-2 mt-0.5 flex-shrink-0"
                     fill="currentColor"
                     viewBox="0 0 20 20"
                   >
@@ -1537,23 +1556,44 @@ function Step12Form({
 
             {/* Manual Upload Option */}
             <div
-              className="bg-white border-2 border-gray-200 rounded-lg p-6 hover:border-gray-400 transition-colors cursor-pointer"
+              className="bg-gray-50 border-2 border-gray-300 rounded-lg p-6 hover:border-gray-400 transition-colors cursor-pointer"
               onClick={() => handleMethodSelect('manual')}
             >
-              <h3 className="text-lg font-semibold mb-2">
+              <div className="flex items-center gap-2 text-gray-600 mb-4">
+                <svg
+                  className="w-5 h-5"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                  />
+                </svg>
+                <span className="text-sm font-medium">
+                  Up to a week to approve your application
+                </span>
+              </div>
+
+              <h3 className="text-xl font-bold mb-2">
                 Manual Statement Upload
+                <br />
+                <br />
               </h3>
               <p className="text-sm text-gray-600 mb-4">
-                Please upload your last 3 months of bank statements to help us
+                Please upload your last 6 months of bank statements to help us
                 review your business.
               </p>
-              <button className="w-full bg-gray-800 text-white py-3 px-4 rounded-lg font-medium hover:bg-gray-700 transition-colors">
+              <button className="w-full bg-gray-800 text-white py-3 px-4 rounded-lg font-semibold hover:bg-gray-700 transition-colors">
                 Upload Bank Statements
               </button>
               <div className="mt-4 space-y-2">
-                <div className="flex items-start text-sm text-gray-600">
+                <div className="flex items-start text-sm text-gray-700">
                   <svg
-                    className="w-5 h-5 text-green-500 mr-2 mt-0.5"
+                    className="w-5 h-5 text-gray-500 mr-2 mt-0.5 flex-shrink-0"
                     fill="currentColor"
                     viewBox="0 0 20 20"
                   >
@@ -1565,9 +1605,9 @@ function Step12Form({
                   </svg>
                   Standard credit evaluation with manual review
                 </div>
-                <div className="flex items-start text-sm text-gray-600">
+                <div className="flex items-start text-sm text-gray-700">
                   <svg
-                    className="w-5 h-5 text-green-500 mr-2 mt-0.5"
+                    className="w-5 h-5 text-gray-500 mr-2 mt-0.5 flex-shrink-0"
                     fill="currentColor"
                     viewBox="0 0 20 20"
                   >
@@ -1579,9 +1619,9 @@ function Step12Form({
                   </svg>
                   Your documents are protected with bank-level security
                 </div>
-                <div className="flex items-start text-sm text-gray-600">
+                <div className="flex items-start text-sm text-gray-500">
                   <svg
-                    className="w-5 h-5 text-gray-400 mr-2 mt-0.5"
+                    className="w-5 h-5 text-gray-400 mr-2 mt-0.5 flex-shrink-0"
                     fill="currentColor"
                     viewBox="0 0 20 20"
                   >
