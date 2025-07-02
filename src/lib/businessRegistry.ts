@@ -95,7 +95,7 @@ function calculateBusinessAge(incorporationDate: string): string {
     (now.getFullYear() - incorporatedDate.getFullYear()) * 12 +
     (now.getMonth() - incorporatedDate.getMonth());
 
-  if (monthsDiff < 6) return '<6 months';
+  if (monthsDiff < 6) return '< 6 months';
   if (monthsDiff < 12) return '6–12 months';
   if (monthsDiff < 36) return '1–3 years';
   return '3+ years';

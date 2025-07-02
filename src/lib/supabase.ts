@@ -280,25 +280,10 @@ function calculateBusinessAgeCategory(dateIncorporated: Date): string {
     (now.getFullYear() - dateIncorporated.getFullYear()) * 12 +
     (now.getMonth() - dateIncorporated.getMonth());
 
-  if (monthsDiff < 6) return '<6 months';
-  if (monthsDiff < 12) return '6-12 months';
-  if (monthsDiff < 36) return '1-3 years';
+  if (monthsDiff < 6) return '< 6 months';
+  if (monthsDiff < 12) return '6–12 months';
+  if (monthsDiff < 36) return '1–3 years';
   return '3+ years';
-}
-
-// Helper function to get time in business from incorporation date or business age category
-export function getTimeInBusinessFromDate(
-  dateIncorporated: string | null
-): string {
-  if (!dateIncorporated) return '';
-
-  try {
-    const incorporatedDate = new Date(dateIncorporated);
-    return calculateBusinessAgeCategory(incorporatedDate);
-  } catch (error) {
-    console.error('Error parsing incorporation date:', error);
-    return '';
-  }
 }
 
 // Helper function to ensure we always get the correct time in business value
@@ -308,7 +293,13 @@ export function normalizeTimeInBusiness(
 ): string {
   // If we have an incorporation date, calculate from that (most accurate)
   if (dateIncorporated) {
-    return getTimeInBusinessFromDate(dateIncorporated);
+    try {
+      const incorporatedDate = new Date(dateIncorporated);
+      return calculateBusinessAgeCategory(incorporatedDate);
+    } catch (error) {
+      console.error('Error parsing incorporation date:', error);
+      return businessAgeCategory || '';
+    }
   }
 
   // Otherwise use the business age category if available

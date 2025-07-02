@@ -886,8 +886,11 @@ function Step6Form({
         let dateIncorporated = null;
         const now = new Date();
         switch (localData.timeInBusiness) {
-          case 'Less than 1 year':
-            dateIncorporated = new Date(now.setMonth(now.getMonth() - 6)); // ~6 months ago
+          case '< 6 months':
+            dateIncorporated = new Date(now.setMonth(now.getMonth() - 3)); // ~3 months ago
+            break;
+          case '6–12 months':
+            dateIncorporated = new Date(now.setMonth(now.getMonth() - 9)); // ~9 months ago
             break;
           case '1–3 years':
             dateIncorporated = new Date(now.setFullYear(now.getFullYear() - 2)); // ~2 years ago
@@ -1033,7 +1036,8 @@ function Step6Form({
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               >
                 <option value="">Select time in business</option>
-                <option value="Less than 1 year">Less than 1 year</option>
+                <option value="< 6 months">&lt; 6 months</option>
+                <option value="6–12 months">6–12 months</option>
                 <option value="1–3 years">1–3 years</option>
                 <option value="3+ years">3+ years</option>
               </select>
