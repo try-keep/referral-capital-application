@@ -148,6 +148,7 @@ function transformToSupabaseFormat(
     annual_revenue: data.annualRevenue,
     cash_flow: data.cashFlow,
     credit_score: data.creditScore,
+    time_in_business: data.timeInBusiness,
 
     // Step 12: Bank Information
     bank_connection_completed: data.bankConnectionCompleted || false,

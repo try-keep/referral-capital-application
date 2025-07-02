@@ -44,6 +44,7 @@ export interface BusinessData {
 
   // Business Type and Classification
   entity_type?: string;
+  registry_entity_type?: string;
   mras_entity_type?: string;
 
   // Additional Fields
@@ -118,6 +119,7 @@ export interface ApplicationData {
   annual_revenue: string;
   cash_flow: string;
   credit_score: string;
+  time_in_business: string;
 
   // Step 12: Bank Information
   bank_connection_completed?: boolean;
@@ -271,8 +273,45 @@ export async function findBusinessByMrasId(mrasId: string) {
   return data;
 }
 
+// Helper function to calculate business age category based on incorporation date
+function calculateBusinessAgeCategory(dateIncorporated: Date): string {
+  const now = new Date();
+  const monthsDiff =
+    (now.getFullYear() - dateIncorporated.getFullYear()) * 12 +
+    (now.getMonth() - dateIncorporated.getMonth());
+
+  if (monthsDiff < 6) return '< 6 months';
+  if (monthsDiff < 12) return '6–12 months';
+  if (monthsDiff < 36) return '1–3 years';
+  return '3+ years';
+}
+
+// Helper function to ensure we always get the correct time in business value
+export function normalizeTimeInBusiness(
+  businessAgeCategory?: string,
+  dateIncorporated?: string | null
+): string {
+  // If we have an incorporation date, calculate from that (most accurate)
+  if (dateIncorporated) {
+    try {
+      const incorporatedDate = new Date(dateIncorporated);
+      return calculateBusinessAgeCategory(incorporatedDate);
+    } catch (error) {
+      console.error('Error parsing incorporation date:', error);
+      return businessAgeCategory || '';
+    }
+  }
+
+  // Otherwise use the business age category if available
+  return businessAgeCategory || '';
+}
+
 // Save manual business entry (when user can't find business in registry)
-export async function saveManualBusiness(businessName: string) {
+export async function saveManualBusiness(
+  businessName: string,
+  entityType: string,
+  dateIncorporated: Date | null
+) {
   const manualBusinessData = {
     mras_id: `manual-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
     company_name: businessName,
@@ -286,9 +325,12 @@ export async function saveManualBusiness(businessName: string) {
     status_state: 'Active',
     status_date: new Date().toISOString().split('T')[0],
     status_notes: 'Manually entered by user',
-    date_incorporated: null,
+    date_incorporated: dateIncorporated
+      ? dateIncorporated.toISOString().split('T')[0]
+      : null,
     display_date: null,
-    entity_type: 'Manual Entry',
+    entity_type: entityType,
+    registry_entity_type: undefined,
     mras_entity_type: null,
     alternate_names: null,
     text_fields: null,
@@ -296,12 +338,21 @@ export async function saveManualBusiness(businessName: string) {
     hierarchy: null,
     data_source: 'MANUAL',
     version_number: 1,
-    business_age_category: 'Unknown',
+    business_age_category: dateIncorporated
+      ? calculateBusinessAgeCategory(dateIncorporated)
+      : 'Unknown',
     estimated_business_type: 'professional-services',
     search_query: `Manual entry: ${businessName}`,
     times_selected: 1,
     last_selected_at: new Date().toISOString(),
-    raw_registry_data: { source: 'manual_entry', business_name: businessName },
+    raw_registry_data: {
+      source: 'manual_entry',
+      business_name: businessName,
+      entity_type: entityType,
+      date_incorporated: dateIncorporated
+        ? dateIncorporated.toISOString().split('T')[0]
+        : null,
+    },
   };
 
   try {
@@ -335,14 +386,23 @@ export async function saveOrUpdateBusiness(
 
     if (existingBusiness) {
       // Update existing business
+      const updateData: any = {
+        times_selected: (existingBusiness.times_selected || 0) + 1,
+        last_selected_at: new Date().toISOString(),
+        raw_registry_data: registryBusiness,
+        updated_at: new Date().toISOString(),
+      };
+
+      // Recalculate business age category if incorporation date is available
+      if (registryBusiness.Date_Incorporated) {
+        updateData.business_age_category = calculateBusinessAgeCategory(
+          new Date(registryBusiness.Date_Incorporated)
+        );
+      }
+
       const { data, error } = await supabase
         .from('businesses')
-        .update({
-          times_selected: (existingBusiness.times_selected || 0) + 1,
-          last_selected_at: new Date().toISOString(),
-          raw_registry_data: registryBusiness,
-          updated_at: new Date().toISOString(),
-        })
+        .update(updateData)
         .eq('mras_id', registryBusiness.MRAS_ID)
         .select();
 
@@ -368,7 +428,8 @@ export async function saveOrUpdateBusiness(
         date_incorporated: registryBusiness.Date_Incorporated,
         display_date: registryBusiness.Display_Date,
 
-        entity_type: registryBusiness.Entity_Type,
+        entity_type: undefined, // User will select this in Step 5
+        registry_entity_type: registryBusiness.Entity_Type,
         mras_entity_type: registryBusiness.MRAS_Entity_Type,
 
         alternate_names: registryBusiness.Alternate_Name,
@@ -382,6 +443,13 @@ export async function saveOrUpdateBusiness(
         search_query: searchQuery,
         times_selected: 1,
         last_selected_at: new Date().toISOString(),
+
+        // Calculate business age category if incorporation date is available
+        business_age_category: registryBusiness.Date_Incorporated
+          ? calculateBusinessAgeCategory(
+              new Date(registryBusiness.Date_Incorporated)
+            )
+          : undefined,
       };
 
       return await saveBusiness(businessData);
@@ -411,6 +479,28 @@ export async function getBusinessWithApplications(businessId: number) {
   }
 
   return data;
+}
+
+// Update business entity type (for when user selects it after registry confirmation)
+export async function updateBusinessEntityType(
+  businessId: number,
+  entityType: string
+) {
+  const { data, error } = await supabase
+    .from('businesses')
+    .update({
+      entity_type: entityType,
+      updated_at: new Date().toISOString(),
+    })
+    .eq('id', businessId)
+    .select();
+
+  if (error) {
+    console.error('Error updating business entity type:', error);
+    throw error;
+  }
+
+  return data[0];
 }
 
 // User management functions for campaign tracking
