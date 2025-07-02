@@ -44,6 +44,7 @@ export interface BusinessData {
 
   // Business Type and Classification
   entity_type?: string;
+  registry_entity_type?: string;
   mras_entity_type?: string;
 
   // Additional Fields
@@ -338,6 +339,7 @@ export async function saveManualBusiness(
       : null,
     display_date: null,
     entity_type: entityType,
+    registry_entity_type: undefined,
     mras_entity_type: null,
     alternate_names: null,
     text_fields: null,
@@ -435,7 +437,8 @@ export async function saveOrUpdateBusiness(
         date_incorporated: registryBusiness.Date_Incorporated,
         display_date: registryBusiness.Display_Date,
 
-        entity_type: registryBusiness.Entity_Type,
+        entity_type: undefined, // User will select this in Step 5
+        registry_entity_type: registryBusiness.Entity_Type,
         mras_entity_type: registryBusiness.MRAS_Entity_Type,
 
         alternate_names: registryBusiness.Alternate_Name,
@@ -485,6 +488,28 @@ export async function getBusinessWithApplications(businessId: number) {
   }
 
   return data;
+}
+
+// Update business entity type (for when user selects it after registry confirmation)
+export async function updateBusinessEntityType(
+  businessId: number,
+  entityType: string
+) {
+  const { data, error } = await supabase
+    .from('businesses')
+    .update({
+      entity_type: entityType,
+      updated_at: new Date().toISOString(),
+    })
+    .eq('id', businessId)
+    .select();
+
+  if (error) {
+    console.error('Error updating business entity type:', error);
+    throw error;
+  }
+
+  return data[0];
 }
 
 // User management functions for campaign tracking

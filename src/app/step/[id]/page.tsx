@@ -21,6 +21,7 @@ import {
   saveOrUpdateBusiness,
   saveManualBusiness,
   normalizeTimeInBusiness,
+  updateBusinessEntityType,
   type UserData,
 } from '@/lib/supabase';
 import { getUserIpAddress } from '@/lib/ipAddress';
@@ -36,7 +37,7 @@ const stepTitles = {
   2: 'Personal Information',
   3: 'Business Owner',
   4: 'Business Search',
-  5: 'Business Name',
+  5: 'Business Type',
   6: 'Monthly Sales',
   7: 'Existing Loans',
   8: 'Funding Amount',
@@ -53,7 +54,7 @@ const stepDescriptions = {
   2: 'Tell us about yourself and your role in the business',
   3: 'Verify your role in the business',
   4: 'Find and verify your business in the Canadian Business Registry',
-  5: 'Enter your legal business name manually',
+  5: 'Select your business entity type',
   6: 'Tell us about your monthly sales',
   7: 'Tell us about any existing loan obligations',
   8: 'How much funding do you need and when?',
@@ -101,15 +102,15 @@ export default function StepPage() {
         ], // Personal info with address
         3: ['isBusinessOwner'], // Business owner
         4: ['businessName'], // Business search/name (conditional: only if businessConfirmed exists)
-        5: ['monthlySales'],
-        6: ['hasExistingLoans'],
-        7: ['fundingAmount', 'fundingTimeline'],
-        8: ['fundingPurpose'],
-        9: ['businessType', 'numberOfEmployees'],
-        10: ['annualRevenue', 'cashFlow', 'creditScore'],
-        11: ['bankConnectionCompleted'],
-        12: ['businessAddress', 'businessPhone'],
-        13: [], // Additional Details - no required fields
+        5: ['entityType'], // Entity type selection (always required)
+        6: ['monthlySales'],
+        7: ['hasExistingLoans'],
+        8: ['fundingAmount', 'fundingTimeline'],
+        9: ['fundingPurpose'],
+        10: ['businessType', 'numberOfEmployees'],
+        11: ['annualRevenue', 'cashFlow', 'creditScore'],
+        12: ['bankConnectionCompleted'],
+        13: ['businessAddress', 'businessPhone'],
         14: ['agreesToTerms', 'authorizesCreditCheck'],
       };
 
@@ -119,18 +120,21 @@ export default function StepPage() {
 
         // Special handling for conditional steps
         if (i === 4) {
-          // Step 4 (manual business entry) is only required if business search wasn't verified
-          // If businessConfirmed is 'true', skip step 4 validation
-          if (formData.businessConfirmed === 'true') {
-            continue; // Skip step 4 validation
-          }
-          // If businessConfirmed is 'false', then we need businessName from manual entry
-          if (
-            formData.businessConfirmed === 'false' &&
-            !formData.businessName
-          ) {
+          // Step 4 (business search) - businessName is required
+          if (!formData.businessName) {
             console.log(
-              `🚫 Step ${step} not accessible: missing manual businessName from step 4`
+              `🚫 Step ${step} not accessible: missing businessName from step 4`
+            );
+            return false;
+          }
+          continue;
+        }
+
+        if (i === 5) {
+          // Step 5 (entity type) - always required
+          if (!formData.entityType) {
+            console.log(
+              `🚫 Step ${step} not accessible: missing entityType from step 5`
             );
             return false;
           }
@@ -374,19 +378,12 @@ export default function StepPage() {
       // Handle conditional navigation
       let nextStep = currentStep + 1;
 
-      // If user completes business search without registry verification, go to manual entry step
-      if (currentStep === 4 && stepData.businessConfirmed === 'false') {
-        nextStep = 5; // Manual business name entry
+      // If user completes business search (either with or without registry verification), go to entity type step
+      if (currentStep === 4) {
+        nextStep = 5; // Always go to Step 5 for entity type selection
       }
-      // If user completes business search WITH registry verification, skip manual entry step
-      else if (currentStep === 4 && stepData.businessConfirmed === 'true') {
-        nextStep = 6; // Skip manual entry, go directly to Monthly Sales
-      }
-      // If user completes manual business name entry, continue to Monthly Sales
-      else if (
-        currentStep === 5 &&
-        stepData.businessSearchVerified === 'manual-entry'
-      ) {
+      // If user completes entity type selection, continue to Monthly Sales
+      else if (currentStep === 5) {
         nextStep = 6; // Continue to Monthly Sales
       }
 
@@ -712,101 +709,112 @@ function Step10Form({
   };
 
   return (
-    <form onSubmit={handleSubmit} className="bg-white rounded-lg shadow-lg p-8">
-      <div className="mb-6">
-        <label
-          htmlFor="businessType"
-          className="block text-sm font-medium text-gray-700 mb-2"
-        >
-          What type of business do you operate? *
-        </label>
-        <select
-          id="businessType"
-          required
-          value={localData.businessType}
-          onChange={(e) =>
-            setLocalData({ ...localData, businessType: e.target.value })
-          }
-          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-        >
-          <option value="">Select Business Type</option>
-          <option value="retail">Retail</option>
-          <option value="restaurant">Restaurant/Food Service</option>
-          <option value="professional-services">Professional Services</option>
-          <option value="construction">Construction</option>
-          <option value="healthcare">Healthcare</option>
-          <option value="technology">Technology</option>
-          <option value="manufacturing">Manufacturing</option>
-          <option value="transportation">Transportation</option>
-          <option value="real-estate">Real Estate</option>
-          <option value="other">Other</option>
-        </select>
-      </div>
+    <div className="bg-white rounded-lg shadow-lg p-8">
+      <form onSubmit={handleSubmit}>
+        <div className="mb-6">
+          <label
+            htmlFor="businessType"
+            className="block text-sm font-medium text-gray-700 mb-2"
+          >
+            What type of business do you operate? *
+          </label>
+          <select
+            id="businessType"
+            required
+            value={localData.businessType}
+            onChange={(e) =>
+              setLocalData({ ...localData, businessType: e.target.value })
+            }
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          >
+            <option value="">Select Business Type</option>
+            <option value="retail">Retail</option>
+            <option value="restaurant">Restaurant/Food Service</option>
+            <option value="professional-services">Professional Services</option>
+            <option value="construction">Construction</option>
+            <option value="healthcare">Healthcare</option>
+            <option value="technology">Technology</option>
+            <option value="manufacturing">Manufacturing</option>
+            <option value="transportation">Transportation</option>
+            <option value="real-estate">Real Estate</option>
+            <option value="other">Other</option>
+          </select>
+        </div>
 
-      <div className="mb-8">
-        <label
-          htmlFor="numberOfEmployees"
-          className="block text-sm font-medium text-gray-700 mb-2"
-        >
-          How many employees do you have? *
-        </label>
-        <select
-          id="numberOfEmployees"
-          required
-          value={localData.numberOfEmployees}
-          onChange={(e) =>
-            setLocalData({ ...localData, numberOfEmployees: e.target.value })
-          }
-          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-        >
-          <option value="">Select Number of Employees</option>
-          <option value="just-me">Just me</option>
-          <option value="2-5">2-5 employees</option>
-          <option value="6-10">6-10 employees</option>
-          <option value="11-25">11-25 employees</option>
-          <option value="26-50">26-50 employees</option>
-          <option value="51-100">51-100 employees</option>
-          <option value="over-100">Over 100 employees</option>
-        </select>
-      </div>
+        <div className="mb-8">
+          <label
+            htmlFor="numberOfEmployees"
+            className="block text-sm font-medium text-gray-700 mb-2"
+          >
+            How many employees do you have? *
+          </label>
+          <select
+            id="numberOfEmployees"
+            required
+            value={localData.numberOfEmployees}
+            onChange={(e) =>
+              setLocalData({ ...localData, numberOfEmployees: e.target.value })
+            }
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          >
+            <option value="">Select Number of Employees</option>
+            <option value="just-me">Just me</option>
+            <option value="2-5">2-5 employees</option>
+            <option value="6-10">6-10 employees</option>
+            <option value="11-25">11-25 employees</option>
+            <option value="26-50">26-50 employees</option>
+            <option value="51-100">51-100 employees</option>
+            <option value="over-100">Over 100 employees</option>
+          </select>
+        </div>
 
-      <div className="mb-8">
-        <label
-          htmlFor="websiteUrl"
-          className="block text-sm font-medium text-gray-700 mb-2"
-        >
-          Business Website (Optional)
-        </label>
-        <input
-          type="text"
-          id="websiteUrl"
-          placeholder="trykeep.com or www.yourbusiness.com"
-          value={localData.websiteUrl}
-          onChange={(e) =>
-            setLocalData({ ...localData, websiteUrl: e.target.value })
-          }
-          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-        />
-        <p className="text-sm text-gray-500 mt-1">
-          Enter your business website (e.g., trykeep.com, www.example.com, or
-          https://example.com). We&apos;ll format it automatically.
-        </p>
-      </div>
+        <div className="mb-8">
+          <label
+            htmlFor="websiteUrl"
+            className="block text-sm font-medium text-gray-700 mb-2"
+          >
+            Business Website (Optional)
+          </label>
+          <input
+            type="text"
+            id="websiteUrl"
+            placeholder="trykeep.com or www.yourbusiness.com"
+            value={localData.websiteUrl}
+            onChange={(e) =>
+              setLocalData({ ...localData, websiteUrl: e.target.value })
+            }
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          />
+          <p className="text-sm text-gray-500 mt-1">
+            Enter your business website (e.g., trykeep.com, www.example.com, or
+            https://example.com). We&apos;ll format it automatically.
+          </p>
+        </div>
 
-      <div className="mt-8">
-        <button
-          type="submit"
-          disabled={isSubmitting}
-          className="w-full bg-black text-white py-3 px-6 rounded-lg font-semibold hover:bg-gray-800 transition-colors disabled:opacity-50"
-        >
-          {isSubmitting ? 'Saving...' : 'Continue to Financial Information'}
-        </button>
+        <div className="mt-8">
+          <button
+            type="submit"
+            disabled={isSubmitting}
+            className="w-full bg-black text-white py-3 px-6 rounded-lg font-semibold hover:bg-gray-800 transition-colors disabled:opacity-50"
+          >
+            {isSubmitting ? 'Saving...' : 'Continue to Financial Information'}
+          </button>
+        </div>
+      </form>
+
+      {/* Progress bar */}
+      <div className="mt-8 bg-gray-200 rounded-full h-2">
+        <div
+          className="bg-black h-2 rounded-full"
+          style={{ width: '71%' }}
+        ></div>
       </div>
-    </form>
+    </div>
   );
 }
 
 // Step 4: Manual Business Name Entry (Conditional)
+// Step 6: Business Name (Manual Entry) or Entity Type Selection (Registry Found)
 function Step6Form({
   onNext,
   formData,
@@ -816,6 +824,9 @@ function Step6Form({
   formData: FormData;
   isSubmitting: boolean;
 }) {
+  // Check if business was found in registry
+  const isRegistryBusiness = formData.businessConfirmed === 'true';
+
   const [localData, setLocalData] = useState({
     businessName: formData.businessName || '',
     legalBusinessName: formData.legalBusinessName || '',
@@ -841,59 +852,79 @@ function Step6Form({
       alert('Please select your business type');
       return;
     }
-    if (!localData.legalBusinessName) {
-      alert('Please enter your legal business name');
-      return;
-    }
-    if (!localData.timeInBusiness) {
-      alert('Please select how long you have been in business');
-      return;
+
+    // Only validate these fields for manual entry
+    if (!isRegistryBusiness) {
+      if (!localData.legalBusinessName) {
+        alert('Please enter your legal business name');
+        return;
+      }
+      if (!localData.timeInBusiness) {
+        alert("Please select how long you've been in business");
+        return;
+      }
     }
 
     setIsSubmittingInternal(true);
 
     try {
-      // Calculate approximate date incorporated based on time in business
-      let dateIncorporated = null;
-      const now = new Date();
-      switch (localData.timeInBusiness) {
-        case '<6 months':
-          dateIncorporated = new Date(now.setMonth(now.getMonth() - 3)); // ~3 months ago
-          break;
-        case '6–12 months':
-          dateIncorporated = new Date(now.setMonth(now.getMonth() - 9)); // ~9 months ago
-          break;
-        case '1–3 years':
-          dateIncorporated = new Date(now.setFullYear(now.getFullYear() - 2)); // ~2 years ago
-          break;
-        case '3+ years':
-          dateIncorporated = new Date(now.setFullYear(now.getFullYear() - 5)); // ~5 years ago
-          break;
+      if (isRegistryBusiness) {
+        // For registry businesses, update the entity type in the database
+        if (formData.businessId) {
+          await updateBusinessEntityType(
+            formData.businessId,
+            localData.entityType
+          );
+        }
+
+        onNext({
+          ...localData,
+          entityType: localData.entityType,
+        });
+      } else {
+        // For manual entry, calculate date and save to database
+        let dateIncorporated = null;
+        const now = new Date();
+        switch (localData.timeInBusiness) {
+          case 'Less than 1 year':
+            dateIncorporated = new Date(now.setMonth(now.getMonth() - 6)); // ~6 months ago
+            break;
+          case '1–3 years':
+            dateIncorporated = new Date(now.setFullYear(now.getFullYear() - 2)); // ~2 years ago
+            break;
+          case '3+ years':
+            dateIncorporated = new Date(now.setFullYear(now.getFullYear() - 5)); // ~5 years ago
+            break;
+        }
+
+        // Save manual business entry to database
+        const savedBusiness = await saveManualBusiness(
+          localData.legalBusinessName,
+          localData.entityType,
+          dateIncorporated
+        );
+
+        onNext({
+          ...localData,
+          businessName: localData.legalBusinessName,
+          businessSearchVerified: 'manual-entry',
+          businessId: savedBusiness.id,
+          legalBusinessName: localData.legalBusinessName,
+          entityType: localData.entityType,
+          timeInBusiness:
+            normalizeTimeInBusiness(
+              savedBusiness.business_age_category,
+              dateIncorporated?.toISOString().split('T')[0]
+            ) || localData.timeInBusiness,
+          dateIncorporated:
+            dateIncorporated?.toISOString().split('T')[0] || null,
+        });
+
+        console.log(
+          '✅ Manual business entry saved to database:',
+          savedBusiness
+        );
       }
-
-      // Save manual business entry to database
-      const savedBusiness = await saveManualBusiness(
-        localData.legalBusinessName,
-        localData.entityType,
-        dateIncorporated
-      );
-
-      onNext({
-        ...localData,
-        businessName: localData.legalBusinessName,
-        businessSearchVerified: 'manual-entry',
-        businessId: savedBusiness.id,
-        legalBusinessName: localData.legalBusinessName,
-        entityType: localData.entityType,
-        timeInBusiness:
-          normalizeTimeInBusiness(
-            savedBusiness.business_age_category,
-            dateIncorporated?.toISOString().split('T')[0]
-          ) || localData.timeInBusiness,
-        dateIncorporated: dateIncorporated?.toISOString().split('T')[0] || null,
-      });
-
-      console.log('✅ Manual business entry saved to database:', savedBusiness);
     } catch (error) {
       console.error('❌ Error saving manual business entry:', error);
       alert('Failed to save business information. Please try again.');
@@ -904,13 +935,16 @@ function Step6Form({
 
   return (
     <div className="bg-white rounded-lg shadow-lg p-8">
-      <div className="mb-8">
-        <h2 className="text-2xl font-bold text-gray-900 mb-4">
-          Enter Your Business Information
+      <div className="text-center mb-8">
+        <h2 className="text-2xl font-bold text-gray-900 mb-2">
+          {isRegistryBusiness
+            ? 'Confirm Business Type'
+            : 'Business Information'}
         </h2>
         <p className="text-gray-600">
-          Since we couldn&apos;t find your business in the Canadian Business
-          Registry, please provide the following information.
+          {isRegistryBusiness
+            ? `We found "${formData.businessName}" in the registry. Please select your business type.`
+            : 'Please provide details about your business'}
         </p>
       </div>
 
@@ -936,64 +970,75 @@ function Step6Form({
             <option value="Partnership">Partnership</option>
             <option value="Corporation">Corporation</option>
             <option value="Cooperative">Cooperative</option>
-            <option value="Not-for-Profit Corporation">Not-for-Profit Corporation</option>
+            <option value="Not-for-Profit Corporation">
+              Not-for-Profit Corporation
+            </option>
           </select>
         </div>
 
-        <div className="mb-6">
-          <label
-            htmlFor="legalBusinessName"
-            className="block text-sm font-medium text-gray-700 mb-2"
-          >
-            {localData.entityType === 'Corporation' || localData.entityType === 'Not-for-Profit Corporation'
-              ? 'Legal Business Name *'
-              : 'Business Name (or your legal name if not incorporated) *'}
-          </label>
-          <input
-            type="text"
-            id="legalBusinessName"
-            required
-            value={localData.legalBusinessName}
-            onChange={(e) =>
-              setLocalData({ ...localData, legalBusinessName: e.target.value })
-            }
-            placeholder={
-              localData.entityType === 'Corporation' || localData.entityType === 'Not-for-Profit Corporation'
-                ? 'Enter your exact legal business name'
-                : 'Enter your business name or legal name'
-            }
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-          />
-          <p className="text-sm text-gray-500 mt-1">
-            {localData.entityType === 'Corporation' || localData.entityType === 'Not-for-Profit Corporation'
-              ? 'This should match the name on your business registration, incorporation papers, or other legal documents.'
-              : 'If you are not incorporated, you can enter your legal name.'}
-          </p>
-        </div>
+        {!isRegistryBusiness && (
+          <>
+            <div className="mb-6">
+              <label
+                htmlFor="legalBusinessName"
+                className="block text-sm font-medium text-gray-700 mb-2"
+              >
+                {localData.entityType === 'Corporation' ||
+                localData.entityType === 'Not-for-Profit Corporation'
+                  ? 'Legal Business Name *'
+                  : 'Business Name (or your legal name if not incorporated) *'}
+              </label>
+              <input
+                type="text"
+                id="legalBusinessName"
+                required
+                value={localData.legalBusinessName}
+                onChange={(e) =>
+                  setLocalData({
+                    ...localData,
+                    legalBusinessName: e.target.value,
+                  })
+                }
+                placeholder={
+                  localData.entityType === 'Corporation' ||
+                  localData.entityType === 'Not-for-Profit Corporation'
+                    ? 'Enter your exact legal business name'
+                    : 'Enter your business name or legal name'
+                }
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              />
+              <p className="text-sm text-gray-500 mt-1">
+                {localData.entityType === 'Corporation' ||
+                localData.entityType === 'Not-for-Profit Corporation'
+                  ? 'This should match the name on your business registration, incorporation papers, or other legal documents.'
+                  : 'If you are not incorporated, you can enter your legal name.'}
+              </p>
+            </div>
 
-        <div className="mb-6">
-          <label
-            htmlFor="timeInBusiness"
-            className="block text-sm font-medium text-gray-700 mb-2"
-          >
-            Time in Business *
-          </label>
-          <select
-            id="timeInBusiness"
-            required
-            value={localData.timeInBusiness}
-            onChange={(e) =>
-              setLocalData({ ...localData, timeInBusiness: e.target.value })
-            }
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-          >
-            <option value="">Select time in business</option>
-            <option value="<6 months">&lt;6 months</option>
-            <option value="6–12 months">6–12 months</option>
-            <option value="1–3 years">1–3 years</option>
-            <option value="3+ years">3+ years</option>
-          </select>
-        </div>
+            <div className="mb-6">
+              <label
+                htmlFor="timeInBusiness"
+                className="block text-sm font-medium text-gray-700 mb-2"
+              >
+                How long have you been in business? *
+              </label>
+              <select
+                id="timeInBusiness"
+                required
+                value={localData.timeInBusiness}
+                onChange={(e) =>
+                  setLocalData({ ...localData, timeInBusiness: e.target.value })
+                }
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              >
+                <option value="">Select time in business</option>
+                <option value="Less than 1 year">Less than 1 year</option>
+                <option value="1–3 years">1–3 years</option>
+                <option value="3+ years">3+ years</option>
+              </select>
+            </div>
+          </>
+        )}
 
         <div className="mt-8">
           <button
@@ -1007,6 +1052,14 @@ function Step6Form({
           </button>
         </div>
       </form>
+
+      {/* Progress bar */}
+      <div className="mt-8 bg-gray-200 rounded-full h-2">
+        <div
+          className="bg-black h-2 rounded-full"
+          style={{ width: '36%' }}
+        ></div>
+      </div>
     </div>
   );
 }
@@ -1609,7 +1662,6 @@ function BusinessSearchForm({
         // Business registry data for reference
         incorporationDate: selectedBusinessData.Date_Incorporated,
         businessNumber: selectedBusinessData.BN,
-        entityType: selectedBusinessData.Entity_Type,
         jurisdiction: selectedBusinessData.Jurisdiction,
         registrySource: selectedBusinessData.Registry_Source,
         statusState: selectedBusinessData.Status_State,
