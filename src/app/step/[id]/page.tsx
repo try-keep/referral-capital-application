@@ -973,6 +973,7 @@ function Step6Form({
             <option value="Not-for-Profit Corporation">
               Not-for-Profit Corporation
             </option>
+            <option value="Other">Other</option>
           </select>
         </div>
 
