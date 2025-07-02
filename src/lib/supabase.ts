@@ -285,6 +285,35 @@ function calculateBusinessAgeCategory(dateIncorporated: Date): string {
   return '3+ years';
 }
 
+// Helper function to get time in business from incorporation date or business age category
+export function getTimeInBusinessFromDate(
+  dateIncorporated: string | null
+): string {
+  if (!dateIncorporated) return '';
+
+  try {
+    const incorporatedDate = new Date(dateIncorporated);
+    return calculateBusinessAgeCategory(incorporatedDate);
+  } catch (error) {
+    console.error('Error parsing incorporation date:', error);
+    return '';
+  }
+}
+
+// Helper function to ensure we always get the correct time in business value
+export function normalizeTimeInBusiness(
+  businessAgeCategory?: string,
+  dateIncorporated?: string | null
+): string {
+  // If we have an incorporation date, calculate from that (most accurate)
+  if (dateIncorporated) {
+    return getTimeInBusinessFromDate(dateIncorporated);
+  }
+
+  // Otherwise use the business age category if available
+  return businessAgeCategory || '';
+}
+
 // Save manual business entry (when user can't find business in registry)
 export async function saveManualBusiness(
   businessName: string,
@@ -364,14 +393,23 @@ export async function saveOrUpdateBusiness(
 
     if (existingBusiness) {
       // Update existing business
+      const updateData: any = {
+        times_selected: (existingBusiness.times_selected || 0) + 1,
+        last_selected_at: new Date().toISOString(),
+        raw_registry_data: registryBusiness,
+        updated_at: new Date().toISOString(),
+      };
+
+      // Recalculate business age category if incorporation date is available
+      if (registryBusiness.Date_Incorporated) {
+        updateData.business_age_category = calculateBusinessAgeCategory(
+          new Date(registryBusiness.Date_Incorporated)
+        );
+      }
+
       const { data, error } = await supabase
         .from('businesses')
-        .update({
-          times_selected: (existingBusiness.times_selected || 0) + 1,
-          last_selected_at: new Date().toISOString(),
-          raw_registry_data: registryBusiness,
-          updated_at: new Date().toISOString(),
-        })
+        .update(updateData)
         .eq('mras_id', registryBusiness.MRAS_ID)
         .select();
 
@@ -411,6 +449,13 @@ export async function saveOrUpdateBusiness(
         search_query: searchQuery,
         times_selected: 1,
         last_selected_at: new Date().toISOString(),
+
+        // Calculate business age category if incorporation date is available
+        business_age_category: registryBusiness.Date_Incorporated
+          ? calculateBusinessAgeCategory(
+              new Date(registryBusiness.Date_Incorporated)
+            )
+          : undefined,
       };
 
       return await saveBusiness(businessData);

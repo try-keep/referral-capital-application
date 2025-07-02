@@ -20,6 +20,7 @@ import {
 import {
   saveOrUpdateBusiness,
   saveManualBusiness,
+  normalizeTimeInBusiness,
   type UserData,
 } from '@/lib/supabase';
 import { getUserIpAddress } from '@/lib/ipAddress';
@@ -885,7 +886,10 @@ function Step6Form({
         legalBusinessName: localData.legalBusinessName,
         entityType: localData.entityType,
         timeInBusiness:
-          savedBusiness.business_age_category || localData.timeInBusiness,
+          normalizeTimeInBusiness(
+            savedBusiness.business_age_category,
+            dateIncorporated?.toISOString().split('T')[0]
+          ) || localData.timeInBusiness,
         dateIncorporated: dateIncorporated?.toISOString().split('T')[0] || null,
       });
 
@@ -1571,8 +1575,11 @@ function BusinessSearchForm({
 
       const businessData = formatBusinessDataForForm(selectedBusinessData);
 
-      // Use business_age_category from savedBusiness for time_in_business
-      const timeInBusiness = savedBusiness.business_age_category || '';
+      // Use normalizeTimeInBusiness for accurate calculation
+      const timeInBusiness = normalizeTimeInBusiness(
+        savedBusiness.business_age_category,
+        selectedBusinessData.Date_Incorporated
+      );
 
       // Update local state with confirmed business data
       setLocalData({
