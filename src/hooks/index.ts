@@ -1,1 +1,1 @@
-export * from './use-application-data';
+export * from './use-page-segment-analytics'
