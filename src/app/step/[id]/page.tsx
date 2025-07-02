@@ -932,9 +932,11 @@ function Step6Form({
             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           >
             <option value="">Select business type</option>
-            <option value="Incorporated">Incorporated</option>
-            <option value="Sole Proprietor">Sole Proprietor</option>
-            <option value="Other">Other</option>
+            <option value="Sole Proprietorship">Sole Proprietorship</option>
+            <option value="Partnership">Partnership</option>
+            <option value="Corporation">Corporation</option>
+            <option value="Cooperative">Cooperative</option>
+            <option value="Not-for-Profit Corporation">Not-for-Profit Corporation</option>
           </select>
         </div>
 
@@ -943,7 +945,7 @@ function Step6Form({
             htmlFor="legalBusinessName"
             className="block text-sm font-medium text-gray-700 mb-2"
           >
-            {localData.entityType === 'Incorporated'
+            {localData.entityType === 'Corporation' || localData.entityType === 'Not-for-Profit Corporation'
               ? 'Legal Business Name *'
               : 'Business Name (or your legal name if not incorporated) *'}
           </label>
@@ -956,14 +958,14 @@ function Step6Form({
               setLocalData({ ...localData, legalBusinessName: e.target.value })
             }
             placeholder={
-              localData.entityType === 'Incorporated'
+              localData.entityType === 'Corporation' || localData.entityType === 'Not-for-Profit Corporation'
                 ? 'Enter your exact legal business name'
                 : 'Enter your business name or legal name'
             }
             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           />
           <p className="text-sm text-gray-500 mt-1">
-            {localData.entityType === 'Incorporated'
+            {localData.entityType === 'Corporation' || localData.entityType === 'Not-for-Profit Corporation'
               ? 'This should match the name on your business registration, incorporation papers, or other legal documents.'
               : 'If you are not incorporated, you can enter your legal name.'}
           </p>
