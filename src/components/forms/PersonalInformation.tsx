@@ -336,7 +336,7 @@ export function PersonalInformationForm({
           disabled={isSubmitting}
           className="w-full bg-black text-white py-3 px-6 rounded-lg font-semibold hover:bg-gray-800 transition-colors disabled:opacity-50"
         >
-          {isSubmitting ? 'Saving...' : 'Continue to Funding Amount'}
+          {isSubmitting ? 'Saving...' : 'Continue to Business Ownership'}
         </button>
       </div>
     </form>
