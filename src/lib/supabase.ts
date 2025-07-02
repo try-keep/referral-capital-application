@@ -118,6 +118,7 @@ export interface ApplicationData {
   annual_revenue: string;
   cash_flow: string;
   credit_score: string;
+  time_in_business: string;
 
   // Step 12: Bank Information
   bank_connection_completed?: boolean;
@@ -271,8 +272,25 @@ export async function findBusinessByMrasId(mrasId: string) {
   return data;
 }
 
+// Helper function to calculate business age category based on incorporation date
+function calculateBusinessAgeCategory(dateIncorporated: Date): string {
+  const now = new Date();
+  const monthsDiff =
+    (now.getFullYear() - dateIncorporated.getFullYear()) * 12 +
+    (now.getMonth() - dateIncorporated.getMonth());
+
+  if (monthsDiff < 6) return '<6 months';
+  if (monthsDiff < 12) return '6-12 months';
+  if (monthsDiff < 36) return '1-3 years';
+  return '3+ years';
+}
+
 // Save manual business entry (when user can't find business in registry)
-export async function saveManualBusiness(businessName: string) {
+export async function saveManualBusiness(
+  businessName: string,
+  entityType: string,
+  dateIncorporated: Date | null
+) {
   const manualBusinessData = {
     mras_id: `manual-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
     company_name: businessName,
@@ -286,9 +304,11 @@ export async function saveManualBusiness(businessName: string) {
     status_state: 'Active',
     status_date: new Date().toISOString().split('T')[0],
     status_notes: 'Manually entered by user',
-    date_incorporated: null,
+    date_incorporated: dateIncorporated
+      ? dateIncorporated.toISOString().split('T')[0]
+      : null,
     display_date: null,
-    entity_type: 'Manual Entry',
+    entity_type: entityType,
     mras_entity_type: null,
     alternate_names: null,
     text_fields: null,
@@ -296,12 +316,21 @@ export async function saveManualBusiness(businessName: string) {
     hierarchy: null,
     data_source: 'MANUAL',
     version_number: 1,
-    business_age_category: 'Unknown',
+    business_age_category: dateIncorporated
+      ? calculateBusinessAgeCategory(dateIncorporated)
+      : 'Unknown',
     estimated_business_type: 'professional-services',
     search_query: `Manual entry: ${businessName}`,
     times_selected: 1,
     last_selected_at: new Date().toISOString(),
-    raw_registry_data: { source: 'manual_entry', business_name: businessName },
+    raw_registry_data: {
+      source: 'manual_entry',
+      business_name: businessName,
+      entity_type: entityType,
+      date_incorporated: dateIncorporated
+        ? dateIncorporated.toISOString().split('T')[0]
+        : null,
+    },
   };
 
   try {

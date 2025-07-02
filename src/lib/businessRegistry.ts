@@ -89,15 +89,16 @@ export function formatBusinessDataForForm(business: BusinessRegistryResult) {
 function calculateBusinessAge(incorporationDate: string): string {
   if (!incorporationDate) return '';
 
-  const incorporationYear = new Date(incorporationDate).getFullYear();
-  const currentYear = new Date().getFullYear();
-  const yearsInBusiness = currentYear - incorporationYear;
+  const incorporatedDate = new Date(incorporationDate);
+  const now = new Date();
+  const monthsDiff =
+    (now.getFullYear() - incorporatedDate.getFullYear()) * 12 +
+    (now.getMonth() - incorporatedDate.getMonth());
 
-  if (yearsInBusiness < 1) return 'under-1-year';
-  if (yearsInBusiness <= 2) return '1-2-years';
-  if (yearsInBusiness <= 5) return '2-5-years';
-  if (yearsInBusiness <= 10) return '5-10-years';
-  return 'over-10-years';
+  if (monthsDiff < 6) return '<6 months';
+  if (monthsDiff < 12) return '6–12 months';
+  if (monthsDiff < 36) return '1–3 years';
+  return '3+ years';
 }
 
 // Map entity type to our business type options

@@ -20,8 +20,6 @@ import {
 import {
   saveOrUpdateBusiness,
   saveManualBusiness,
-  saveApplication,
-  updateApplication,
   type UserData,
 } from '@/lib/supabase';
 import { getUserIpAddress } from '@/lib/ipAddress';
@@ -820,6 +818,8 @@ function Step6Form({
   const [localData, setLocalData] = useState({
     businessName: formData.businessName || '',
     legalBusinessName: formData.legalBusinessName || '',
+    entityType: formData.entityType || '',
+    timeInBusiness: formData.timeInBusiness || '',
   });
   const [isSubmittingInternal, setIsSubmittingInternal] = useState(false);
 
@@ -829,22 +829,52 @@ function Step6Form({
     setLocalData({
       businessName: formData.businessName || '',
       legalBusinessName: formData.legalBusinessName || '',
+      entityType: formData.entityType || '',
+      timeInBusiness: formData.timeInBusiness || '',
     });
   }, [formData]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!localData.entityType) {
+      alert('Please select your business type');
+      return;
+    }
     if (!localData.legalBusinessName) {
       alert('Please enter your legal business name');
+      return;
+    }
+    if (!localData.timeInBusiness) {
+      alert('Please select how long you have been in business');
       return;
     }
 
     setIsSubmittingInternal(true);
 
     try {
+      // Calculate approximate date incorporated based on time in business
+      let dateIncorporated = null;
+      const now = new Date();
+      switch (localData.timeInBusiness) {
+        case '<6 months':
+          dateIncorporated = new Date(now.setMonth(now.getMonth() - 3)); // ~3 months ago
+          break;
+        case '6–12 months':
+          dateIncorporated = new Date(now.setMonth(now.getMonth() - 9)); // ~9 months ago
+          break;
+        case '1–3 years':
+          dateIncorporated = new Date(now.setFullYear(now.getFullYear() - 2)); // ~2 years ago
+          break;
+        case '3+ years':
+          dateIncorporated = new Date(now.setFullYear(now.getFullYear() - 5)); // ~5 years ago
+          break;
+      }
+
       // Save manual business entry to database
       const savedBusiness = await saveManualBusiness(
-        localData.legalBusinessName
+        localData.legalBusinessName,
+        localData.entityType,
+        dateIncorporated
       );
 
       onNext({
@@ -853,6 +883,10 @@ function Step6Form({
         businessSearchVerified: 'manual-entry',
         businessId: savedBusiness.id,
         legalBusinessName: localData.legalBusinessName,
+        entityType: localData.entityType,
+        timeInBusiness:
+          savedBusiness.business_age_category || localData.timeInBusiness,
+        dateIncorporated: dateIncorporated?.toISOString().split('T')[0] || null,
       });
 
       console.log('✅ Manual business entry saved to database:', savedBusiness);
@@ -868,22 +902,46 @@ function Step6Form({
     <div className="bg-white rounded-lg shadow-lg p-8">
       <div className="mb-8">
         <h2 className="text-2xl font-bold text-gray-900 mb-4">
-          Enter Your Legal Business Name
+          Enter Your Business Information
         </h2>
         <p className="text-gray-600">
           Since we couldn&apos;t find your business in the Canadian Business
-          Registry, please enter your legal business name as it appears on your
-          registration documents.
+          Registry, please provide the following information.
         </p>
       </div>
 
       <form onSubmit={handleSubmit}>
         <div className="mb-6">
           <label
+            htmlFor="entityType"
+            className="block text-sm font-medium text-gray-700 mb-2"
+          >
+            Business Type *
+          </label>
+          <select
+            id="entityType"
+            required
+            value={localData.entityType}
+            onChange={(e) =>
+              setLocalData({ ...localData, entityType: e.target.value })
+            }
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          >
+            <option value="">Select business type</option>
+            <option value="Incorporated">Incorporated</option>
+            <option value="Sole Proprietor">Sole Proprietor</option>
+            <option value="Other">Other</option>
+          </select>
+        </div>
+
+        <div className="mb-6">
+          <label
             htmlFor="legalBusinessName"
             className="block text-sm font-medium text-gray-700 mb-2"
           >
-            Legal Business Name *
+            {localData.entityType === 'Incorporated'
+              ? 'Legal Business Name *'
+              : 'Business Name (or your legal name if not incorporated) *'}
           </label>
           <input
             type="text"
@@ -893,13 +951,42 @@ function Step6Form({
             onChange={(e) =>
               setLocalData({ ...localData, legalBusinessName: e.target.value })
             }
-            placeholder="Enter your exact legal business name"
+            placeholder={
+              localData.entityType === 'Incorporated'
+                ? 'Enter your exact legal business name'
+                : 'Enter your business name or legal name'
+            }
             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           />
           <p className="text-sm text-gray-500 mt-1">
-            This should match the name on your business registration,
-            incorporation papers, or other legal documents.
+            {localData.entityType === 'Incorporated'
+              ? 'This should match the name on your business registration, incorporation papers, or other legal documents.'
+              : 'If you are not incorporated, you can enter your legal name.'}
           </p>
+        </div>
+
+        <div className="mb-6">
+          <label
+            htmlFor="timeInBusiness"
+            className="block text-sm font-medium text-gray-700 mb-2"
+          >
+            Time in Business *
+          </label>
+          <select
+            id="timeInBusiness"
+            required
+            value={localData.timeInBusiness}
+            onChange={(e) =>
+              setLocalData({ ...localData, timeInBusiness: e.target.value })
+            }
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          >
+            <option value="">Select time in business</option>
+            <option value="<6 months">&lt;6 months</option>
+            <option value="6–12 months">6–12 months</option>
+            <option value="1–3 years">1–3 years</option>
+            <option value="3+ years">3+ years</option>
+          </select>
         </div>
 
         <div className="mt-8">
@@ -1484,6 +1571,9 @@ function BusinessSearchForm({
 
       const businessData = formatBusinessDataForForm(selectedBusinessData);
 
+      // Use business_age_category from savedBusiness for time_in_business
+      const timeInBusiness = savedBusiness.business_age_category || '';
+
       // Update local state with confirmed business data
       setLocalData({
         ...localData,
@@ -1499,6 +1589,7 @@ function BusinessSearchForm({
         selectedBusiness: selectedBusinessData.MRAS_ID,
         businessConfirmed: 'true',
         businessId: savedBusiness.id,
+        timeInBusiness: timeInBusiness,
 
         // Pre-fill business details for later steps
         businessAddress: `${selectedBusinessData.Reg_office_city || selectedBusinessData.City}, ${selectedBusinessData.Reg_office_province}`,
