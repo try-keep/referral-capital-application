@@ -3,7 +3,7 @@ import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 import './globals.css';
 import Script from 'next/script';
-import { Providers } from '@/components/Providers';
+import Analytics from '@/components/analytics';
 
 const inter = Inter({
   subsets: ['latin'],
@@ -135,7 +135,7 @@ export default function RootLayout({
             })(document, 'script');
           `}
         </Script>
-        <Providers>{children}</Providers>
+        {children}
 
         {/* jQuery - load first */}
         <Script
@@ -151,6 +151,7 @@ export default function RootLayout({
           strategy="afterInteractive"
         />
       </body>
+      <Analytics />
     </html>
   );
 }
