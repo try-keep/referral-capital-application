@@ -6,7 +6,7 @@ import { getApplicationTraits } from '@/utils/analytics/traits';
 import { isDefined } from '@/utils';
 
 function extractApplicationData() {
-  if (isDefined(window.localStorage)) {
+  if (typeof window !== 'undefined' && isDefined(window.localStorage)) {
     const data = localStorage.getItem('referralApplicationData');
     try {
       return isDefined(data) ? JSON.parse(data) : {};
