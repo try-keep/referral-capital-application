@@ -466,6 +466,7 @@ export default function StepPage() {
             onNext={handleNext}
             formData={formData}
             isSubmitting={isSubmitting}
+            saveFormData={saveFormData}
           />
         );
       case 4:
@@ -2666,11 +2667,14 @@ function Step2Form({
   onNext,
   formData,
   isSubmitting,
+  saveFormData,
 }: {
   onNext: (data: FormData) => void;
   formData: FormData;
   isSubmitting: boolean;
+  saveFormData: (data: FormData) => void;
 }) {
+  const router = useRouter();
   const [localData, setLocalData] = useState({
     isBusinessOwner: formData.isBusinessOwner || '',
   });
@@ -2683,18 +2687,53 @@ function Step2Form({
     });
   }, [formData]);
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!localData.isBusinessOwner) {
-      alert('Please select an option');
-      return;
+  const handleOwnerSelect = (value: string) => {
+    if (value === 'yes') {
+      onNext({ isBusinessOwner: 'yes' });
+    } else {
+      saveFormData({ isBusinessOwner: 'no' });
     }
-    onNext(localData);
   };
 
-  const handleOwnerSelect = (value: string) => {
-    setLocalData({ ...localData, isBusinessOwner: value });
+  const clearFormData = () => {
+    saveFormData({ isBusinessOwner: '' });
   };
+
+  if (localData.isBusinessOwner === 'no') {
+    return (
+      <div className="bg-white rounded-lg shadow-lg p-8 text-center">
+        <div className="flex justify-center mb-4">
+          <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <svg
+              className="w-8 h-8 text-gray-600"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
+              />
+            </svg>
+          </div>
+        </div>
+        <h2 className="text-xl font-bold text-gray-900 my-4">
+          We are unable to offer any funding at this time
+        </h2>
+        <button
+          onClick={() => {
+            clearFormData();
+            router.push('/');
+          }}
+          className="bg-black text-white px-6 py-2 rounded-lg hover:bg-gray-800 transition-colors"
+        >
+          Go back
+        </button>
+      </div>
+    );
+  }
 
   return (
     <div className="bg-white rounded-lg shadow-lg p-8">
@@ -2719,77 +2758,67 @@ function Step2Form({
 
       <div className="text-center mb-8">
         <h2 className="text-2xl font-bold text-gray-900 mb-2">
-          Are you the business owner or director?
+          Are you authorized to secure financing for the business?
         </h2>
       </div>
 
-      <form onSubmit={handleSubmit}>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-          <button
-            type="button"
-            onClick={() => handleOwnerSelect('yes')}
-            className={`p-8 border-2 rounded-lg text-center transition-all hover:border-green-300 ${
-              localData.isBusinessOwner === 'yes'
-                ? 'border-green-500 bg-green-50'
-                : 'border-gray-200 bg-white'
-            }`}
-          >
-            <div className="flex justify-center mb-4">
-              <svg
-                className="w-12 h-12 text-gray-600"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M14 10h4.764a2 2 0 011.789 2.894l-3.5 7A2 2 0 0115.263 21h-4.017c-.163 0-.326-.02-.485-.06L7 20m7-10V5a2 2 0 00-2-2h-.095c-.5 0-.905.405-.905.905 0 .714-.211 1.412-.608 2.006L7 11v9m7-10h-2M7 20H5a2 2 0 01-2-2v-6a2 2 0 012-2h2.5"
-                />
-              </svg>
-            </div>
-            <div className="text-lg font-medium text-gray-700">Yes</div>
-          </button>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+        <button
+          type="button"
+          onClick={() => handleOwnerSelect('yes')}
+          disabled={isSubmitting}
+          className={`p-8 border-2 rounded-lg text-center transition-all hover:border-green-300 disabled:opacity-50 ${
+            localData.isBusinessOwner === 'yes'
+              ? 'border-green-500 bg-green-50'
+              : 'border-gray-200 bg-white'
+          }`}
+        >
+          <div className="flex justify-center mb-4">
+            <svg
+              className="w-12 h-12 text-gray-600"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M14 10h4.764a2 2 0 011.789 2.894l-3.5 7A2 2 0 0115.263 21h-4.017c-.163 0-.326-.02-.485-.06L7 20m7-10V5a2 2 0 00-2-2h-.095c-.5 0-.905.405-.905.905 0 .714-.211 1.412-.608 2.006L7 11v9m7-10h-2M7 20H5a2 2 0 01-2-2v-6a2 2 0 012-2h2.5"
+              />
+            </svg>
+          </div>
+          <div className="text-lg font-medium text-gray-700">Yes</div>
+        </button>
 
-          <button
-            type="button"
-            onClick={() => handleOwnerSelect('no')}
-            className={`p-8 border-2 rounded-lg text-center transition-all hover:border-red-300 ${
-              localData.isBusinessOwner === 'no'
-                ? 'border-red-500 bg-red-50'
-                : 'border-gray-200 bg-white'
-            }`}
-          >
-            <div className="flex justify-center mb-4">
-              <svg
-                className="w-12 h-12 text-gray-600"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M10 14H5.236a2 2 0 01-1.789-2.894l3.5-7A2 2 0 018.736 3h4.018c.163 0 .326.02.485.06L17 4m-7 10v2a2 2 0 002 2h.095c.5 0 .905-.405.905-.905 0-.714.211-1.412.608-2.006L17 13V4m-7 10h2m5-10h2a2 2 0 012 2v6a2 2 0 01-2 2h-2.5"
-                />
-              </svg>
-            </div>
-            <div className="text-lg font-medium text-gray-700">No</div>
-          </button>
-        </div>
-
-        <div className="mt-8">
-          <button
-            type="submit"
-            disabled={isSubmitting || !localData.isBusinessOwner}
-            className="w-full bg-black text-white py-3 px-6 rounded-lg font-semibold hover:bg-gray-800 transition-colors disabled:opacity-50"
-          >
-            {isSubmitting ? 'Saving...' : 'Next'}
-          </button>
-        </div>
-      </form>
+        <button
+          type="button"
+          onClick={() => handleOwnerSelect('no')}
+          disabled={isSubmitting}
+          className={`p-8 border-2 rounded-lg text-center transition-all hover:border-red-300 disabled:opacity-50 ${
+            localData.isBusinessOwner === 'no'
+              ? 'border-red-500 bg-red-50'
+              : 'border-gray-200 bg-white'
+          }`}
+        >
+          <div className="flex justify-center mb-4">
+            <svg
+              className="w-12 h-12 text-gray-600"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M10 14H5.236a2 2 0 01-1.789-2.894l3.5-7A2 2 0 018.736 3h4.018c.163 0 .326.02.485.06L17 4m-7 10v2a2 2 0 002 2h.095c.5 0 .905-.405.905-.905 0-.714.211-1.412.608-2.006L17 13V4m-7 10h2m5-10h2a2 2 0 012 2v6a2 2 0 01-2 2h-2.5"
+              />
+            </svg>
+          </div>
+          <div className="text-lg font-medium text-gray-700">No</div>
+        </button>
+      </div>
 
       {/* Progress bar */}
       <div className="mt-8 bg-gray-200 rounded-full h-2">
