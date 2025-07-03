@@ -205,7 +205,7 @@ export async function submitApplication(
     const responseData = {
       success: true,
       message: 'Application submitted successfully',
-      applicationId: savedApplication.id!,
+      applicationId: savedApplication.id,
       data: {
         id: savedApplication.id!,
         businessName: savedApplication.business_name,

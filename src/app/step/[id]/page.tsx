@@ -3,7 +3,7 @@
 import React from 'react';
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useRouter, useParams } from 'next/navigation';
-import { FormData } from '@/types';
+import { type FormData } from '@/types';
 
 // Declare Facebook Pixel types
 declare global {

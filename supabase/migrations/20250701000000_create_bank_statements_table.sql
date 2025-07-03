@@ -5,9 +5,8 @@ CREATE TABLE IF NOT EXISTS "public"."bank_statements" (
     "application_upload_id" uuid NOT NULL,
     "file_url" text NOT NULL,
     "file_name" character varying(255) NOT NULL,
-    "file_size" bigint,
-    "mime_type" character varying(100),
-    "uploaded_at" timestamp with time zone DEFAULT "now"()
+    "file_size" bigint NOT NULL,
+    "mime_type" character varying(100) NOT NULL
 );
 
 ALTER TABLE "public"."bank_statements" OWNER TO "postgres";

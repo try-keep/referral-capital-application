@@ -6,7 +6,7 @@ VALUES (
   false, -- Private bucket - files cannot be accessed without authentication
   false,
   10485760, -- 10MB limit
-  ARRAY['application/pdf', 'image/png', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document']
+  ARRAY['application/pdf']
 )
 ON CONFLICT (id) DO NOTHING;
 
