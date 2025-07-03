@@ -1,0 +1,1 @@
+ALTER TABLE applications ADD COLUMN owns_more_than_50pct TEXT;

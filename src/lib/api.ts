@@ -22,6 +22,7 @@ export interface ApplicationData {
 
   // Step 2: Business Owner
   isBusinessOwner: string;
+  owns_more_than_50pct?: string;
 
   // Step 3: Monthly Sales
   monthlySales: string;
@@ -118,6 +119,7 @@ function transformToSupabaseFormat(
 
     // Step 2: Business Owner
     is_business_owner: data.isBusinessOwner,
+    owns_more_than_50pct: data.owns_more_than_50pct,
 
     // Step 3: Monthly Sales
     monthly_sales: data.monthlySales,

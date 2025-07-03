@@ -79,6 +79,7 @@ export interface ApplicationData {
 
   // Step 2: Business Owner
   is_business_owner: string;
+  owns_more_than_50pct?: string;
 
   // Step 3: Monthly Sales
   monthly_sales: string;
