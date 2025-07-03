@@ -16,7 +16,8 @@
     "install:backend": "cd backend && npm install",
     "test:compliance": "node test-compliance.js",
     "test:compliance:prod": "TEST_URL=https://referral-capital-application-1gv42zxj3-try-keep.vercel.app node test-compliance.js",
-    "supabase:start": "npx supabase start"
+    "supabase:start": "npx supabase start",
+    "pr": "open https://github.com/try-keep/referral-capital-application/compare/main...$(git rev-parse --abbrev-ref HEAD)?expand=1"
   },
   "dependencies": {
     "@segment/analytics-next": "^1.81.0",
