@@ -1698,7 +1698,7 @@ function Step12Form({
                   Upload Bank Statements Manually
                 </h3>
                 <p className="text-sm text-gray-600 mt-1">
-                  Please upload six bank statements that are no older than six
+                  Please upload 6 bank statements that are no older than 6
                   months to help us understand your business.
                 </p>
               </div>
