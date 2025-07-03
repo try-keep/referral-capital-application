@@ -6,13 +6,16 @@ import { getApplicationTraits } from '@/utils/analytics/traits';
 import { isDefined } from '@/utils';
 
 function extractApplicationData() {
-  const data = localStorage.getItem('referralApplicationData');
-  try {
-    return isDefined(data) ? JSON.parse(data) : {};
-  } catch (error) {
-    console.error('Error parsing application data', error);
-    return {};
+  if (isDefined(window.localStorage)) {
+    const data = localStorage.getItem('referralApplicationData');
+    try {
+      return isDefined(data) ? JSON.parse(data) : {};
+    } catch (error) {
+      console.error('Error parsing application data', error);
+      return {};
+    }
   }
+  return {};
 }
 
 /**
@@ -42,14 +45,4 @@ export const usePageSegmentAnalytics = () => {
     handleRouteChange(pathname);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pathname, searchParams]);
-
-  //Track initial page view on page load when analytics is ready
-  useEffect(() => {
-    analytics.ready(() => {
-      analytics.page({ page: pathname }, undefined, {
-        traits: getApplicationTraits(applicationData),
-      });
-    });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
 };
