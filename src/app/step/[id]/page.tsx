@@ -1311,8 +1311,8 @@ function Step12Form({
 
   // Handle manual upload submission
   const handleManualUploadSubmit = async () => {
-    if (uploadedFiles.length < 3) {
-      setUploadError('Please upload at least 3 bank statements.');
+    if (uploadedFiles.length < 6) {
+      setUploadError('Please upload at least 6 bank statements.');
       return;
     }
 
@@ -1584,7 +1584,7 @@ function Step12Form({
                 <br />
               </h3>
               <p className="text-sm text-gray-600 mb-4">
-                Please upload your 3 most recent bank statements to help us
+                Please upload your last 6 months of bank statements to help us
                 review your business.
               </p>
               <button className="w-full bg-gray-800 text-white py-3 px-4 rounded-lg font-semibold hover:bg-gray-700 transition-colors">
@@ -1698,8 +1698,8 @@ function Step12Form({
                   Upload Bank Statements Manually
                 </h3>
                 <p className="text-sm text-gray-600 mt-1">
-                  Please upload your three most recent bank statements to help
-                  us understand your business.
+                  Please upload six bank statements that are no older than six
+                  months to help us understand your business.
                 </p>
               </div>
             </div>
@@ -1820,7 +1820,7 @@ function Step12Form({
           {/* Submit button */}
           <button
             onClick={handleManualUploadSubmit}
-            disabled={uploadedFiles.length < 3 || isUploading}
+            disabled={uploadedFiles.length < 6 || isUploading}
             className="w-full bg-gray-800 text-white py-3 px-6 rounded-lg font-semibold hover:bg-gray-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {isUploading ? 'Uploading...' : 'Submit documents'}
