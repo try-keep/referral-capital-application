@@ -1584,7 +1584,7 @@ function Step12Form({
                 <br />
               </h3>
               <p className="text-sm text-gray-600 mb-4">
-                Please upload 3 bank statements of the last 6 months to help us
+                Please upload your 3 most recent bank statements to help us
                 review your business.
               </p>
               <button className="w-full bg-gray-800 text-white py-3 px-4 rounded-lg font-semibold hover:bg-gray-700 transition-colors">
@@ -1698,8 +1698,8 @@ function Step12Form({
                   Upload Bank Statements Manually
                 </h3>
                 <p className="text-sm text-gray-600 mt-1">
-                  Please upload three bank statements that are no older than six
-                  months to help us understand your business.
+                  Please upload your three most recent bank statements to help
+                  us understand your business.
                 </p>
               </div>
             </div>
