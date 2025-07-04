@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { FormData } from '@/types';
+import { AddressAutocompleteInput } from '../AddressAutocompleteInput';
 
 // Step 7: Personal Information
 export function PersonalInformationForm({
@@ -86,13 +87,6 @@ export function PersonalInformationForm({
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(localData.email)) {
       alert('Please enter a valid email address');
-      return;
-    }
-
-    // Basic Canadian postal code validation
-    const postalCodeRegex = /^[A-Z]\d[A-Z]\s?\d[A-Z]\d$/;
-    if (!postalCodeRegex.test(localData.postalCode.toUpperCase())) {
-      alert('Please enter a valid Canadian postal code (e.g., M5V 3A8)');
       return;
     }
 
@@ -209,24 +203,33 @@ export function PersonalInformationForm({
           </span>
           Address Information
         </h3>
-
-        <div className="mb-6">
+        <div className="mb-6 relative">
           <label
             htmlFor="addressLine1"
             className="block text-sm font-medium text-gray-700 mb-2"
           >
             Street Address *
           </label>
-          <input
-            type="text"
-            id="addressLine1"
-            required
-            value={localData.addressLine1}
-            onChange={(e) =>
-              setLocalData({ ...localData, addressLine1: e.target.value })
-            }
+          <AddressAutocompleteInput
+            address={localData.addressLine1}
+            onSuggestionSelected={(address) => {
+              setLocalData({
+                ...localData,
+                addressLine1: address.address_line1,
+                addressLine2: address.address_line2,
+                city: address.city,
+                province: address.state,
+                postalCode: address.postcode,
+              });
+            }}
+            onAddressChange={(addressLine1) => {
+              setLocalData({
+                ...localData,
+                addressLine1,
+              });
+            }}
             placeholder="123 Main Street"
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            required
           />
         </div>
 
@@ -277,7 +280,8 @@ export function PersonalInformationForm({
             >
               Province *
             </label>
-            <select
+            <input
+              type="text"
               id="province"
               required
               value={localData.province}
@@ -285,22 +289,7 @@ export function PersonalInformationForm({
                 setLocalData({ ...localData, province: e.target.value })
               }
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            >
-              <option value="">Select Province</option>
-              <option value="AB">Alberta</option>
-              <option value="BC">British Columbia</option>
-              <option value="MB">Manitoba</option>
-              <option value="NB">New Brunswick</option>
-              <option value="NL">Newfoundland and Labrador</option>
-              <option value="NS">Nova Scotia</option>
-              <option value="ON">Ontario</option>
-              <option value="PE">Prince Edward Island</option>
-              <option value="QC">Quebec</option>
-              <option value="SK">Saskatchewan</option>
-              <option value="NT">Northwest Territories</option>
-              <option value="NU">Nunavut</option>
-              <option value="YT">Yukon</option>
-            </select>
+            />
           </div>
 
           <div>
@@ -322,8 +311,6 @@ export function PersonalInformationForm({
                 })
               }
               placeholder="M5V 3A8"
-              pattern="[A-Z][0-9][A-Z] [0-9][A-Z][0-9]"
-              maxLength={7}
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             />
           </div>
