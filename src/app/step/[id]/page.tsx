@@ -63,6 +63,82 @@ const stepDescriptions = {
   14: 'Review your application before submitting',
 };
 
+/**
+ * Checks if a step is accessible based on the data from previous steps
+ * @param step - The step to check
+ * @param data - The form data
+ * @returns true if the step is accessible, false otherwise
+ */
+const isStepAccessible = (step: number, data: FormData): boolean => {
+  if (step === 1) return true; // Step 1 is always accessible
+
+  // Check if all previous steps have been completed
+  const requiredFields: Record<number, (keyof FormData)[]> = {
+    1: ['loanType'],
+    2: [
+      'firstName',
+      'lastName',
+      'email',
+      'addressLine1',
+      'city',
+      'province',
+      'postalCode',
+    ], // Personal info with address
+    3: ['isBusinessOwner'], // Business owner
+    4: ['businessName'], // Business search/name (conditional: only if businessConfirmed exists)
+    5: ['entityType'], // Entity type selection (always required)
+    6: ['monthlySales'],
+    7: ['hasExistingLoans'],
+    8: ['fundingAmount', 'fundingTimeline'],
+    9: ['fundingPurpose'],
+    10: ['businessType', 'numberOfEmployees'],
+    11: ['annualRevenue', 'cashFlow', 'creditScore'],
+    12: ['bankConnectionCompleted'],
+    13: ['businessAddress', 'businessPhone'],
+    14: ['agreesToTerms', 'authorizesCreditCheck'],
+  };
+
+  // Check all steps up to the current one
+  for (let i = 1; i <= step - 1; i++) {
+    const fields = requiredFields[i] || [];
+
+    // Special handling for conditional steps
+    if (i === 4) {
+      // Step 4 (business search) - businessName is required
+      if (!data.businessName && data.businessConfirmed === 'true') {
+        console.log(
+          `🚫 Step ${step} not accessible: missing businessName from step 4`
+        );
+        return false;
+      }
+      continue;
+    }
+
+    if (i === 5) {
+      // Step 5 (entity type) - always required
+      if (!data.entityType) {
+        console.log(
+          `🚫 Step ${step} not accessible: missing entityType from step 5`
+        );
+        return false;
+      }
+      continue;
+    }
+
+    // Regular field validation
+    for (const field of fields) {
+      if (!data[field]) {
+        console.log(
+          `🚫 Step ${step} not accessible: missing ${field} from step ${i}`
+        );
+        return false;
+      }
+    }
+  }
+
+  return true;
+};
+
 export default function StepPage() {
   const router = useRouter();
   const params = useParams();
@@ -79,80 +155,6 @@ export default function StepPage() {
       JSON.stringify(updatedData)
     );
   };
-
-  // Check if a step is accessible based on completed previous steps
-  const isStepAccessible = useCallback(
-    (step: number): boolean => {
-      if (step === 1) return true; // Step 1 is always accessible
-
-      // Check if all previous steps have been completed
-      const requiredFields: Record<number, (keyof FormData)[]> = {
-        1: ['loanType'],
-        2: [
-          'firstName',
-          'lastName',
-          'email',
-          'addressLine1',
-          'city',
-          'province',
-          'postalCode',
-        ], // Personal info with address
-        3: ['isBusinessOwner'], // Business owner
-        4: ['businessName'], // Business search/name (conditional: only if businessConfirmed exists)
-        5: ['entityType'], // Entity type selection (always required)
-        6: ['monthlySales'],
-        7: ['hasExistingLoans'],
-        8: ['fundingAmount', 'fundingTimeline'],
-        9: ['fundingPurpose'],
-        10: ['businessType', 'numberOfEmployees'],
-        11: ['annualRevenue', 'cashFlow', 'creditScore'],
-        12: ['bankConnectionCompleted'],
-        13: ['businessAddress', 'businessPhone'],
-        14: ['agreesToTerms', 'authorizesCreditCheck'],
-      };
-
-      // Check all steps up to the current one
-      for (let i = 2; i <= step; i++) {
-        const fields = requiredFields[i] || [];
-
-        // Special handling for conditional steps
-        if (i === 4) {
-          // Step 4 (business search) - businessName is required
-          if (!formData.businessName) {
-            console.log(
-              `🚫 Step ${step} not accessible: missing businessName from step 4`
-            );
-            return false;
-          }
-          continue;
-        }
-
-        if (i === 5) {
-          // Step 5 (entity type) - always required
-          if (!formData.entityType) {
-            console.log(
-              `🚫 Step ${step} not accessible: missing entityType from step 5`
-            );
-            return false;
-          }
-          continue;
-        }
-
-        // Regular field validation
-        for (const field of fields) {
-          if (!formData[field]) {
-            console.log(
-              `🚫 Step ${step} not accessible: missing ${field} from step ${i}`
-            );
-            return false;
-          }
-        }
-      }
-
-      return true;
-    },
-    [formData]
-  );
 
   useEffect(() => {
     const savedData = localStorage.getItem('referralApplicationData');
@@ -176,14 +178,14 @@ export default function StepPage() {
       } else if (initialLoad) {
         // Only run step protection for direct URL access
         setTimeout(() => {
-          if (!isStepAccessible(currentStep)) {
+          if (!isStepAccessible(currentStep, parsedData)) {
             console.log(
               `🚫 Redirecting from step ${currentStep} - requirements not met`
             );
             // Find the highest accessible step
             let accessibleStep = 1;
             for (let i = 1; i <= 14; i++) {
-              if (isStepAccessible(i)) {
+              if (isStepAccessible(i, parsedData)) {
                 accessibleStep = i;
               } else {
                 break;
