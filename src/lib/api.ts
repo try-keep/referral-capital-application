@@ -22,6 +22,7 @@ export interface ApplicationData {
 
   // Step 2: Business Owner
   isBusinessOwner: string;
+  owns_more_than_50pct?: string;
 
   // Step 3: Monthly Sales
   monthlySales: string;
@@ -67,6 +68,13 @@ export interface ApplicationData {
   // Step 12: Bank Information
   bankConnectionCompleted?: boolean;
   skippedBankConnection?: boolean;
+  bankStatements?: Array<{
+    id: string;
+    fileName: string;
+    fileUrl: string;
+    fileSize: number;
+    mimeType: string;
+  }>;
 
   // Step 13: Additional Details
   businessAddress: string;
@@ -77,6 +85,9 @@ export interface ApplicationData {
   // Step 14: Review & Submit
   agreesToTerms: string;
   authorizesCreditCheck: string;
+
+  // Bank upload tracking
+  applicationUploadId?: string;
 
   // Application Metadata
   ipAddress?: string;
@@ -108,6 +119,7 @@ function transformToSupabaseFormat(
 
     // Step 2: Business Owner
     is_business_owner: data.isBusinessOwner,
+    owns_more_than_50pct: data.owns_more_than_50pct,
 
     // Step 3: Monthly Sales
     monthly_sales: data.monthlySales,
@@ -148,6 +160,7 @@ function transformToSupabaseFormat(
     annual_revenue: data.annualRevenue,
     cash_flow: data.cashFlow,
     credit_score: data.creditScore,
+    time_in_business: data.timeInBusiness,
 
     // Step 12: Bank Information
     bank_connection_completed: data.bankConnectionCompleted || false,
@@ -194,7 +207,7 @@ export async function submitApplication(
     const responseData = {
       success: true,
       message: 'Application submitted successfully',
-      applicationId: savedApplication.id!,
+      applicationId: savedApplication.id,
       data: {
         id: savedApplication.id!,
         businessName: savedApplication.business_name,
@@ -204,30 +217,42 @@ export async function submitApplication(
       },
     };
 
-    // Early return if no existing loans
+    // Handle existing loans if any
     if (
-      data.hasExistingLoans !== 'yes' ||
-      !data.existingLoans ||
-      data.existingLoans.length === 0
+      data.hasExistingLoans === 'yes' &&
+      data.existingLoans &&
+      data.existingLoans.length > 0
     ) {
-      return responseData;
+      const existingLoansToSave = data.existingLoans
+        .filter((loan) => loan.lenderName.trim() && loan.loanAmount.trim())
+        .map((loan) => ({
+          application_id: savedApplication.id!,
+          lender_name: loan.lenderName.trim(),
+          loan_amount: parseFloat(loan.loanAmount.replace(/,/g, '') || '0'),
+        }));
+
+      const { error: loansError } = await supabase
+        .from('existing_loans')
+        .insert(existingLoansToSave);
+
+      if (loansError) {
+        console.error('Error saving existing loans:', loansError);
+        // Don't throw error - application is already saved
+      }
     }
 
-    const existingLoansToSave = data.existingLoans
-      .filter((loan) => loan.lenderName.trim() && loan.loanAmount.trim())
-      .map((loan) => ({
-        application_id: savedApplication.id!,
-        lender_name: loan.lenderName.trim(),
-        loan_amount: parseFloat(loan.loanAmount.replace(/,/g, '') || '0'),
-      }));
+    // Handle bank statements if manual upload was used
+    if (data.bankConnectionMethod === 'manual' && data.applicationUploadId) {
+      // Update all bank_statements records with this applicationUploadId to link them to the application
+      const { error: statementsError } = await supabase
+        .from('bank_statements')
+        .update({ application_id: savedApplication.id! })
+        .eq('application_upload_id', data.applicationUploadId);
 
-    const { error } = await supabase
-      .from('existing_loans')
-      .insert(existingLoansToSave);
-
-    if (error) {
-      console.error('Error saving existing loans:', error);
-      // Don't throw error - application is already saved
+      if (statementsError) {
+        console.error('Error linking bank statements:', statementsError);
+        // Don't throw error - application is already saved
+      }
     }
 
     return responseData;

@@ -3,7 +3,7 @@
 import React from 'react';
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useRouter, useParams } from 'next/navigation';
-import { FormData } from '@/types';
+import { type FormData } from '@/types';
 
 // Declare Facebook Pixel types
 declare global {
@@ -21,8 +21,8 @@ import {
 import {
   saveOrUpdateBusiness,
   saveManualBusiness,
-  saveApplication,
-  updateApplication,
+  normalizeTimeInBusiness,
+  updateBusinessEntityType,
   type UserData,
 } from '@/lib/supabase';
 import { getUserIpAddress } from '@/lib/ipAddress';
@@ -34,7 +34,7 @@ const stepTitles = {
   2: 'Personal Information',
   3: 'Business Owner',
   4: 'Business Search',
-  5: 'Business Name',
+  5: 'Business Type',
   6: 'Monthly Sales',
   7: 'Existing Loans',
   8: 'Funding Amount',
@@ -51,7 +51,7 @@ const stepDescriptions = {
   2: 'Tell us about yourself and your role in the business',
   3: 'Verify your role in the business',
   4: 'Find and verify your business in the Canadian Business Registry',
-  5: 'Enter your legal business name manually',
+  5: 'Select your business entity type',
   6: 'Tell us about your monthly sales',
   7: 'Tell us about any existing loan obligations',
   8: 'How much funding do you need and when?',
@@ -61,6 +61,82 @@ const stepDescriptions = {
   12: 'Banking and account information',
   13: 'Additional details',
   14: 'Review your application before submitting',
+};
+
+/**
+ * Checks if a step is accessible based on the data from previous steps
+ * @param step - The step to check
+ * @param data - The form data
+ * @returns true if the step is accessible, false otherwise
+ */
+const isStepAccessible = (step: number, data: FormData): boolean => {
+  if (step === 1) return true; // Step 1 is always accessible
+
+  // Check if all previous steps have been completed
+  const requiredFields: Record<number, (keyof FormData)[]> = {
+    1: ['loanType'],
+    2: [
+      'firstName',
+      'lastName',
+      'email',
+      'addressLine1',
+      'city',
+      'province',
+      'postalCode',
+    ], // Personal info with address
+    3: ['isBusinessOwner'], // Business owner
+    4: ['businessName'], // Business search/name (conditional: only if businessConfirmed exists)
+    5: ['entityType'], // Entity type selection (always required)
+    6: ['monthlySales'],
+    7: ['hasExistingLoans'],
+    8: ['fundingAmount', 'fundingTimeline'],
+    9: ['fundingPurpose'],
+    10: ['businessType', 'numberOfEmployees'],
+    11: ['annualRevenue', 'cashFlow', 'creditScore'],
+    12: ['bankConnectionCompleted'],
+    13: ['businessAddress', 'businessPhone'],
+    14: ['agreesToTerms', 'authorizesCreditCheck'],
+  };
+
+  // Check all steps up to the current one
+  for (let i = 1; i <= step - 1; i++) {
+    const fields = requiredFields[i] || [];
+
+    // Special handling for conditional steps
+    if (i === 4) {
+      // Step 4 (business search) - businessName is required
+      if (!data.businessName && data.businessConfirmed === 'true') {
+        console.log(
+          `🚫 Step ${step} not accessible: missing businessName from step 4`
+        );
+        return false;
+      }
+      continue;
+    }
+
+    if (i === 5) {
+      // Step 5 (entity type) - always required
+      if (!data.entityType) {
+        console.log(
+          `🚫 Step ${step} not accessible: missing entityType from step 5`
+        );
+        return false;
+      }
+      continue;
+    }
+
+    // Regular field validation
+    for (const field of fields) {
+      if (!data[field]) {
+        console.log(
+          `🚫 Step ${step} not accessible: missing ${field} from step ${i}`
+        );
+        return false;
+      }
+    }
+  }
+
+  return true;
 };
 
 export default function StepPage() {
@@ -79,77 +155,6 @@ export default function StepPage() {
       JSON.stringify(updatedData)
     );
   };
-
-  // Check if a step is accessible based on completed previous steps
-  const isStepAccessible = useCallback(
-    (step: number): boolean => {
-      if (step === 1) return true; // Step 1 is always accessible
-
-      // Check if all previous steps have been completed
-      const requiredFields: Record<number, (keyof FormData)[]> = {
-        1: ['loanType'],
-        2: [
-          'firstName',
-          'lastName',
-          'email',
-          'addressLine1',
-          'city',
-          'province',
-          'postalCode',
-        ], // Personal info with address
-        3: ['isBusinessOwner'], // Business owner
-        4: ['businessName'], // Business search/name (conditional: only if businessConfirmed exists)
-        5: ['monthlySales'],
-        6: ['hasExistingLoans'],
-        7: ['fundingAmount', 'fundingTimeline'],
-        8: ['fundingPurpose'],
-        9: ['businessType', 'numberOfEmployees'],
-        10: ['annualRevenue', 'cashFlow', 'creditScore'],
-        11: ['bankConnectionCompleted'],
-        12: ['businessAddress', 'businessPhone'],
-        13: [], // Additional Details - no required fields
-        14: ['agreesToTerms', 'authorizesCreditCheck'],
-      };
-
-      // Check all steps up to the current one
-      for (let i = 2; i <= step; i++) {
-        const fields = requiredFields[i] || [];
-
-        // Special handling for conditional steps
-        if (i === 4) {
-          // Step 4 (manual business entry) is only required if business search wasn't verified
-          // If businessConfirmed is 'true', skip step 4 validation
-          if (formData.businessConfirmed === 'true') {
-            continue; // Skip step 4 validation
-          }
-          // If businessConfirmed is 'false', then we need businessName from manual entry
-          if (
-            formData.businessConfirmed === 'false' &&
-            !formData.businessName
-          ) {
-            console.log(
-              `🚫 Step ${step} not accessible: missing manual businessName from step 4`
-            );
-            return false;
-          }
-          continue;
-        }
-
-        // Regular field validation
-        for (const field of fields) {
-          if (!formData[field]) {
-            console.log(
-              `🚫 Step ${step} not accessible: missing ${field} from step ${i}`
-            );
-            return false;
-          }
-        }
-      }
-
-      return true;
-    },
-    [formData]
-  );
 
   useEffect(() => {
     const savedData = localStorage.getItem('referralApplicationData');
@@ -173,14 +178,14 @@ export default function StepPage() {
       } else if (initialLoad) {
         // Only run step protection for direct URL access
         setTimeout(() => {
-          if (!isStepAccessible(currentStep)) {
+          if (!isStepAccessible(currentStep, parsedData)) {
             console.log(
               `🚫 Redirecting from step ${currentStep} - requirements not met`
             );
             // Find the highest accessible step
             let accessibleStep = 1;
             for (let i = 1; i <= 14; i++) {
-              if (isStepAccessible(i)) {
+              if (isStepAccessible(i, parsedData)) {
                 accessibleStep = i;
               } else {
                 break;
@@ -372,19 +377,12 @@ export default function StepPage() {
       // Handle conditional navigation
       let nextStep = currentStep + 1;
 
-      // If user completes business search without registry verification, go to manual entry step
-      if (currentStep === 4 && stepData.businessConfirmed === 'false') {
-        nextStep = 5; // Manual business name entry
+      // If user completes business search (either with or without registry verification), go to entity type step
+      if (currentStep === 4) {
+        nextStep = 5; // Always go to Step 5 for entity type selection
       }
-      // If user completes business search WITH registry verification, skip manual entry step
-      else if (currentStep === 4 && stepData.businessConfirmed === 'true') {
-        nextStep = 6; // Skip manual entry, go directly to Monthly Sales
-      }
-      // If user completes manual business name entry, continue to Monthly Sales
-      else if (
-        currentStep === 5 &&
-        stepData.businessSearchVerified === 'manual-entry'
-      ) {
+      // If user completes entity type selection, continue to Monthly Sales
+      else if (currentStep === 5) {
         nextStep = 6; // Continue to Monthly Sales
       }
 
@@ -470,6 +468,7 @@ export default function StepPage() {
             onNext={handleNext}
             formData={formData}
             isSubmitting={isSubmitting}
+            saveFormData={saveFormData}
           />
         );
       case 4:
@@ -710,101 +709,112 @@ function Step10Form({
   };
 
   return (
-    <form onSubmit={handleSubmit} className="bg-white rounded-lg shadow-lg p-8">
-      <div className="mb-6">
-        <label
-          htmlFor="businessType"
-          className="block text-sm font-medium text-gray-700 mb-2"
-        >
-          What type of business do you operate? *
-        </label>
-        <select
-          id="businessType"
-          required
-          value={localData.businessType}
-          onChange={(e) =>
-            setLocalData({ ...localData, businessType: e.target.value })
-          }
-          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-        >
-          <option value="">Select Business Type</option>
-          <option value="retail">Retail</option>
-          <option value="restaurant">Restaurant/Food Service</option>
-          <option value="professional-services">Professional Services</option>
-          <option value="construction">Construction</option>
-          <option value="healthcare">Healthcare</option>
-          <option value="technology">Technology</option>
-          <option value="manufacturing">Manufacturing</option>
-          <option value="transportation">Transportation</option>
-          <option value="real-estate">Real Estate</option>
-          <option value="other">Other</option>
-        </select>
-      </div>
+    <div className="bg-white rounded-lg shadow-lg p-8">
+      <form onSubmit={handleSubmit}>
+        <div className="mb-6">
+          <label
+            htmlFor="businessType"
+            className="block text-sm font-medium text-gray-700 mb-2"
+          >
+            What type of business do you operate? *
+          </label>
+          <select
+            id="businessType"
+            required
+            value={localData.businessType}
+            onChange={(e) =>
+              setLocalData({ ...localData, businessType: e.target.value })
+            }
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          >
+            <option value="">Select Business Type</option>
+            <option value="retail">Retail</option>
+            <option value="restaurant">Restaurant/Food Service</option>
+            <option value="professional-services">Professional Services</option>
+            <option value="construction">Construction</option>
+            <option value="healthcare">Healthcare</option>
+            <option value="technology">Technology</option>
+            <option value="manufacturing">Manufacturing</option>
+            <option value="transportation">Transportation</option>
+            <option value="real-estate">Real Estate</option>
+            <option value="other">Other</option>
+          </select>
+        </div>
 
-      <div className="mb-8">
-        <label
-          htmlFor="numberOfEmployees"
-          className="block text-sm font-medium text-gray-700 mb-2"
-        >
-          How many employees do you have? *
-        </label>
-        <select
-          id="numberOfEmployees"
-          required
-          value={localData.numberOfEmployees}
-          onChange={(e) =>
-            setLocalData({ ...localData, numberOfEmployees: e.target.value })
-          }
-          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-        >
-          <option value="">Select Number of Employees</option>
-          <option value="just-me">Just me</option>
-          <option value="2-5">2-5 employees</option>
-          <option value="6-10">6-10 employees</option>
-          <option value="11-25">11-25 employees</option>
-          <option value="26-50">26-50 employees</option>
-          <option value="51-100">51-100 employees</option>
-          <option value="over-100">Over 100 employees</option>
-        </select>
-      </div>
+        <div className="mb-8">
+          <label
+            htmlFor="numberOfEmployees"
+            className="block text-sm font-medium text-gray-700 mb-2"
+          >
+            How many employees do you have? *
+          </label>
+          <select
+            id="numberOfEmployees"
+            required
+            value={localData.numberOfEmployees}
+            onChange={(e) =>
+              setLocalData({ ...localData, numberOfEmployees: e.target.value })
+            }
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          >
+            <option value="">Select Number of Employees</option>
+            <option value="just-me">Just me</option>
+            <option value="2-5">2-5 employees</option>
+            <option value="6-10">6-10 employees</option>
+            <option value="11-25">11-25 employees</option>
+            <option value="26-50">26-50 employees</option>
+            <option value="51-100">51-100 employees</option>
+            <option value="over-100">Over 100 employees</option>
+          </select>
+        </div>
 
-      <div className="mb-8">
-        <label
-          htmlFor="websiteUrl"
-          className="block text-sm font-medium text-gray-700 mb-2"
-        >
-          Business Website (Optional)
-        </label>
-        <input
-          type="text"
-          id="websiteUrl"
-          placeholder="trykeep.com or www.yourbusiness.com"
-          value={localData.websiteUrl}
-          onChange={(e) =>
-            setLocalData({ ...localData, websiteUrl: e.target.value })
-          }
-          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-        />
-        <p className="text-sm text-gray-500 mt-1">
-          Enter your business website (e.g., trykeep.com, www.example.com, or
-          https://example.com). We&apos;ll format it automatically.
-        </p>
-      </div>
+        <div className="mb-8">
+          <label
+            htmlFor="websiteUrl"
+            className="block text-sm font-medium text-gray-700 mb-2"
+          >
+            Business Website (Optional)
+          </label>
+          <input
+            type="text"
+            id="websiteUrl"
+            placeholder="trykeep.com or www.yourbusiness.com"
+            value={localData.websiteUrl}
+            onChange={(e) =>
+              setLocalData({ ...localData, websiteUrl: e.target.value })
+            }
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          />
+          <p className="text-sm text-gray-500 mt-1">
+            Enter your business website (e.g., trykeep.com, www.example.com, or
+            https://example.com). We&apos;ll format it automatically.
+          </p>
+        </div>
 
-      <div className="mt-8">
-        <button
-          type="submit"
-          disabled={isSubmitting}
-          className="w-full bg-black text-white py-3 px-6 rounded-lg font-semibold hover:bg-gray-800 transition-colors disabled:opacity-50"
-        >
-          {isSubmitting ? 'Saving...' : 'Continue to Financial Information'}
-        </button>
+        <div className="mt-8">
+          <button
+            type="submit"
+            disabled={isSubmitting}
+            className="w-full bg-black text-white py-3 px-6 rounded-lg font-semibold hover:bg-gray-800 transition-colors disabled:opacity-50"
+          >
+            {isSubmitting ? 'Saving...' : 'Continue to Financial Information'}
+          </button>
+        </div>
+      </form>
+
+      {/* Progress bar */}
+      <div className="mt-8 bg-gray-200 rounded-full h-2">
+        <div
+          className="bg-black h-2 rounded-full"
+          style={{ width: '71%' }}
+        ></div>
       </div>
-    </form>
+    </div>
   );
 }
 
 // Step 4: Manual Business Name Entry (Conditional)
+// Step 6: Business Name (Manual Entry) or Entity Type Selection (Registry Found)
 function Step6Form({
   onNext,
   formData,
@@ -814,9 +824,14 @@ function Step6Form({
   formData: FormData;
   isSubmitting: boolean;
 }) {
+  // Check if business was found in registry
+  const isRegistryBusiness = formData.businessConfirmed === 'true';
+
   const [localData, setLocalData] = useState({
     businessName: formData.businessName || '',
     legalBusinessName: formData.legalBusinessName || '',
+    entityType: formData.entityType || '',
+    timeInBusiness: formData.timeInBusiness || '',
   });
   const [isSubmittingInternal, setIsSubmittingInternal] = useState(false);
 
@@ -826,33 +841,93 @@ function Step6Form({
     setLocalData({
       businessName: formData.businessName || '',
       legalBusinessName: formData.legalBusinessName || '',
+      entityType: formData.entityType || '',
+      timeInBusiness: formData.timeInBusiness || '',
     });
   }, [formData]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!localData.legalBusinessName) {
-      alert('Please enter your legal business name');
+    if (!localData.entityType) {
+      alert('Please select your business type');
       return;
+    }
+
+    // Only validate these fields for manual entry
+    if (!isRegistryBusiness) {
+      if (!localData.legalBusinessName) {
+        alert('Please enter your legal business name');
+        return;
+      }
+      if (!localData.timeInBusiness) {
+        alert("Please select how long you've been in business");
+        return;
+      }
     }
 
     setIsSubmittingInternal(true);
 
     try {
-      // Save manual business entry to database
-      const savedBusiness = await saveManualBusiness(
-        localData.legalBusinessName
-      );
+      if (isRegistryBusiness) {
+        // For registry businesses, update the entity type in the database
+        if (formData.businessId) {
+          await updateBusinessEntityType(
+            formData.businessId,
+            localData.entityType
+          );
+        }
 
-      onNext({
-        ...localData,
-        businessName: localData.legalBusinessName,
-        businessSearchVerified: 'manual-entry',
-        businessId: savedBusiness.id,
-        legalBusinessName: localData.legalBusinessName,
-      });
+        onNext({
+          ...localData,
+          entityType: localData.entityType,
+        });
+      } else {
+        // For manual entry, calculate date and save to database
+        let dateIncorporated = null;
+        const now = new Date();
+        switch (localData.timeInBusiness) {
+          case '< 6 months':
+            dateIncorporated = new Date(now.setMonth(now.getMonth() - 3)); // ~3 months ago
+            break;
+          case '6–12 months':
+            dateIncorporated = new Date(now.setMonth(now.getMonth() - 9)); // ~9 months ago
+            break;
+          case '1–3 years':
+            dateIncorporated = new Date(now.setFullYear(now.getFullYear() - 2)); // ~2 years ago
+            break;
+          case '3+ years':
+            dateIncorporated = new Date(now.setFullYear(now.getFullYear() - 5)); // ~5 years ago
+            break;
+        }
 
-      console.log('✅ Manual business entry saved to database:', savedBusiness);
+        // Save manual business entry to database
+        const savedBusiness = await saveManualBusiness(
+          localData.legalBusinessName,
+          localData.entityType,
+          dateIncorporated
+        );
+
+        onNext({
+          ...localData,
+          businessName: localData.legalBusinessName,
+          businessSearchVerified: 'manual-entry',
+          businessId: savedBusiness.id,
+          legalBusinessName: localData.legalBusinessName,
+          entityType: localData.entityType,
+          timeInBusiness:
+            normalizeTimeInBusiness(
+              savedBusiness.business_age_category,
+              dateIncorporated?.toISOString().split('T')[0]
+            ) || localData.timeInBusiness,
+          dateIncorporated:
+            dateIncorporated?.toISOString().split('T')[0] || null,
+        });
+
+        console.log(
+          '✅ Manual business entry saved to database:',
+          savedBusiness
+        );
+      }
     } catch (error) {
       console.error('❌ Error saving manual business entry:', error);
       alert('Failed to save business information. Please try again.');
@@ -863,41 +938,112 @@ function Step6Form({
 
   return (
     <div className="bg-white rounded-lg shadow-lg p-8">
-      <div className="mb-8">
-        <h2 className="text-2xl font-bold text-gray-900 mb-4">
-          Enter Your Legal Business Name
+      <div className="text-center mb-8">
+        <h2 className="text-2xl font-bold text-gray-900 mb-2">
+          {isRegistryBusiness
+            ? 'Confirm Business Type'
+            : 'Business Information'}
         </h2>
         <p className="text-gray-600">
-          Since we couldn&apos;t find your business in the Canadian Business
-          Registry, please enter your legal business name as it appears on your
-          registration documents.
+          {isRegistryBusiness
+            ? `We found "${formData.businessName}" in the registry. Please select your business type.`
+            : 'Please provide details about your business'}
         </p>
       </div>
 
       <form onSubmit={handleSubmit}>
         <div className="mb-6">
           <label
-            htmlFor="legalBusinessName"
+            htmlFor="entityType"
             className="block text-sm font-medium text-gray-700 mb-2"
           >
-            Legal Business Name *
+            Business Type *
           </label>
-          <input
-            type="text"
-            id="legalBusinessName"
+          <select
+            id="entityType"
             required
-            value={localData.legalBusinessName}
+            value={localData.entityType}
             onChange={(e) =>
-              setLocalData({ ...localData, legalBusinessName: e.target.value })
+              setLocalData({ ...localData, entityType: e.target.value })
             }
-            placeholder="Enter your exact legal business name"
             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-          />
-          <p className="text-sm text-gray-500 mt-1">
-            This should match the name on your business registration,
-            incorporation papers, or other legal documents.
-          </p>
+          >
+            <option value="">Select business type</option>
+            <option value="Sole Proprietorship">Sole Proprietorship</option>
+            <option value="Partnership">Partnership</option>
+            <option value="Corporation">Corporation</option>
+            <option value="Cooperative">Cooperative</option>
+            <option value="Not-for-Profit Corporation">
+              Not-for-Profit Corporation
+            </option>
+            <option value="Other">Other</option>
+          </select>
         </div>
+
+        {!isRegistryBusiness && (
+          <>
+            <div className="mb-6">
+              <label
+                htmlFor="legalBusinessName"
+                className="block text-sm font-medium text-gray-700 mb-2"
+              >
+                {localData.entityType === 'Corporation' ||
+                localData.entityType === 'Not-for-Profit Corporation'
+                  ? 'Legal Business Name *'
+                  : 'Business Name (or your legal name if not incorporated) *'}
+              </label>
+              <input
+                type="text"
+                id="legalBusinessName"
+                required
+                value={localData.legalBusinessName}
+                onChange={(e) =>
+                  setLocalData({
+                    ...localData,
+                    legalBusinessName: e.target.value,
+                  })
+                }
+                placeholder={
+                  localData.entityType === 'Corporation' ||
+                  localData.entityType === 'Not-for-Profit Corporation'
+                    ? 'Enter your exact legal business name'
+                    : 'Enter your business name or legal name'
+                }
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              />
+              <p className="text-sm text-gray-500 mt-1">
+                {localData.entityType === 'Corporation' ||
+                localData.entityType === 'Not-for-Profit Corporation'
+                  ? 'This should match the name on your business registration, incorporation papers, or other legal documents.'
+                  : 'If you are not incorporated, you can enter your legal name.'}
+              </p>
+            </div>
+
+            <div className="mb-6">
+              <label
+                htmlFor="timeInBusiness"
+                className="block text-sm font-medium text-gray-700 mb-2"
+              >
+                How long have you been in business? *
+              </label>
+              <select
+                id="timeInBusiness"
+                required
+                value={localData.timeInBusiness}
+                onChange={(e) =>
+                  setLocalData({ ...localData, timeInBusiness: e.target.value })
+                }
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              >
+                <option value="">Select time in business</option>
+                <option value="< 6 months">&lt; 6 months</option>
+                <option value="6–12 months">6–12 months</option>
+                <option value="1–3 years">1–3 years</option>
+                <option value="3+ years">3+ years</option>
+              </select>
+            </div>
+          </>
+        )}
 
         <div className="mt-8">
           <button
@@ -911,6 +1057,14 @@ function Step6Form({
           </button>
         </div>
       </form>
+
+      {/* Progress bar */}
+      <div className="mt-8 bg-gray-200 rounded-full h-2">
+        <div
+          className="bg-black h-2 rounded-full"
+          style={{ width: '36%' }}
+        ></div>
+      </div>
     </div>
   );
 }
@@ -925,10 +1079,27 @@ function Step12Form({
   formData: FormData;
   isSubmitting: boolean;
 }) {
-  const [localData, setLocalData] = useState({
+  const [localData, setLocalData] = useState<{
+    bankConnectionCompleted: boolean | string;
+    bankConnectionMethod: 'flinks' | 'manual' | '';
+    loginId: string;
+    institution: string;
+    bankStatements: Array<{
+      id: string;
+      fileName: string;
+      fileUrl: string;
+      fileSize: number;
+      mimeType: string;
+    }>;
+  }>({
     bankConnectionCompleted: formData.bankConnectionCompleted || false,
+    bankConnectionMethod: (formData.bankConnectionMethod || '') as
+      | 'flinks'
+      | 'manual'
+      | '',
     loginId: formData.loginId || '',
     institution: formData.institution || '',
+    bankStatements: formData.bankStatements || [],
   });
 
   // Track if we've already handled the redirect to prevent duplicate calls
@@ -939,23 +1110,53 @@ function Step12Form({
     'connecting' | 'success' | 'error'
   >('connecting');
 
+  // State for file uploads
+  const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
+  const [isUploading, setIsUploading] = useState(false);
+  const [uploadError, setUploadError] = useState('');
+  const [isDragging, setIsDragging] = useState(false);
+  const [applicationUploadId, setApplicationUploadId] = useState<string>('');
+
   // Check if bank connection is already completed
+  // Don't show completed state if we just finished uploading (prevents flash of success screen)
+  const [justUploaded, setJustUploaded] = useState(false);
   const isConnectionCompleted =
-    localData.bankConnectionCompleted === 'true' ||
-    localData.bankConnectionCompleted === true;
+    (localData.bankConnectionCompleted === 'true' ||
+      localData.bankConnectionCompleted === true) &&
+    !justUploaded;
 
   // Update local data when formData prop changes (for when user navigates back)
   useEffect(() => {
     console.log('🔄 Step12Form - formData prop changed:', formData);
     setLocalData({
       bankConnectionCompleted: formData.bankConnectionCompleted || false,
+      bankConnectionMethod: (formData.bankConnectionMethod || '') as
+        | 'flinks'
+        | 'manual'
+        | '',
       loginId: formData.loginId || '',
       institution: formData.institution || '',
+      bankStatements: formData.bankStatements || [],
     });
 
     // If connection is already completed, set status to success
     if (formData.bankConnectionCompleted === 'true') {
       setConnectionStatus('success');
+    }
+
+    // Generate or retrieve application upload ID
+    const storedData = localStorage.getItem('referralApplicationData');
+    if (storedData) {
+      const parsedData = JSON.parse(storedData);
+      if (!parsedData.applicationUploadId) {
+        // Generate new UUID for this upload session
+        parsedData.applicationUploadId = crypto.randomUUID();
+        localStorage.setItem(
+          'referralApplicationData',
+          JSON.stringify(parsedData)
+        );
+      }
+      setApplicationUploadId(parsedData.applicationUploadId);
     }
   }, [formData]);
 
@@ -997,15 +1198,21 @@ function Step12Form({
         const connectionData = {
           ...localData,
           bankConnectionCompleted: 'true',
+          bankConnectionMethod: 'flinks' as 'flinks',
           loginId,
           institution,
+          applicationUploadId: applicationUploadId,
         };
 
         // Update localStorage with the connection data
         const existingData = localStorage.getItem('referralApplicationData');
         if (existingData) {
           const parsedData = JSON.parse(existingData);
-          const updatedData = { ...parsedData, ...connectionData };
+          const updatedData = {
+            ...parsedData,
+            ...connectionData,
+            applicationUploadId: applicationUploadId,
+          };
           localStorage.setItem(
             'referralApplicationData',
             JSON.stringify(updatedData)
@@ -1013,11 +1220,8 @@ function Step12Form({
           console.log('💾 Bank connection data saved to localStorage');
         }
 
-        // Add 2-second timeout before proceeding to next step
-        setTimeout(() => {
-          console.log('⏰ Proceeding to next step after 1-second timeout');
-          onNext(connectionData);
-        }, 2000);
+        // Proceed to next step without delay to avoid race condition
+        onNext(connectionData);
       }
     }
 
@@ -1037,7 +1241,145 @@ function Step12Form({
     onNext({
       ...localData,
       bankConnectionCompleted: 'true',
+      bankConnectionMethod: localData.bankConnectionMethod || 'flinks',
+      applicationUploadId: applicationUploadId,
     });
+  };
+
+  // Handle file selection
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    const validFiles = files.filter((file) => {
+      const validTypes = ['application/pdf'];
+      const maxSize = 10 * 1024 * 1024; // 10MB
+      return validTypes.includes(file.type) && file.size <= maxSize;
+    });
+
+    if (validFiles.length !== files.length) {
+      setUploadError(
+        'Some files were invalid. Please upload PDF files only, under 10MB.'
+      );
+    } else {
+      setUploadError('');
+    }
+
+    setUploadedFiles((prev) => [...prev, ...validFiles]);
+  };
+
+  // Handle file removal
+  const handleFileRemove = (index: number) => {
+    setUploadedFiles((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  // Handle drag and drop
+  const handleDragEnter = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(true);
+  };
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+
+    const files = Array.from(e.dataTransfer.files);
+    const validFiles = files.filter((file) => {
+      const validTypes = ['application/pdf'];
+      const maxSize = 10 * 1024 * 1024; // 10MB
+      return validTypes.includes(file.type) && file.size <= maxSize;
+    });
+
+    if (validFiles.length !== files.length) {
+      setUploadError(
+        'Some files were invalid. Please upload PDF files only, under 10MB.'
+      );
+    } else {
+      setUploadError('');
+    }
+
+    setUploadedFiles((prev) => [...prev, ...validFiles]);
+  };
+
+  // Handle manual upload submission
+  const handleManualUploadSubmit = async () => {
+    if (uploadedFiles.length < 6) {
+      setUploadError('Please upload at least 6 bank statements.');
+      return;
+    }
+
+    setIsUploading(true);
+    setUploadError('');
+
+    try {
+      setJustUploaded(true); // Prevent success screen from showing
+      const uploadPromises = uploadedFiles.map(async (file) => {
+        const formData = new FormData();
+        formData.append('file', file);
+
+        const response = await fetch('/api/bank-statement', {
+          method: 'POST',
+          headers: {
+            'X-Application-Upload-ID': applicationUploadId,
+          },
+          body: formData,
+        });
+
+        if (!response.ok) {
+          throw new Error('Failed to upload file');
+        }
+
+        return response.json();
+      });
+
+      const uploadedStatements = await Promise.all(uploadPromises);
+
+      // Save the bank statements to formData before proceeding
+      const updatedData = {
+        ...localData,
+        bankConnectionCompleted: 'true',
+        bankConnectionMethod: 'manual' as 'manual',
+        bankStatements: uploadedStatements,
+        applicationUploadId: applicationUploadId,
+      };
+
+      // Update local storage first
+      const storedData = localStorage.getItem('referralApplicationData');
+      if (storedData) {
+        const parsedData = JSON.parse(storedData);
+        parsedData.bankConnectionCompleted = 'true';
+        parsedData.bankConnectionMethod = 'manual';
+        parsedData.bankStatements = uploadedStatements;
+        localStorage.setItem(
+          'referralApplicationData',
+          JSON.stringify(parsedData)
+        );
+      }
+
+      // Immediately navigate without showing success screen
+      onNext(updatedData);
+    } catch (error) {
+      console.error('Upload error:', error);
+      setUploadError('Failed to upload files. Please try again.');
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  // Handle method selection
+  const handleMethodSelect = (method: 'flinks' | 'manual') => {
+    setLocalData((prev) => ({ ...prev, bankConnectionMethod: method }));
   };
 
   const flinksTags: Record<string, string> = {
@@ -1103,8 +1445,9 @@ function Step12Form({
               Bank Connection Completed!
             </h3>
             <p className="text-green-600 mb-4">
-              Your business bank account has been successfully connected. Your
-              banking information is securely stored and ready for processing.
+              {localData.bankConnectionMethod === 'manual'
+                ? 'Your bank statements have been successfully uploaded and are ready for processing.'
+                : 'Your business bank account has been successfully connected. Your banking information is securely stored and ready for processing.'}
             </p>
           </div>
 
@@ -1114,6 +1457,384 @@ function Step12Form({
             className="w-full bg-blue-600 text-white py-3 px-6 rounded-lg font-semibold hover:bg-blue-700 transition-colors disabled:opacity-50"
           >
             {isSubmitting ? 'Processing...' : 'Continue to Next Step'}
+          </button>
+        </div>
+      ) : !localData.bankConnectionMethod ? (
+        // Show method selection
+        <div className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {/* Flinks Option */}
+            <div
+              className="bg-purple-50 border-2 border-purple-200 rounded-lg p-6 hover:border-purple-400 transition-colors cursor-pointer relative shadow-lg"
+              onClick={() => handleMethodSelect('flinks')}
+            >
+              <div className="flex items-center gap-2 text-purple-600 mb-4">
+                <svg
+                  className="w-5 h-5"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M13 10V3L4 14h7v7l9-11h-7z"
+                  />
+                </svg>
+                <span className="text-sm font-medium">
+                  Faster option. Typically approved within 24 hours
+                </span>
+              </div>
+
+              <h3 className="text-xl font-bold mb-2">
+                Securely Connect your Bank Account
+              </h3>
+              <p className="text-sm text-gray-600 mb-4">
+                Keep uses Flinks to securely view your banking history — in
+                seconds with no paperwork required.
+              </p>
+              <button className="w-full bg-gradient-to-r from-purple-500 to-blue-500 text-white py-3 px-4 rounded-lg font-semibold hover:opacity-90 transition-opacity">
+                Connect your account
+              </button>
+              <div className="mt-4 space-y-2">
+                <div className="flex items-start text-sm text-gray-700">
+                  <svg
+                    className="w-5 h-5 text-purple-500 mr-2 mt-0.5 flex-shrink-0"
+                    fill="currentColor"
+                    viewBox="0 0 20 20"
+                  >
+                    <path
+                      fillRule="evenodd"
+                      d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                      clipRule="evenodd"
+                    />
+                  </svg>
+                  Bank-level security protects your information.
+                </div>
+                <div className="flex items-start text-sm text-gray-700">
+                  <svg
+                    className="w-5 h-5 text-purple-500 mr-2 mt-0.5 flex-shrink-0"
+                    fill="currentColor"
+                    viewBox="0 0 20 20"
+                  >
+                    <path
+                      fillRule="evenodd"
+                      d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                      clipRule="evenodd"
+                    />
+                  </svg>
+                  You control what we see - never your passwords.
+                </div>
+                <div className="flex items-start text-sm text-gray-700">
+                  <svg
+                    className="w-5 h-5 text-purple-500 mr-2 mt-0.5 flex-shrink-0"
+                    fill="currentColor"
+                    viewBox="0 0 20 20"
+                  >
+                    <path
+                      fillRule="evenodd"
+                      d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                      clipRule="evenodd"
+                    />
+                  </svg>
+                  Faster approval with priority review.
+                </div>
+                <div className="flex items-start text-sm text-gray-700">
+                  <svg
+                    className="w-5 h-5 text-purple-500 mr-2 mt-0.5 flex-shrink-0"
+                    fill="currentColor"
+                    viewBox="0 0 20 20"
+                  >
+                    <path
+                      fillRule="evenodd"
+                      d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                      clipRule="evenodd"
+                    />
+                  </svg>
+                  No paperwork to download or upload.
+                </div>
+              </div>
+            </div>
+
+            {/* Manual Upload Option */}
+            <div
+              className="bg-gray-50 border-2 border-gray-300 rounded-lg p-6 hover:border-gray-400 transition-colors cursor-pointer"
+              onClick={() => handleMethodSelect('manual')}
+            >
+              <div className="flex items-center gap-2 text-gray-600 mb-4">
+                <svg
+                  className="w-5 h-5"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                  />
+                </svg>
+                <span className="text-sm font-medium">
+                  Up to a week to approve your application
+                </span>
+              </div>
+
+              <h3 className="text-xl font-bold mb-2">
+                Manual Statement Upload
+                <br />
+                <br />
+              </h3>
+              <p className="text-sm text-gray-600 mb-4">
+                Please upload your last 6 months of bank statements to help us
+                review your business.
+              </p>
+              <button className="w-full bg-gray-800 text-white py-3 px-4 rounded-lg font-semibold hover:bg-gray-700 transition-colors">
+                Upload Bank Statements
+              </button>
+              <div className="mt-4 space-y-2">
+                <div className="flex items-start text-sm text-gray-700">
+                  <svg
+                    className="w-5 h-5 text-gray-500 mr-2 mt-0.5 flex-shrink-0"
+                    fill="currentColor"
+                    viewBox="0 0 20 20"
+                  >
+                    <path
+                      fillRule="evenodd"
+                      d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                      clipRule="evenodd"
+                    />
+                  </svg>
+                  Standard credit evaluation with manual review
+                </div>
+                <div className="flex items-start text-sm text-gray-700">
+                  <svg
+                    className="w-5 h-5 text-gray-500 mr-2 mt-0.5 flex-shrink-0"
+                    fill="currentColor"
+                    viewBox="0 0 20 20"
+                  >
+                    <path
+                      fillRule="evenodd"
+                      d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                      clipRule="evenodd"
+                    />
+                  </svg>
+                  Your documents are protected with bank-level security
+                </div>
+                <div className="flex items-start text-sm text-gray-500">
+                  <svg
+                    className="w-5 h-5 text-gray-400 mr-2 mt-0.5 flex-shrink-0"
+                    fill="currentColor"
+                    viewBox="0 0 20 20"
+                  >
+                    <path
+                      fillRule="evenodd"
+                      d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
+                      clipRule="evenodd"
+                    />
+                  </svg>
+                  Faster approval with priority review.
+                </div>
+                <div className="flex items-start text-sm text-gray-600">
+                  <svg
+                    className="w-5 h-5 text-gray-400 mr-2 mt-0.5"
+                    fill="currentColor"
+                    viewBox="0 0 20 20"
+                  >
+                    <path
+                      fillRule="evenodd"
+                      d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
+                      clipRule="evenodd"
+                    />
+                  </svg>
+                  No paperwork to download or upload.
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      ) : localData.bankConnectionMethod === 'manual' ? (
+        // Show manual upload form
+        <div className="space-y-6">
+          <div className="flex items-center mb-6">
+            <button
+              onClick={() =>
+                setLocalData((prev) => ({ ...prev, bankConnectionMethod: '' }))
+              }
+              className="text-blue-600 hover:text-blue-700 flex items-center"
+            >
+              <svg
+                className="w-5 h-5 mr-1"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M15 19l-7-7 7-7"
+                />
+              </svg>
+              Back
+            </button>
+          </div>
+
+          <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+            <div className="flex items-start space-x-3">
+              <svg
+                className="w-6 h-6 text-gray-600 mt-0.5"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                />
+              </svg>
+              <div>
+                <h3 className="font-semibold text-gray-900">
+                  Upload Bank Statements Manually
+                </h3>
+                <p className="text-sm text-gray-600 mt-1">
+                  Please upload 6 bank statements that are no older than 6
+                  months to help us understand your business.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Upload area */}
+          {uploadedFiles.length === 0 ? (
+            <div
+              className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors ${
+                isDragging
+                  ? 'border-blue-500 bg-blue-50'
+                  : 'border-gray-300 hover:border-gray-400'
+              }`}
+              onDragEnter={handleDragEnter}
+              onDragLeave={handleDragLeave}
+              onDragOver={handleDragOver}
+              onDrop={handleDrop}
+            >
+              <svg
+                className="w-12 h-12 text-gray-400 mx-auto mb-4"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                />
+              </svg>
+              <p className="text-lg font-medium text-gray-900 mb-1">
+                Drop the files here or upload
+              </p>
+              <p className="text-sm text-gray-500">Format: PDF only (10MB)</p>
+              <input
+                id="file-upload"
+                type="file"
+                className="hidden"
+                accept=".pdf"
+                multiple
+                onChange={handleFileSelect}
+              />
+              <label htmlFor="file-upload">
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    document.getElementById('file-upload')?.click();
+                  }}
+                  className="mt-4 bg-gray-800 text-white px-4 py-2 rounded-lg hover:bg-gray-700 transition-colors"
+                >
+                  + Upload
+                </button>
+              </label>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {uploadedFiles.map((file, index) => (
+                <div
+                  key={index}
+                  className="bg-white border border-gray-200 rounded-lg p-4 flex items-center justify-between"
+                >
+                  <div className="flex items-center space-x-3">
+                    <svg
+                      className="w-8 h-8 text-gray-400"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                      />
+                    </svg>
+                    <div>
+                      <p className="font-medium text-gray-900">{file.name}</p>
+                      <p className="text-sm text-gray-500">
+                        {(file.size / 1024 / 1024).toFixed(2)}MB
+                      </p>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => handleFileRemove(index)}
+                    className="text-red-600 hover:text-red-700 font-medium"
+                  >
+                    Delete
+                  </button>
+                </div>
+              ))}
+
+              {/* Add more files button */}
+              <label htmlFor="add-more-files" className="block">
+                <input
+                  id="add-more-files"
+                  type="file"
+                  className="hidden"
+                  accept=".pdf,.png,.doc,.docx"
+                  multiple
+                  onChange={handleFileSelect}
+                />
+                <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center hover:border-gray-400 transition-colors cursor-pointer">
+                  <p className="text-sm text-gray-600">+ Add more files</p>
+                </div>
+              </label>
+            </div>
+          )}
+
+          {/* Error message */}
+          {uploadError && (
+            <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+              <p className="text-sm text-red-600">{uploadError}</p>
+            </div>
+          )}
+
+          {/* Submit button */}
+          <button
+            onClick={handleManualUploadSubmit}
+            disabled={uploadedFiles.length < 6 || isUploading}
+            className="w-full bg-gray-800 text-white py-3 px-6 rounded-lg font-semibold hover:bg-gray-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {isUploading ? 'Uploading...' : 'Submit documents'}
+          </button>
+
+          {/* Continue button (disabled until files are uploaded) */}
+          <button
+            disabled
+            className="w-full bg-gray-200 text-gray-400 py-3 px-6 rounded-lg font-semibold cursor-not-allowed"
+          >
+            Continue
           </button>
         </div>
       ) : (
@@ -1481,6 +2202,12 @@ function BusinessSearchForm({
 
       const businessData = formatBusinessDataForForm(selectedBusinessData);
 
+      // Use normalizeTimeInBusiness for accurate calculation
+      const timeInBusiness = normalizeTimeInBusiness(
+        savedBusiness.business_age_category,
+        selectedBusinessData.Date_Incorporated
+      );
+
       // Update local state with confirmed business data
       setLocalData({
         ...localData,
@@ -1496,6 +2223,7 @@ function BusinessSearchForm({
         selectedBusiness: selectedBusinessData.MRAS_ID,
         businessConfirmed: 'true',
         businessId: savedBusiness.id,
+        timeInBusiness: timeInBusiness,
 
         // Pre-fill business details for later steps
         businessAddress: `${selectedBusinessData.Reg_office_city || selectedBusinessData.City}, ${selectedBusinessData.Reg_office_province}`,
@@ -1506,7 +2234,6 @@ function BusinessSearchForm({
         // Business registry data for reference
         incorporationDate: selectedBusinessData.Date_Incorporated,
         businessNumber: selectedBusinessData.BN,
-        entityType: selectedBusinessData.Entity_Type,
         jurisdiction: selectedBusinessData.Jurisdiction,
         registrySource: selectedBusinessData.Registry_Source,
         statusState: selectedBusinessData.Status_State,
@@ -1937,141 +2664,143 @@ function Step1Form({
   );
 }
 
-// Step 2: Business Owner verification
+// Step 2: Business Owner
 function Step2Form({
   onNext,
   formData,
   isSubmitting,
+  saveFormData,
 }: {
   onNext: (data: FormData) => void;
   formData: FormData;
   isSubmitting: boolean;
+  saveFormData: (data: FormData) => void;
 }) {
+  const router = useRouter();
   const [localData, setLocalData] = useState({
     isBusinessOwner: formData.isBusinessOwner || '',
+    owns_more_than_50pct: formData.owns_more_than_50pct || '',
   });
+  const [showNotOwnerMessage, setShowNotOwnerMessage] = useState(false);
 
   // Update local data when formData prop changes (for when user navigates back)
   useEffect(() => {
     console.log('🔄 Step2Form - formData prop changed:', formData);
     setLocalData({
       isBusinessOwner: formData.isBusinessOwner || '',
+      owns_more_than_50pct: formData.owns_more_than_50pct || '',
     });
   }, [formData]);
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!localData.isBusinessOwner) {
-      alert('Please select an option');
-      return;
+  const handleOwnerSelection = (value: 'yes' | 'no') => {
+    const newLocalData = { ...localData, isBusinessOwner: value };
+    setLocalData(newLocalData);
+    saveFormData({ isBusinessOwner: value }); // Save to main form state immediately
+
+    if (value === 'no') {
+      setShowNotOwnerMessage(true);
+    } else {
+      setShowNotOwnerMessage(false);
+      // Don't automatically proceed, wait for the second question
     }
-    onNext(localData);
   };
 
-  const handleOwnerSelect = (value: string) => {
-    setLocalData({ ...localData, isBusinessOwner: value });
+  const handleOwnershipSelection = (value: 'yes' | 'no') => {
+    const newLocalData = { ...localData, owns_more_than_50pct: value };
+    setLocalData(newLocalData);
+    onNext({ ...newLocalData });
+  };
+
+  const handleStopApplication = () => {
+    // This is for the "No" case where they need to click a button to continue
+    setLocalData({ ...localData, isBusinessOwner: '' });
+    router.push('/');
   };
 
   return (
     <div className="bg-white rounded-lg shadow-lg p-8">
-      {/* Icon */}
-      <div className="flex justify-center mb-8">
-        <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center">
-          <svg
-            className="w-6 h-6 text-gray-600"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
-            />
-          </svg>
-        </div>
-      </div>
-
-      <div className="text-center mb-8">
-        <h2 className="text-2xl font-bold text-gray-900 mb-2">
-          Are you the business owner or director?
-        </h2>
-      </div>
-
-      <form onSubmit={handleSubmit}>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+      <div className="mb-6">
+        <p className="text-lg font-semibold text-gray-800 mb-4">
+          Are you an owner of the business, or are you authorized to secure
+          capital on its behalf?
+        </p>
+        <div className="space-y-4">
           <button
-            type="button"
-            onClick={() => handleOwnerSelect('yes')}
-            className={`p-8 border-2 rounded-lg text-center transition-all hover:border-green-300 ${
+            onClick={() => handleOwnerSelection('yes')}
+            className={`w-full text-left px-6 py-4 rounded-lg border-2 transition-colors ${
               localData.isBusinessOwner === 'yes'
-                ? 'border-green-500 bg-green-50'
-                : 'border-gray-200 bg-white'
+                ? 'bg-blue-50 border-blue-500 ring-2 ring-blue-500'
+                : 'bg-white border-gray-300 hover:bg-gray-50'
             }`}
           >
-            <div className="flex justify-center mb-4">
-              <svg
-                className="w-12 h-12 text-gray-600"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M14 10h4.764a2 2 0 011.789 2.894l-3.5 7A2 2 0 0115.263 21h-4.017c-.163 0-.326-.02-.485-.06L7 20m7-10V5a2 2 0 00-2-2h-.095c-.5 0-.905.405-.905.905 0 .714-.211 1.412-.608 2.006L7 11v9m7-10h-2M7 20H5a2 2 0 01-2-2v-6a2 2 0 012-2h2.5"
-                />
-              </svg>
-            </div>
-            <div className="text-lg font-medium text-gray-700">Yes</div>
+            <span className="font-semibold">Yes</span>
           </button>
-
           <button
-            type="button"
-            onClick={() => handleOwnerSelect('no')}
-            className={`p-8 border-2 rounded-lg text-center transition-all hover:border-red-300 ${
+            onClick={() => handleOwnerSelection('no')}
+            className={`w-full text-left px-6 py-4 rounded-lg border-2 transition-colors ${
               localData.isBusinessOwner === 'no'
-                ? 'border-red-500 bg-red-50'
-                : 'border-gray-200 bg-white'
+                ? 'bg-blue-50 border-blue-500 ring-2 ring-blue-500'
+                : 'bg-white border-gray-300 hover:bg-gray-50'
             }`}
           >
-            <div className="flex justify-center mb-4">
-              <svg
-                className="w-12 h-12 text-gray-600"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M10 14H5.236a2 2 0 01-1.789-2.894l3.5-7A2 2 0 018.736 3h4.018c.163 0 .326.02.485.06L17 4m-7 10v2a2 2 0 002 2h.095c.5 0 .905-.405.905-.905 0-.714.211-1.412.608-2.006L17 13V4m-7 10h2m5-10h2a2 2 0 012 2v6a2 2 0 01-2 2h-2.5"
-                />
-              </svg>
-            </div>
-            <div className="text-lg font-medium text-gray-700">No</div>
+            <span className="font-semibold">No</span>
           </button>
         </div>
+      </div>
 
-        <div className="mt-8">
-          <button
-            type="submit"
-            disabled={isSubmitting || !localData.isBusinessOwner}
-            className="w-full bg-black text-white py-3 px-6 rounded-lg font-semibold hover:bg-gray-800 transition-colors disabled:opacity-50"
-          >
-            {isSubmitting ? 'Saving...' : 'Next'}
-          </button>
+      {localData.isBusinessOwner === 'yes' && (
+        <div className="mb-6">
+          <p className="text-lg font-semibold text-gray-800 mb-4">
+            Do you own 50% or more of the business?
+          </p>
+          <div className="space-y-4">
+            <button
+              onClick={() => handleOwnershipSelection('yes')}
+              className={`w-full text-left px-6 py-4 rounded-lg border-2 transition-colors ${
+                localData.owns_more_than_50pct === 'yes'
+                  ? 'bg-blue-50 border-blue-500 ring-2 ring-blue-500'
+                  : 'bg-white border-gray-300 hover:bg-gray-50'
+              }`}
+            >
+              <span className="font-semibold">Yes</span>
+            </button>
+            <button
+              onClick={() => handleOwnershipSelection('no')}
+              className={`w-full text-left px-6 py-4 rounded-lg border-2 transition-colors ${
+                localData.owns_more_than_50pct === 'no'
+                  ? 'bg-blue-50 border-blue-500 ring-2 ring-blue-500'
+                  : 'bg-white border-gray-300 hover:bg-gray-50'
+              }`}
+            >
+              <span className="font-semibold">No</span>
+            </button>
+          </div>
         </div>
-      </form>
+      )}
+
+      {showNotOwnerMessage && (
+        <div className="mt-6 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+          <p className="text-sm text-yellow-800">
+            To proceed with the application, you must be an owner of the
+            business or be authorized to secure capital on its behalf.
+          </p>
+          <div className="mt-4">
+            <button
+              onClick={handleStopApplication}
+              disabled={isSubmitting}
+              className="w-full bg-black text-white py-3 px-6 rounded-lg font-semibold hover:bg-gray-800 transition-colors disabled:opacity-50"
+            >
+              {isSubmitting ? 'Saving...' : 'Go Back'}
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Progress bar */}
       <div className="mt-8 bg-gray-200 rounded-full h-2">
         <div
           className="bg-black h-2 rounded-full"
-          style={{ width: '15%' }}
+          style={{ width: '21%' }}
         ></div>
       </div>
     </div>
@@ -2633,9 +3362,15 @@ function RemovedStep6Form({
   formData: FormData;
   isSubmitting: boolean;
 }) {
-  const [localData, setLocalData] = useState({
+  const [localData, setLocalData] = useState<{
+    bankConnected: string;
+    bankConnectionMethod: 'flinks' | 'manual' | '';
+  }>({
     bankConnected: formData.bankConnected || '',
-    bankConnectionMethod: formData.bankConnectionMethod || '',
+    bankConnectionMethod: (formData.bankConnectionMethod || '') as
+      | 'flinks'
+      | 'manual'
+      | '',
   });
 
   const handleSubmit = (e: React.FormEvent) => {
