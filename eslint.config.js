@@ -3,6 +3,8 @@ import js from '@eslint/js';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
+import cypressPlugin from 'eslint-plugin-cypress';
+
 // mimic CommonJS variables -- not needed if using CommonJS
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -30,5 +32,20 @@ export default [
   },
   {
     ignores: ['.next/', 'node_modules/', 'public/'],
+  },
+  {
+    files: ['cypress/**/*.ts'],
+    rules: {
+      'no-undef': 'off',
+    },
+    languageOptions: {
+      globals: {
+        cy: 'readonly',
+        Cypress: 'readonly',
+      },
+    },
+    plugins: {
+      cypress: cypressPlugin,
+    },
   },
 ];

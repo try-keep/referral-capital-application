@@ -446,136 +446,164 @@ export default function StepPage() {
     switch (currentStep) {
       case 1:
         return (
-          <Step1Form
-            key={`step1-${currentStep}`}
-            onNext={handleNext}
-            formData={formData}
-            isSubmitting={isSubmitting}
-          />
+          <div data-cy="step-loan-type">
+            <Step1Form
+              key={`step1-${currentStep}`}
+              onNext={handleNext}
+              formData={formData}
+              isSubmitting={isSubmitting}
+            />
+          </div>
         );
       case 2:
         // Personal Information (moved from step 7)
         return (
-          <PersonalInformationForm
-            key={`step7-${currentStep}`}
-            onNext={handleNext}
-            formData={formData}
-            isSubmitting={isSubmitting}
-          />
+          <div data-cy="step-personal-information">
+            <PersonalInformationForm
+              key={`step7-${currentStep}`}
+              onNext={handleNext}
+              formData={formData}
+              isSubmitting={isSubmitting}
+            />
+          </div>
         );
       case 3:
         // Business Owner (moved from step 2)
         return (
-          <Step2Form
-            key={`step2-${currentStep}`}
-            onNext={handleNext}
-            formData={formData}
-            isSubmitting={isSubmitting}
-            saveFormData={saveFormData}
-          />
+          <div data-cy="step-business-owner">
+            <Step2Form
+              key={`step2-${currentStep}`}
+              onNext={handleNext}
+              formData={formData}
+              isSubmitting={isSubmitting}
+              saveFormData={saveFormData}
+            />
+          </div>
         );
       case 4:
         // Business Search (moved from step 3)
         return (
-          <BusinessSearchForm
-            key={`business-search-${currentStep}`}
-            onNext={handleNext}
-            formData={formData}
-            isSubmitting={isSubmitting}
-          />
+          <div data-cy="step-business-search">
+            <BusinessSearchForm
+              key={`business-search-${currentStep}`}
+              onNext={handleNext}
+              formData={formData}
+              isSubmitting={isSubmitting}
+            />
+          </div>
         );
       case 5:
         // Step 5 is dedicated to manual business name entry (conditional)
         return (
-          <Step6Form
-            key={`step6-${currentStep}`}
-            onNext={handleNext}
-            formData={formData}
-            isSubmitting={isSubmitting}
-          />
+          <div data-cy="step-5-business-type">
+            <Step6Form
+              key={`step6-${currentStep}`}
+              onNext={handleNext}
+              formData={formData}
+              isSubmitting={isSubmitting}
+            />
+          </div>
         );
       case 6:
         // Monthly Sales (moved from step 5)
         return (
-          <Step3Form
-            key={`step3-${currentStep}`}
-            onNext={handleNext}
-            formData={formData}
-            isSubmitting={isSubmitting}
-          />
+          <div data-cy="step-6-monthly-sales">
+            <Step3Form
+              key={`step3-${currentStep}`}
+              onNext={handleNext}
+              formData={formData}
+              isSubmitting={isSubmitting}
+            />
+          </div>
         );
       case 7:
         // Existing Loans (moved from step 6)
         return (
-          <Step4Form
-            key={`step4-${currentStep}`}
-            onNext={handleNext}
-            formData={formData}
-            isSubmitting={isSubmitting}
-          />
+          <div data-cy="step-existing-loans">
+            <Step4Form
+              key={`step4-${currentStep}`}
+              onNext={handleNext}
+              formData={formData}
+              isSubmitting={isSubmitting}
+            />
+          </div>
         );
       case 8:
         return (
-          <Step8Form
-            key={`step8-${currentStep}`}
-            onNext={handleNext}
-            formData={formData}
-            isSubmitting={isSubmitting}
-          />
+          <div data-cy="step-funding-amount">
+            <Step8Form
+              key={`step8-${currentStep}`}
+              onNext={handleNext}
+              formData={formData}
+              isSubmitting={isSubmitting}
+            />
+          </div>
         );
       case 9:
         return (
-          <Step9Form
-            key={`step9-${currentStep}`}
-            onNext={handleNext}
-            formData={formData}
-            isSubmitting={isSubmitting}
-          />
+          <div data-cy="step-funding-purpose">
+            <Step9Form
+              key={`step9-${currentStep}`}
+              onNext={handleNext}
+              formData={formData}
+              isSubmitting={isSubmitting}
+            />
+          </div>
         );
       case 10:
         return (
-          <Step10Form
-            key={`step10-${currentStep}`}
-            onNext={handleNext}
-            formData={formData}
-            isSubmitting={isSubmitting}
-          />
+          <div data-cy="step-business-details">
+            <Step10Form
+              key={`step10-${currentStep}`}
+              onNext={handleNext}
+              formData={formData}
+              isSubmitting={isSubmitting}
+            />
+          </div>
         );
       case 11:
         return (
-          <Step11Form
-            key={`step11-${currentStep}`}
-            onNext={handleNext}
-            formData={formData}
-            isSubmitting={isSubmitting}
-          />
+          <div data-cy="step-financial-information">
+            <Step11Form
+              key={`step11-${currentStep}`}
+              onNext={handleNext}
+              formData={formData}
+              isSubmitting={isSubmitting}
+            />
+          </div>
         );
       case 12:
         return (
-          <BankInformationForm
-            key={`step12-${currentStep}`}
-            onNext={handleNext}
-            formData={formData}
-            isSubmitting={isSubmitting}
-          />
+          <div data-cy="step-bank-information">
+            <BankInformationForm
+              key={`step12-${currentStep}`}
+              onNext={handleNext}
+              formData={formData}
+              isSubmitting={isSubmitting}
+            />
+          </div>
         );
       case 13:
         return (
-          <Step13Form
-            key={`step13-${currentStep}`}
-            onNext={handleNext}
-            formData={formData}
-            isSubmitting={isSubmitting}
-          />
+          <div data-cy="step-additional-details">
+            <Step13Form
+              key={`step13-${currentStep}`}
+              onNext={handleNext}
+              formData={formData}
+              isSubmitting={isSubmitting}
+            />
+          </div>
         );
       case 14:
         return (
-          <Step14Form
-            key={`step14-${currentStep}`}
-            onNext={handleNext}
-            formData={formData}
-            isSubmitting={isSubmitting}
-          />
+          <div data-cy="step-review-submit">
+            <Step14Form
+              key={`step14-${currentStep}`}
+              onNext={handleNext}
+              formData={formData}
+              isSubmitting={isSubmitting}
+            />
+          </div>
         );
       default:
         return <div>Step not found</div>;
@@ -1754,6 +1782,7 @@ function Step1Form({
                 ? 'border-green-500 bg-green-50'
                 : 'border-gray-200 bg-white'
             }`}
+            data-cy="business-loan-button"
           >
             <div className="flex justify-center mb-4">
               <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
@@ -1773,6 +1802,7 @@ function Step1Form({
                 ? 'border-green-500 bg-green-50'
                 : 'border-gray-200 bg-white'
             }`}
+            data-cy="line-of-credit-button"
           >
             <div className="flex justify-center mb-4">
               <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
@@ -1794,6 +1824,7 @@ function Step1Form({
                 ? 'border-green-500 bg-green-50'
                 : 'border-gray-200 bg-white'
             }`}
+            data-cy="both-button"
           >
             <div className="flex justify-center mb-4">
               <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
@@ -1811,6 +1842,7 @@ function Step1Form({
             type="submit"
             disabled={isSubmitting || !localData.loanType}
             className="w-full bg-black text-white py-3 px-6 rounded-lg font-semibold hover:bg-gray-800 transition-colors disabled:opacity-50"
+            data-cy="submit-step"
           >
             {isSubmitting ? 'Saving...' : 'Next'}
           </button>
