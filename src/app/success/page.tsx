@@ -35,7 +35,7 @@ export default function SuccessPage() {
     // Check if we actually submitted successfully
     const submissionSuccess = localStorage.getItem('submissionSuccess');
     if (!submissionSuccess) {
-      router.push(process.env.NEXT_PUBLIC_HOME_URL);
+      router.push(process.env.NEXT_PUBLIC_HOME_URL ?? '/');
     }
 
     // Fire Facebook Pixel conversion events when success page loads
@@ -49,7 +49,7 @@ export default function SuccessPage() {
     localStorage.removeItem('referralApplicationData');
     localStorage.removeItem('applicationId');
     localStorage.removeItem('submissionSuccess');
-    router.push(process.env.NEXT_PUBLIC_HOME_URL);
+    router.push(process.env.NEXT_PUBLIC_HOME_URL ?? '/');
   };
 
   return (

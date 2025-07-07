@@ -435,7 +435,7 @@ export default function StepPage() {
       sessionStorage.setItem('isProgrammaticNavigation', 'true');
       router.push(`/step/${currentStep - 1}`);
     } else {
-      router.push(process.env.NEXT_PUBLIC_HOME_URL);
+      router.push(process.env.NEXT_PUBLIC_HOME_URL ?? '/');
     }
   };
 
@@ -589,7 +589,9 @@ export default function StepPage() {
               Step Not Found
             </h1>
             <button
-              onClick={() => router.push(process.env.NEXT_PUBLIC_HOME_URL)}
+              onClick={() =>
+                router.push(process.env.NEXT_PUBLIC_HOME_URL ?? '/')
+              }
               className="bg-black text-white px-6 py-2 rounded-lg hover:bg-gray-800 transition-colors"
             >
               Go Home
@@ -2714,7 +2716,7 @@ function Step2Form({
   const handleStopApplication = () => {
     // This is for the "No" case where they need to click a button to continue
     setLocalData({ ...localData, isBusinessOwner: '' });
-    router.push(process.env.NEXT_PUBLIC_HOME_URL);
+    router.push(process.env.NEXT_PUBLIC_HOME_URL ?? '/');
   };
 
   return (
