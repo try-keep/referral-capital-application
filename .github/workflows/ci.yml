@@ -27,6 +27,7 @@ jobs:
           VERCEL_OIDC_TOKEN="dummy_token"
           NEXT_PUBLIC_SUPABASE_URL=https://dummy.supabase.co
           NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.dummy.key
+          NEXT_PUBLIC_HOME_URL=https://trykeep.com/capital
           NEWSAPI_KEY=dummy_newsapi_key
           OPENAI_API_KEY=sk-dummy-openai-key
           EOF
