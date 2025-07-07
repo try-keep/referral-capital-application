@@ -1,5 +1,18 @@
 import { type FormData } from '@/types';
+import { isDefined } from '@/utils';
 import { ChangeEvent, DragEvent, useEffect, useRef, useState } from 'react';
+
+type FlinksEventStep = 'COMPONENT_CONSENT_INTRO' | 'REDIRECT';
+
+type FlinksEventPayload = {
+  step: FlinksEventStep;
+  url?: string;
+  requestId?: string;
+};
+
+const TRUSTED_FLINKS_ORIGIN = new URL(
+  process.env.NEXT_PUBLIC_FLINKS_IFRAME_URL || ''
+).origin;
 
 // Step 12: Bank Information
 export function BankInformationForm({
@@ -41,6 +54,8 @@ export function BankInformationForm({
   const [connectionStatus, setConnectionStatus] = useState<
     'connecting' | 'success' | 'error'
   >('connecting');
+
+  const [isLoading, setIsLoading] = useState(true);
 
   // State for file uploads
   const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
@@ -94,15 +109,23 @@ export function BankInformationForm({
 
   // Listen for Flinks redirect event
   useEffect(() => {
-    function handleFlinksRedirect(event: MessageEvent) {
+    const listener = ({ data, origin }: MessageEvent) => {
+      if (isDefined(data.step) && origin === TRUSTED_FLINKS_ORIGIN) {
+        handleFlinksEvent(data);
+      }
+    };
+
+    function handleFlinksEvent(data: FlinksEventPayload) {
       // Check if this is a Flinks redirect message
+      const isEventDataValid = data && typeof data === 'object';
+      const eventStep: FlinksEventStep = data.step;
+
       if (
-        event.data &&
-        typeof event.data === 'object' &&
-        event.data.step === 'REDIRECT' &&
+        isEventDataValid &&
+        eventStep === 'REDIRECT' &&
         !hasHandledRedirect.current
       ) {
-        console.log('🎉 Flinks redirect event received:', event.data);
+        console.log('🎉 Flinks redirect event received:', data);
         hasHandledRedirect.current = true;
 
         // Show success status
@@ -112,9 +135,9 @@ export function BankInformationForm({
         let loginId: string = '';
         let institution: string = '';
 
-        if (event.data.url) {
+        if (data.url) {
           try {
-            const url = new URL(event.data.url);
+            const url = new URL(data.url);
             loginId = url.searchParams.get('loginId') || '';
             institution = url.searchParams.get('institution') || '';
             console.log('🔗 Flinks connection details:', {
@@ -155,15 +178,20 @@ export function BankInformationForm({
         // Proceed to next step without delay to avoid race condition
         onNext(connectionData);
       }
+
+      if (eventStep === 'COMPONENT_CONSENT_INTRO') {
+        setIsLoading(false);
+        console.log('🔄 Flinks consent intro event received:', data);
+      }
     }
 
     // Only add event listener if connection is not already completed
     if (!isConnectionCompleted) {
-      window.addEventListener('message', handleFlinksRedirect);
+      window.addEventListener('message', listener);
 
       // Cleanup event listener on unmount
       return () => {
-        window.removeEventListener('message', handleFlinksRedirect);
+        window.removeEventListener('message', listener);
       };
     }
   }, [localData, onNext, isConnectionCompleted]);
@@ -799,8 +827,16 @@ export function BankInformationForm({
             </div>
           )}
 
-          {/* Flinks iframe */}
-          <div className="mb-8">
+          <div className="mb-8" style={{ maxHeight: '600px' }}>
+            {isLoading && (
+              <div
+                className="flex justify-center items-center flex-col gap-4 no-scrollbar "
+                style={{ minHeight: '600px' }}
+              >
+                <p className="text-sm text-gray-500">Connecting to Flinks...</p>
+                <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-gray-900"></div>
+              </div>
+            )}
             <iframe
               src={`${process.env.NEXT_PUBLIC_FLINKS_IFRAME_URL}/v2?customerName=Keep&daysOfTransactions=Days365&scheduleRefresh=false&consentEnable=true&detailsAndStatementEnable=true&monthsOfStatements=Months12&enhancedMFA=false&maximumRetry=3&tag=${formattedFlinksTags}${skipFlinks ? '&demo=true' : ''}`}
               width="100%"
