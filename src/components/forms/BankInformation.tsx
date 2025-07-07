@@ -110,6 +110,8 @@ export function BankInformationForm({
   // Listen for Flinks redirect event
   useEffect(() => {
     const listener = ({ data, origin }: MessageEvent) => {
+      // This will help out validate that we are only processing events coming from the FLINKS iFrame.
+      // Some information about the reasons to do this can be found [here](https://www.notion.so/trykeep/Some-Security-stuff-1b31b946eb89803da592ec34462f900f?source=copy_link#1b41b946eb8980ee801dc463f4cce151)
       if (isDefined(data.step) && origin === TRUSTED_FLINKS_ORIGIN) {
         handleFlinksEvent(data);
       }
