@@ -1,9 +1,10 @@
 'use client';
 
-import { usePageSegmentAnalytics } from '@/hooks/use-page-segment-analytics';
+import { useLogRocket, usePageSegmentAnalytics } from '@/hooks';
 import { PropsWithChildren } from 'react';
 
 export function Providers({ children }: PropsWithChildren) {
   usePageSegmentAnalytics();
+  useLogRocket();
   return <>{children}</>;
 }
