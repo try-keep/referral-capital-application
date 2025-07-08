@@ -3,20 +3,7 @@ import { useEffect } from 'react';
 import { analytics } from '@/lib/segment';
 import { usePathname, useSearchParams } from 'next/navigation';
 import { getApplicationTraits } from '@/utils/analytics/traits';
-import { isDefined } from '@/utils';
-
-function extractApplicationData() {
-  if (typeof window !== 'undefined' && isDefined(window.localStorage)) {
-    const data = localStorage.getItem('referralApplicationData');
-    try {
-      return isDefined(data) ? JSON.parse(data) : {};
-    } catch (error) {
-      console.error('Error parsing application data', error);
-      return {};
-    }
-  }
-  return {};
-}
+import { extractApplicationData } from '@/utils/application';
 
 /**
  * Hook to track page views and send application data to Segment
