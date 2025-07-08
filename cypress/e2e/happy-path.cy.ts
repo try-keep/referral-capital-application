@@ -1,13 +1,26 @@
 describe('Happy Path', () => {
-  it('should navigate to the form, fill the first and last name, and submit', () => {
-    cy.visit('/');
-    cy.contains('Apply Now').click();
+  it('should be able to complete an application', () => {
+    cy.visit('/step/1');
 
     cy.assertNavigatedToStep('loan-type');
     cy.fillLoanTypeStep();
 
     cy.assertNavigatedToStep('personal-information');
-    cy.get('input[id="firstName"]').type('John');
-    cy.get('input[id="lastName"]').type('Doe');
+    cy.fillPersonalInformationStep();
+
+    cy.assertNavigatedToStep('business-owner');
+    cy.fillBusinessOwnerStep();
+
+    cy.assertNavigatedToStep('business-search');
+    cy.fillBusinessSearchStep();
+
+    cy.assertNavigatedToStep('business-type');
+    cy.fillBusinessTypeStep();
+
+    cy.assertNavigatedToStep('monthly-sales');
+    cy.fillMonthlySalesStep();
+
+    cy.assertNavigatedToStep('existing-loans');
+    cy.fillExistingLoansStep();
   });
 });

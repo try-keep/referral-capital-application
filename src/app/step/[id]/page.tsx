@@ -29,6 +29,7 @@ import { getUserIpAddress } from '@/lib/ipAddress';
 import { searchAddresses, type GeoapifyFeature } from '@/lib/geoapify';
 import {
   PersonalInformationForm,
+  BusinessOwnershipForm,
   BankInformationForm,
 } from '@/components/forms';
 
@@ -471,7 +472,7 @@ export default function StepPage() {
         // Business Owner (moved from step 2)
         return (
           <div data-cy="step-business-owner">
-            <Step2Form
+            <BusinessOwnershipForm
               key={`step2-${currentStep}`}
               onNext={handleNext}
               formData={formData}
@@ -495,7 +496,7 @@ export default function StepPage() {
       case 5:
         // Step 5 is dedicated to manual business name entry (conditional)
         return (
-          <div data-cy="step-5-business-type">
+          <div data-cy="step-business-type">
             <Step6Form
               key={`step6-${currentStep}`}
               onNext={handleNext}
@@ -507,7 +508,7 @@ export default function StepPage() {
       case 6:
         // Monthly Sales (moved from step 5)
         return (
-          <div data-cy="step-6-monthly-sales">
+          <div data-cy="step-monthly-sales">
             <Step3Form
               key={`step3-${currentStep}`}
               onNext={handleNext}
@@ -2080,6 +2081,7 @@ function Step3Form({
             <input
               type="text"
               placeholder="100,000"
+              id="monthlySales"
               value={localData.monthlySales}
               onChange={(e) =>
                 setLocalData({ ...localData, monthlySales: e.target.value })

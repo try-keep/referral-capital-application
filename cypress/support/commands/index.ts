@@ -5,6 +5,14 @@
 // existing commands.
 //
 import './stepHelpers/loanTypeStep';
+import './stepHelpers/personalInformationStep';
+import './stepHelpers/businessOwnerStep';
+import './stepHelpers/businessSearchStep';
+import './stepHelpers/businessTypeStep';
+import './stepHelpers/monthlySalesStep';
+import './stepHelpers/existingLoansStep';
+import './stepHelpers/fundingAmountStep';
+import './stepHelpers/fundingPurposeStep';
 // commands please read more here:
 // https://on.cypress.io/custom-commands
 // ***********************************************
