@@ -8,6 +8,11 @@ const nextConfig = {
         destination: process.env.NEXT_PUBLIC_HOME_URL,
         permanent: true,
       },
+      {
+        source: '/get-started',
+        destination: '/application',
+        permanent: true,
+      },
     ];
   },
 };
