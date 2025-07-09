@@ -78,13 +78,15 @@ export const ApplicationContextProvider: FC<
   const router = useRouter();
   const [formData, setFormData] = useState<FormData>({});
   const [currentStepId, setCurrentStepId] =
-    useState<ApplicationStepId>(initialStepId);
+  useState<ApplicationStepId>(initialStepId);
   const [isNavigating, setIsNavigating] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
   // Load initial data from localStorage
   useEffect(() => {
     const savedData = loadFromStorage();
     setFormData(savedData);
+    setIsLoading(false);
 
     // Set current step from saved data or initial
     if (
@@ -324,6 +326,7 @@ export const ApplicationContextProvider: FC<
     getTotalSteps,
     getCompletedStepsCount,
     submit,
+    isLoading,
   };
 
   return (
