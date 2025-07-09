@@ -16,6 +16,7 @@ import { ApplicationContextState, ApplicationStepId } from './types';
 import { ApplicationData, submitApplication } from '@/lib/api';
 import { user } from '@/client';
 import { APPLICATION_MOCK } from '@/test/fixtures/applicationFixture';
+import { saveManualBusiness } from '@/lib/supabase';
 
 // Context creation
 const ApplicationContext = createContext<ApplicationContextState | null>(null);
@@ -267,9 +268,17 @@ export const ApplicationContextProvider: FC<
         lastName: 'test',
         email: `cesar.test.${Date.now()}@test.com`,
       });
+      const now = new Date();
+      const business = await saveManualBusiness(
+        APPLICATION_MOCK.businessName,
+        APPLICATION_MOCK.businessType,
+        new Date(now.setMonth(now.getMonth() - 9))
+      );
+
       const finalData = {
         ...APPLICATION_MOCK,
         ...formData,
+        businessId: business.id,
       };
       //REMOVE THIS
 
