@@ -4,11 +4,22 @@ import React, { useState } from 'react';
 import { APPLICATION_STEPS } from '@/constants/application';
 import ProgressSidebar from '@/components/ProgressSidebar';
 import DevView from '@/components/DevView';
+import { FormData } from '@/types';
 import { ApplicationContextProvider, useApplicationContext } from '@/contexts/';
+import { ApplicationStepId } from '@/contexts/application/types';
+import { user } from '@/client';
 
 interface ApplicationLayoutProps {
   children: React.ReactNode;
 }
+
+const stepChangeSideEffects = async (
+  stepId: ApplicationStepId,
+  data: FormData
+) => {
+  console.debug('Step changed to:', stepId, data);
+  await user.upsert(data);
+};
 
 // Inner component that uses the context
 const ApplicationLayoutContent: React.FC<ApplicationLayoutProps> = ({
@@ -79,7 +90,7 @@ export default function ApplicationLayout({
     <ApplicationContextProvider
       initialStepId="funding-amount"
       onStepChange={(stepId, data) => {
-        console.debug('Step changed to:', stepId, data);
+        stepChangeSideEffects(stepId, data);
       }}
       onComplete={(data) => {
         console.debug('Application completed:', data);
