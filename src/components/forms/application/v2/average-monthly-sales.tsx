@@ -17,8 +17,14 @@ const options = [
 const CURRENT_STEP_ID = 'monthly-sales';
 
 export default function AverageMonthlySales() {
-  const { formData, saveFormData, isStepCompleted, moveForward,moveBackward, isNavigating } =
-    useApplicationStep(CURRENT_STEP_ID);
+  const {
+    formData,
+    saveFormData,
+    isStepCompleted,
+    moveForward,
+    moveBackward,
+    isNavigating,
+  } = useApplicationStep(CURRENT_STEP_ID);
 
   const [localFormData, setLocalFormData] = useState<FormData>({
     monthlySales: '',

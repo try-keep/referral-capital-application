@@ -78,7 +78,7 @@ export const ApplicationContextProvider: FC<
   const router = useRouter();
   const [formData, setFormData] = useState<FormData>({});
   const [currentStepId, setCurrentStepId] =
-  useState<ApplicationStepId>(initialStepId);
+    useState<ApplicationStepId>(initialStepId);
   const [isNavigating, setIsNavigating] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 

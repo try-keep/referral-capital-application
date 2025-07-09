@@ -222,9 +222,7 @@ export default function BusinessProfileAnalysis() {
   });
 
   const [currentPhase, setCurrentPhase] = useState<'loading' | 'match'>(
-    formData.tierResult && formData.tierResult !== ''
-      ? 'match'
-      : 'loading'
+    formData.tierResult && formData.tierResult !== '' ? 'match' : 'loading'
   );
 
   useEffect(() => {

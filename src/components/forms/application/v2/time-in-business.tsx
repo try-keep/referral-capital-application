@@ -16,8 +16,14 @@ const options = [
 const CURRENT_STEP_ID = 'time-in-business';
 
 export default function TimeInBusiness() {
-  const { formData, saveFormData, isStepCompleted, moveForward, isNavigating ,moveBackward} =
-    useApplicationStep(CURRENT_STEP_ID);
+  const {
+    formData,
+    saveFormData,
+    isStepCompleted,
+    moveForward,
+    isNavigating,
+    moveBackward,
+  } = useApplicationStep(CURRENT_STEP_ID);
 
   const [localFormData, setLocalFormData] = useState<FormData>({
     timeInBusiness: '',

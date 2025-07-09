@@ -77,16 +77,16 @@ export const APPLICATION_V2_ROUTES_MAP: Record<
     ApplicationStep['id'],
     { previous: string | null; next: string | null }
   > = {};
-  
+
   // Create a flat list of all step IDs from all groups
-  const allStepIds = APPLICATION_STEP_GROUPS.flatMap(group => group.stepIds);
-  
+  const allStepIds = APPLICATION_STEP_GROUPS.flatMap((group) => group.stepIds);
+
   for (let i = 0; i < allStepIds.length; i++) {
     const current = allStepIds[i];
     const previous = i > 0 ? allStepIds[i - 1] : null;
     const next = i < allStepIds.length - 1 ? allStepIds[i + 1] : null;
     map[current] = { previous, next };
   }
-  
+
   return map;
 })();
