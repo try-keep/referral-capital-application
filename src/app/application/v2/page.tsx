@@ -2,10 +2,7 @@
 
 import React, { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import {
-  ApplicationContextProvider,
-  useApplicationContext,
-} from '@/contexts/ApplicationContext';
+import { ApplicationContextProvider, useApplicationContext } from '@/contexts';
 import { isDefined } from '@/utils';
 
 function ApplicationV2PageContent() {
