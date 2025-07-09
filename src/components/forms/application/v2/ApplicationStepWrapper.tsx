@@ -2,6 +2,7 @@ import React from 'react';
 import { FormData } from '@/types';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { useApplicationContext } from '@/contexts/';
+import Spinner from '@/components/Spinner';
 
 interface ApplicationStepWrapperProps {
   title: string;
@@ -12,6 +13,7 @@ interface ApplicationStepWrapperProps {
   isSubmitting?: boolean;
   stepId: string;
   children: React.ReactNode;
+  isLoading?: boolean;
 }
 
 const ApplicationStepWrapper: React.FC<ApplicationStepWrapperProps> = ({
@@ -22,6 +24,7 @@ const ApplicationStepWrapper: React.FC<ApplicationStepWrapperProps> = ({
   canGoNext = true,
   isSubmitting = false,
   children,
+  ...props
 }) => {
   const { moveForward, moveBackward, isNavigating, formData } =
     useApplicationContext();
@@ -53,40 +56,46 @@ const ApplicationStepWrapper: React.FC<ApplicationStepWrapperProps> = ({
   const isLoading = isNavigating || isSubmitting;
 
   return (
-    <div className="w-full max-w-2xl mx-auto">
+    <div className="w-full max-w-4xl mx-auto">
       <div className="text-center mb-8">
         <h1 className="text-3xl font-bold text-gray-900 mb-4">{title}</h1>
         {description && <p className="text-lg text-gray-600">{description}</p>}
       </div>
-      {children}
-      <div
-        className={`flex items-center ${onBack ? 'justify-between' : 'justify-end'} mt-8 pt-6 border-t border-gray-200`}
-      >
-        {onBack && (
-          <button
-            onClick={handleBack}
-            disabled={isLoading}
-            className="flex items-center space-x-2 px-6 py-3 text-gray-600 hover:text-gray-800 transition-colors duration-200"
+      {props.isLoading ? (
+        <Spinner />
+      ) : (
+        <>
+          {children}
+          <div
+            className={`flex items-center ${onBack ? 'justify-between' : 'justify-end'} mt-8 pt-6 border-t border-gray-200`}
           >
-            <ChevronLeft className="h-5 w-5" />
-            <span>Back</span>
-          </button>
-        )}
-        {onNext && (
-          <button
-            onClick={handleNext}
-            disabled={!canGoNext || isLoading}
-            className={`flex items-center space-x-2 px-6 py-3 rounded-lg transition-all duration-200 ${
-              canGoNext && !isLoading
-                ? 'bg-blue-600 text-white hover:bg-blue-700 shadow-md'
-                : 'bg-gray-300 text-gray-500 cursor-not-allowed'
-            }`}
-          >
-            <span>Next</span>
-            <ChevronRight className="h-5 w-5" />
-          </button>
-        )}
-      </div>
+            {onBack && (
+              <button
+                onClick={handleBack}
+                disabled={isLoading}
+                className="flex items-center space-x-2 px-6 py-3 text-gray-600 hover:text-gray-800 transition-colors duration-200 btn-secondary"
+              >
+                <ChevronLeft className="h-5 w-5" />
+                <span>Back</span>
+              </button>
+            )}
+            {onNext && (
+              <button
+                onClick={handleNext}
+                disabled={!canGoNext || isLoading}
+                className={`flex items-center space-x-2 px-6 py-3 rounded-lg transition-all duration-200 ${
+                  canGoNext && !isLoading
+                    ? 'btn-primary'
+                    : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                }`}
+              >
+                <span>Next</span>
+                <ChevronRight className="h-5 w-5" />
+              </button>
+            )}
+          </div>
+        </>
+      )}
     </div>
   );
 };

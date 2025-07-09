@@ -33,16 +33,10 @@ export const APPLICATION_STEPS: ApplicationStep[] = [
     requiredFields: ['creditScore'],
   },
   {
-    id: 'analyzing',
-    label: 'Analyzing Profile',
+    id: 'profile-analysis',
+    label: 'Profile Analysis',
     description: 'Analyzing Your Business Profile',
-    requiredFields: ['analysis'],
-  },
-  {
-    id: 'match-result',
-    label: 'Match Results',
-    description: 'Perfect! You qualify for funding.',
-    requiredFields: ['TierResult'],
+    requiredFields: ['tierResult'],
   },
   {
     id: 'submit',
@@ -65,8 +59,7 @@ export const APPLICATION_STEP_GROUPS: ApplicationStepGroup[] = [
       'time-in-business',
       'monthly-sales',
       'credit-score',
-      'analyzing',
-      'match-result',
+      'profile-analysis',
     ],
   },
   {
@@ -84,12 +77,16 @@ export const APPLICATION_V2_ROUTES_MAP: Record<
     ApplicationStep['id'],
     { previous: string | null; next: string | null }
   > = {};
-  for (let i = 0; i < APPLICATION_STEPS.length; i++) {
-    const current = APPLICATION_STEPS[i].id;
-    const previous = i > 0 ? APPLICATION_STEPS[i - 1].id : null;
-    const next =
-      i < APPLICATION_STEPS.length - 1 ? APPLICATION_STEPS[i + 1].id : null;
+
+  // Create a flat list of all step IDs from all groups
+  const allStepIds = APPLICATION_STEP_GROUPS.flatMap((group) => group.stepIds);
+
+  for (let i = 0; i < allStepIds.length; i++) {
+    const current = allStepIds[i];
+    const previous = i > 0 ? allStepIds[i - 1] : null;
+    const next = i < allStepIds.length - 1 ? allStepIds[i + 1] : null;
     map[current] = { previous, next };
   }
+
   return map;
 })();

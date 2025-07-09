@@ -11,6 +11,7 @@ export interface ApplicationContextState {
 
   // Loading states
   isNavigating: boolean;
+  isLoading: boolean;
 
   // Step validation
   isStepCompleted: (stepId: ApplicationStepId) => boolean;
