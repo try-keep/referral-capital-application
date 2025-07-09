@@ -14,6 +14,8 @@ import {
 import { FormData } from '@/types/form-data';
 import { ApplicationContextState, ApplicationStepId } from './types';
 import { ApplicationData, submitApplication } from '@/lib/api';
+import { user } from '@/client';
+import { APPLICATION_MOCK } from '@/test/fixtures/applicationFixture';
 
 // Context creation
 const ApplicationContext = createContext<ApplicationContextState | null>(null);
@@ -259,9 +261,18 @@ export const ApplicationContextProvider: FC<
     if (isNavigating) return;
 
     try {
+      //REMOVE THIS
+      await user.create({
+        firstName: 'cesar',
+        lastName: 'test',
+        email: `cesar.test.${Date.now()}@test.com`,
+      });
       const finalData = {
+        ...APPLICATION_MOCK,
         ...formData,
       };
+      //REMOVE THIS
+
       const response = await submitApplication(
         finalData as unknown as ApplicationData
       );
