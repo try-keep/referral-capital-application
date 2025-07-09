@@ -19,9 +19,9 @@ export async function POST(request: NextRequest) {
     console.log('Parsed applicationId:', applicationId);
 
     // Validate required fields
-    if (!userData.first_name || !userData.last_name || !userData.email) {
+    if (!userData.email) {
       return NextResponse.json(
-        { error: 'Missing required fields: first_name, last_name, email' },
+        { error: 'Missing required fields: email' },
         { status: 400 }
       );
     }

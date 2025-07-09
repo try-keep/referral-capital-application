@@ -262,7 +262,7 @@ export const ApplicationContextProvider: FC<
 
     try {
       //REMOVE THIS
-      await user.create({
+      await user.upsert({
         firstName: 'cesar',
         lastName: 'test',
         email: `cesar.test.${Date.now()}@test.com`,

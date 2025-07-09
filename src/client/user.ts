@@ -1,8 +1,12 @@
 import { getUserIpAddress } from '@/lib/ipAddress';
 import { UserData } from '@/lib/supabase';
 import { FormData } from '@/types';
+import { isDefined } from '@/utils';
 
-const create = async (data: FormData) => {
+const upsert = async (data: FormData) => {
+  if (!isDefined(data.email)) {
+    return;
+  }
   try {
     const userIpAddress = await getUserIpAddress();
     const userData: UserData = {
@@ -65,5 +69,5 @@ const create = async (data: FormData) => {
 };
 
 export const user = {
-  create,
+  upsert,
 };
