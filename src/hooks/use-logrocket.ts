@@ -8,6 +8,10 @@ import { getLogRocketOptions } from '@/utils/session-recordings';
 import { extractApplicationData } from '@/utils/application';
 import { getApplicationTraits } from '@/utils/analytics/traits';
 
+const shouldInitializeLogRocket =
+  process.env.NEXT_PUBLIC_ENVIRONMENT === 'production' &&
+  isDefined(process.env.NEXT_PUBLIC_LOGROCKET_APP_ID);
+
 export const useLogRocket = () => {
   const pathname = usePathname();
   const logRocketInitialized = useRef(false);
@@ -20,11 +24,13 @@ export const useLogRocket = () => {
       const logRocketOptions = getLogRocketOptions({
         shouldSendData: () => shouldSendData.current, // Required to keep reference to the original value
       });
-      LogRocket.init(
-        process.env.NEXT_PUBLIC_LOGROCKET_APP_ID ?? '',
-        logRocketOptions
-      );
-      logRocketInitialized.current = true;
+      if (shouldInitializeLogRocket) {
+        LogRocket.init(
+          process.env.NEXT_PUBLIC_LOGROCKET_APP_ID ?? '',
+          logRocketOptions
+        );
+        logRocketInitialized.current = true;
+      }
     }
   }, []);
 
