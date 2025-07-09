@@ -13,6 +13,7 @@ import {
 } from '@/constants/application';
 import { FormData } from '@/types/form-data';
 import { ApplicationContextState, ApplicationStepId } from './types';
+import { ApplicationData, submitApplication } from '@/lib/api';
 
 // Context creation
 const ApplicationContext = createContext<ApplicationContextState | null>(null);
@@ -254,6 +255,40 @@ export const ApplicationContextProvider: FC<
     }
   };
 
+  const submit = async (): Promise<void> => {
+    if (isNavigating) return;
+
+    try {
+      const finalData = {
+        ...formData,
+      };
+      const response = await submitApplication(
+        finalData as unknown as ApplicationData
+      );
+
+      // Fire Facebook Pixel conversion event for successful application submission
+      if (typeof window !== 'undefined' && window.fbq) {
+        window.fbq('track', 'CompleteRegistration');
+      }
+
+      // Clear form data after successful submission so user can start fresh
+      localStorage.removeItem('referralApplicationData');
+      localStorage.removeItem('userId');
+      console.log(
+        '🧹 Form data and user session cleared after successful submission'
+      );
+
+      // Store application ID for success page (after clearing old data)
+      localStorage.setItem('applicationId', response.applicationId.toString());
+      localStorage.setItem('submissionSuccess', 'true');
+
+      router.push('/success');
+    } catch (error) {
+      console.error('Submission error:', error);
+      alert('Failed to submit application. Please try again.');
+    }
+  };
+
   const contextValue: ApplicationContextState = {
     formData,
     currentStepId,
@@ -268,6 +303,7 @@ export const ApplicationContextProvider: FC<
     getStepIndex,
     getTotalSteps,
     getCompletedStepsCount,
+    submit,
   };
 
   return (

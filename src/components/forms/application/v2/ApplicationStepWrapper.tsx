@@ -72,18 +72,20 @@ const ApplicationStepWrapper: React.FC<ApplicationStepWrapperProps> = ({
             <span>Back</span>
           </button>
         )}
-        <button
-          onClick={handleNext}
-          disabled={!canGoNext || isLoading}
-          className={`flex items-center space-x-2 px-6 py-3 rounded-lg transition-all duration-200 ${
-            canGoNext && !isLoading
-              ? 'bg-blue-600 text-white hover:bg-blue-700 shadow-md'
-              : 'bg-gray-300 text-gray-500 cursor-not-allowed'
-          }`}
-        >
-          <span>Next</span>
-          <ChevronRight className="h-5 w-5" />
-        </button>
+        {onNext && (
+          <button
+            onClick={handleNext}
+            disabled={!canGoNext || isLoading}
+            className={`flex items-center space-x-2 px-6 py-3 rounded-lg transition-all duration-200 ${
+              canGoNext && !isLoading
+                ? 'bg-blue-600 text-white hover:bg-blue-700 shadow-md'
+                : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+            }`}
+          >
+            <span>Next</span>
+            <ChevronRight className="h-5 w-5" />
+          </button>
+        )}
       </div>
     </div>
   );

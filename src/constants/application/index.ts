@@ -44,7 +44,13 @@ export const APPLICATION_STEPS: ApplicationStep[] = [
     description: 'Perfect! You qualify for funding.',
     requiredFields: ['TierResult'],
   },
-];
+  {
+    id: 'submit',
+    label: 'Review & Submit',
+    description: 'Review & Submit Your Application',
+    requiredFields: ['submittedAt'],
+  },
+] as const;
 
 export interface ApplicationStepGroup {
   title: string;
@@ -62,6 +68,10 @@ export const APPLICATION_STEP_GROUPS: ApplicationStepGroup[] = [
       'analyzing',
       'match-result',
     ],
+  },
+  {
+    title: 'Business Info',
+    stepIds: ['submit'],
   },
 ];
 

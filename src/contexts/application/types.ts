@@ -32,4 +32,5 @@ export interface ApplicationContextState {
   getStepIndex: (stepId: ApplicationStepId) => number;
   getTotalSteps: () => number;
   getCompletedStepsCount: () => number;
+  submit: () => Promise<void>;
 }
