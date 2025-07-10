@@ -10,6 +10,7 @@
     "lint:fix": "eslint . --fix",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
+    "lint-staged": "lint-staged",
     "dev:backend": "cd backend && npm run dev",
     "start:backend": "cd backend && npm start",
     "dev:all": "concurrently \"npm run dev:backend\" \"npm run dev\"",
@@ -17,7 +18,8 @@
     "test:compliance": "node test-compliance.js",
     "test:compliance:prod": "TEST_URL=https://referral-capital-application-1gv42zxj3-try-keep.vercel.app node test-compliance.js",
     "supabase:start": "npx supabase start",
-    "pr": "open https://github.com/try-keep/referral-capital-application/compare/main...$(git rev-parse --abbrev-ref HEAD)?expand=1"
+    "pr": "open https://github.com/try-keep/referral-capital-application/compare/main...$(git rev-parse --abbrev-ref HEAD)?expand=1",
+    "postinstall": "npx simple-git-hooks"
   },
   "dependencies": {
     "@segment/analytics-next": "^1.81.0",
@@ -43,7 +45,18 @@
     "concurrently": "^9.1.2",
     "eslint": "^9",
     "eslint-config-next": "15.3.3",
+    "lint-staged": "^16.1.2",
     "prettier": "^3.4.2",
+    "simple-git-hooks": "^2.13.0",
     "typescript": "^5.8.3"
+  },
+  "simple-git-hooks": {
+    "pre-commit": "npm run lint-staged"
+  },
+  "lint-staged": {
+    "*.{json,md,html,js,jsx,d.ts,ts,tsx,graphql}": [
+      "prettier --write",
+      "eslint --fix"
+    ]
   }
 }
