@@ -39,6 +39,24 @@ export const APPLICATION_STEPS: ApplicationStep[] = [
     requiredFields: ['tierResult'],
   },
   {
+    id: 'email-address',
+    label: 'Email Address',
+    description: 'What is your email address?',
+    requiredFields: ['email'],
+  },
+  {
+    id: 'personal-details',
+    label: 'Personal Details',
+    description: 'Enter your personal information',
+    requiredFields: ['firstName', 'lastName', 'phone', 'dateOfBirth'],
+  },
+  {
+    id: 'personal-address',
+    label: 'Personal Address',
+    description: 'What is your personal address?',
+    requiredFields: ['addressLine1', 'city', 'province', 'postalCode'],
+  },
+  {
     id: 'submit',
     label: 'Review & Submit',
     description: 'Review & Submit Your Application',
@@ -61,6 +79,10 @@ export const APPLICATION_STEP_GROUPS: ApplicationStepGroup[] = [
       'credit-score',
       'profile-analysis',
     ],
+  },
+  {
+    title: 'Personal Info',
+    stepIds: ['email-address', 'personal-details', 'personal-address'],
   },
   {
     title: 'Business Info',
