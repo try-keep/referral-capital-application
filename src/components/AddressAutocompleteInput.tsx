@@ -1,7 +1,7 @@
 import { useAddressAutoComplete } from '@/hooks/use-address-autocomplete';
 import { ChangeEvent, useState } from 'react';
 
-type AddressSuggestion = {
+export type AddressSuggestion = {
   formatted: string;
   address_line1?: string;
   address_line2?: string;
@@ -12,9 +12,8 @@ type AddressSuggestion = {
   country_code?: string;
 };
 
-type AdressAutocompleteInputProps = Pick<
-  HTMLInputElement,
-  'required' | 'placeholder'
+type AdressAutocompleteInputProps = Partial<
+  Pick<HTMLInputElement, 'required' | 'placeholder' | 'className'>
 > & {};
 
 type AddressAutoCompleteProps = AdressAutocompleteInputProps & {
@@ -76,7 +75,7 @@ export function AddressAutocompleteInput({
           onFocus={() => suggestions.length > 0 && setShowSuggestions(true)}
           onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
           placeholder={props.placeholder}
-          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          className={`w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${props.className}`}
         />
         {isSearching && (
           <div className="absolute right-3 top-3">
