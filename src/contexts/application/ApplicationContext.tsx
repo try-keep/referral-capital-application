@@ -17,6 +17,7 @@ import { ApplicationData, submitApplication } from '@/lib/api';
 import { user } from '@/client';
 import { APPLICATION_MOCK } from '@/test/fixtures/applicationFixture';
 import { saveManualBusiness } from '@/lib/supabase';
+import { isDefined } from '@/utils';
 
 // Context creation
 const ApplicationContext = createContext<ApplicationContextState | null>(null);
@@ -63,7 +64,8 @@ const getStepRequiredFields = (stepId: ApplicationStepId): string[] => {
 const isStepValid = (stepId: ApplicationStepId, data: FormData): boolean => {
   const requiredFields = getStepRequiredFields(stepId);
   return (
-    requiredFields.length === 0 || requiredFields.every((field) => data[field])
+    requiredFields.length === 0 ||
+    requiredFields.every((field) => isDefined(data[field]))
   );
 };
 
@@ -99,7 +101,6 @@ export const ApplicationContextProvider: FC<
 
   // Update form data
   const saveFormData = (data: Partial<FormData>) => {
-    console.log('updating form data with', data, formData);
     const updatedData = { ...formData, ...data };
     setFormData(updatedData);
     saveToStorage(updatedData);
@@ -154,7 +155,7 @@ export const ApplicationContextProvider: FC<
 
       // Update form data if provided
       if (data) {
-        saveFormData({ ...data, currentStepId: nextStepId });
+        saveFormData({ ...data });
       }
 
       // Get next step
@@ -166,9 +167,6 @@ export const ApplicationContextProvider: FC<
         return;
       }
 
-      // Update current step
-      setCurrentStepId(nextStepId);
-
       // Call step change callback
       if (onStepChange) {
         onStepChange(nextStepId, { ...formData, ...data });
@@ -176,6 +174,8 @@ export const ApplicationContextProvider: FC<
 
       // Navigate to next step
       router.push(`/application/v2/${nextStepId}`);
+      saveFormData({ currentStepId: nextStepId });
+      setCurrentStepId(nextStepId);
     } catch (error) {
       console.error('Error moving forward:', error);
       throw error;
@@ -192,12 +192,6 @@ export const ApplicationContextProvider: FC<
     try {
       setIsNavigating(true);
 
-      // Update form data if provided
-      if (data) {
-        saveFormData(data);
-      }
-
-      // Get previous step
       const routeInfo = APPLICATION_V2_ROUTES_MAP[currentStepId];
       if (!routeInfo?.previous) {
         throw new Error('No previous step available');
@@ -205,9 +199,10 @@ export const ApplicationContextProvider: FC<
 
       const previousStepId = routeInfo.previous as ApplicationStepId;
 
-      // Update current step
-      setCurrentStepId(previousStepId);
-
+      // Update form data if provided
+      if (data) {
+        saveFormData({ ...data });
+      }
       // Call step change callback
       if (onStepChange) {
         onStepChange(previousStepId, { ...formData, ...data });
@@ -215,6 +210,8 @@ export const ApplicationContextProvider: FC<
 
       // Navigate to previous step
       router.push(`/application/v2/${previousStepId}`);
+      saveFormData({ currentStepId: previousStepId });
+      setCurrentStepId(previousStepId);
     } catch (error) {
       console.error('Error moving backward:', error);
       throw error;
@@ -232,18 +229,15 @@ export const ApplicationContextProvider: FC<
     try {
       setIsNavigating(true);
 
-      // Update form data if provided
-      if (data) {
-        saveFormData(data);
-      }
-
       // Validate target step exists
       if (!APPLICATION_STEPS.some((s) => s.id === targetStepId)) {
         throw new Error(`Invalid step ID: ${targetStepId}`);
       }
 
-      // Update current step
-      setCurrentStepId(targetStepId);
+      // Update form data if provided
+      if (data) {
+        saveFormData({ ...data });
+      }
 
       // Call step change callback
       if (onStepChange) {
@@ -252,6 +246,8 @@ export const ApplicationContextProvider: FC<
 
       // Navigate to target step
       router.push(`/application/v2/${targetStepId}`);
+      saveFormData({ currentStepId: targetStepId });
+      setCurrentStepId(targetStepId);
     } catch (error) {
       console.error('Error moving to step:', error);
       throw error;

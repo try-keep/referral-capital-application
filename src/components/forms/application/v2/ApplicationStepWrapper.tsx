@@ -24,6 +24,7 @@ const ApplicationStepWrapper: React.FC<ApplicationStepWrapperProps> = ({
   canGoNext = true,
   isSubmitting = false,
   children,
+  stepId,
   ...props
 }) => {
   const { moveForward, moveBackward, isNavigating, formData } =
@@ -56,8 +57,11 @@ const ApplicationStepWrapper: React.FC<ApplicationStepWrapperProps> = ({
   const isLoading = isNavigating || isSubmitting;
 
   return (
-    <div className="w-full max-w-4xl mx-auto">
-      <div className="text-center mb-8">
+    <div
+      className="w-full max-w-4xl mx-auto h-full flex flex-col justify-center gap-8"
+      id={`${stepId}-step`}
+    >
+      <div className="text-center mt-12">
         <h1 className="text-3xl font-bold text-gray-900 mb-4">{title}</h1>
         {description && <p className="text-lg text-gray-600">{description}</p>}
       </div>
@@ -67,7 +71,7 @@ const ApplicationStepWrapper: React.FC<ApplicationStepWrapperProps> = ({
         <>
           {children}
           <div
-            className={`flex items-center ${onBack ? 'justify-between' : 'justify-end'} mt-8 pt-6 border-t border-gray-200`}
+            className={`flex items-center ${onBack ? 'justify-between' : 'justify-end'} mt-28 pt-6 border-t border-gray-200`}
           >
             {onBack && (
               <button

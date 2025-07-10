@@ -132,7 +132,7 @@ const LoadingScreen: React.FC<{ onComplete: () => void }> = ({
       <div className="max-w-md mx-auto">
         <div className="w-full bg-gray-200 rounded-full h-2">
           <div
-            className="h-2 rounded-full animate-pulse transition-all duration-300"
+            className="h-2 rounded-full animate-loading-bar transition-all duration-300"
             style={{
               background:
                 'linear-gradient(to right, #f15379 0%, #e28f43 50%, #914ae8 100%)',

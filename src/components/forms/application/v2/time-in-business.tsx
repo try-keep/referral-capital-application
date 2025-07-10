@@ -54,8 +54,7 @@ export default function TimeInBusiness() {
 
   return (
     <ApplicationStepWrapper
-      title="How much funding do you need?"
-      description="Select the amount that best fits your business needs"
+      title="How long has your business been operating?"
       onNext={handleNext}
       canGoNext={!!canGoNext}
       isSubmitting={isNavigating}
