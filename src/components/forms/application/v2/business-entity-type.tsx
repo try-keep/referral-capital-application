@@ -11,7 +11,7 @@ const entityTypeOptions = [
   { value: 'Partnership', label: 'Partnership' },
   { value: 'Corporation', label: 'Corporation' },
   { value: 'Cooperative', label: 'Cooperative' },
-  { value: 'Not for profit corporation', label: 'Not for profit corporation' },
+  { value: 'Not-for-Profit Corporation', label: 'Not for profit corporation' },
   { value: 'Other', label: 'Other' },
 ];
 
