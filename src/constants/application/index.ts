@@ -39,12 +39,73 @@ export const APPLICATION_STEPS: ApplicationStep[] = [
     requiredFields: ['tierResult'],
   },
   {
+    id: 'business-information',
+    label: 'Business Information',
+    description: 'Business Information',
+    requiredFields: ['businessName', 'businessIndustry'],
+  },
+  {
+    id: 'business-address',
+    label: 'Business Address & Contact Information',
+    description: 'Business Address & Contact Information',
+    requiredFields: [],
+  },
+  {
+    id: 'business-entity-type',
+    label: 'Business Entity Type',
+    description: 'What is your business entity type?',
+    requiredFields: ['entityType'],
+  },
+  {
+    id: 'number-of-employees',
+    label: 'Number of Employees',
+    description: 'How many employees does your business have?',
+    requiredFields: ['numberOfEmployees'],
+  },
+  {
+    id: 'funding-timeline',
+    label: 'Funding Timeline',
+    description: 'When do you need the funding?',
+    requiredFields: ['fundingTimeline'],
+  },
+  {
+    id: 'funding-purpose',
+    label: 'Funding Purpose',
+    description: 'What is the primary purpose for this funding?',
+    requiredFields: ['fundingPurpose'],
+  },
+  {
+    id: 'type-of-funding',
+    label: 'Type of Funding Requested',
+    description: 'What type of funding are you requesting?',
+    requiredFields: ['typeOfFunding'],
+  },
+  {
+    id: 'existing-loans',
+    label: 'Existing Business Loans',
+    description: 'Do you have any existing business loans?',
+    requiredFields: ['hasExistingLoans', 'existingLoans'],
+  },
+  {
+    id: 'business-ownership',
+    label: 'Business Ownership & Authorization',
+    description:
+      'Are you an owner of the business, or are you authorized to secure capital on its behalf?',
+    requiredFields: ['owns_more_than_50pct', 'isBusinessOwner'],
+  },
+  {
+    id: 'bank-account-connection',
+    label: 'Bank Account Connection',
+    description: 'Connect your business bank account',
+    requiredFields: [],
+  },
+  {
     id: 'submit',
     label: 'Review & Submit',
     description: 'Review & Submit Your Application',
     requiredFields: ['submittedAt'],
   },
-] as const;
+];
 
 export interface ApplicationStepGroup {
   title: string;
@@ -64,7 +125,19 @@ export const APPLICATION_STEP_GROUPS: ApplicationStepGroup[] = [
   },
   {
     title: 'Business Info',
-    stepIds: ['submit'],
+    stepIds: [
+      'business-information',
+      'business-address',
+      'business-entity-type',
+      'number-of-employees',
+      'funding-timeline',
+      'funding-purpose',
+      'type-of-funding',
+      'existing-loans',
+      'business-ownership',
+      'bank-account-connection',
+      'submit',
+    ],
   },
 ];
 
