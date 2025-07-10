@@ -151,79 +151,30 @@ const industryCategories = [
   },
 ];
 
-const getAllIndustries = () => {
-  const allIndustries: {
-    category: string;
-    industry: string;
-    fullName: string;
-  }[] = [];
-  industryCategories.forEach((cat) => {
-    cat.industries.forEach((industry) => {
-      allIndustries.push({
-        category: cat.category,
-        industry,
-        fullName: `${cat.category} - ${industry}`,
-      });
-    });
-  });
-  return allIndustries;
-};
+interface BusinessIndustrySearchProps {
+  value: string;
+  onChange: (value: string) => void;
+  onEnterPress: () => void;
+}
 
-const allIndustries = getAllIndustries();
-
-const BusinessInformation = () => {
-  const { formData, saveFormData, isStepCompleted, moveForward, isNavigating } =
-    useApplicationStep('business-information');
-
-  const businessNameRef = useRef<HTMLInputElement>(null);
+const BusinessIndustrySearch: React.FC<BusinessIndustrySearchProps> = ({
+  value,
+  onChange,
+  onEnterPress,
+}) => {
   const industryRef = useRef<HTMLInputElement>(null);
   const industryContainerRef = useRef<HTMLDivElement>(null);
 
-  const [industrySearch, setIndustrySearch] = useState('');
-  const [activeDropdown, setActiveDropdown] = useState<'industry' | null>(null);
+  const [activeDropdown, setActiveDropdown] = useState<boolean>(false);
   const [highlightedIndex, setHighlightedIndex] = useState(0);
 
-  const [localFormData, setLocalFormData] = useState<FormData>({
-    businessName: '',
-    businessIndustry: '',
-  });
-
-  // Initialize form data
-  useEffect(() => {
-    const initialData = {
-      businessName: formData.businessName || '',
-      businessIndustry: formData.businessIndustry || '',
-    };
-    setLocalFormData(initialData);
-  }, [formData]);
-
-  // Focus on Business name input
-  useEffect(() => {
-    if (businessNameRef.current) {
-      businessNameRef.current.focus();
-    }
-  }, []);
-
-  // Set industry search from current value
-  useEffect(() => {
-    if (formData.businessIndustry) {
-      setIndustrySearch(formData.businessIndustry);
-    }
-  }, [formData.businessIndustry]);
-
-  const handleInputChange = (field: string, value: string) => {
-    const updatedData = { ...localFormData, [field]: value };
-    setLocalFormData(updatedData);
-    saveFormData(updatedData);
-  };
-
   const getFilteredCategories = () => {
-    if (!industrySearch.trim()) {
+    if (!value.trim()) {
       return industryCategories;
     }
 
-    const searchTerm = industrySearch.toLowerCase();
-    const filteredCategories = industryCategories
+    const searchTerm = value.toLowerCase();
+    return industryCategories
       .map((category) => ({
         ...category,
         industries: category.industries.filter(
@@ -233,13 +184,10 @@ const BusinessInformation = () => {
         ),
       }))
       .filter((category) => category.industries.length > 0);
-
-    return filteredCategories;
   };
 
   const filteredCategories = getFilteredCategories();
 
-  // Get flat list of selectable items for keyboard navigation
   const getSelectableItems = () => {
     const items: string[] = [];
     filteredCategories.forEach((category) => {
@@ -252,35 +200,17 @@ const BusinessInformation = () => {
 
   const selectableItems = getSelectableItems();
 
-  const handleKeyDown = (e: React.KeyboardEvent, field: string) => {
+  const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter') {
       e.preventDefault();
-
-      // Move to next field or trigger onEnterPress
-      switch (field) {
-        case 'businessName':
-          industryRef.current?.focus();
-          setActiveDropdown('industry');
-          break;
-        case 'industry':
-          if (activeDropdown === 'industry' && selectableItems.length > 0) {
-            handleIndustrySelect(selectableItems[highlightedIndex]);
-          }
-          break;
+      if (activeDropdown && selectableItems.length > 0) {
+        handleIndustrySelect(selectableItems[highlightedIndex]);
       }
-    }
-
-    // Handle dropdown navigation
-    if (field === 'industry') {
-      handleDropdownKeyDown(e);
-    }
-  };
-
-  const handleDropdownKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'ArrowDown') {
+      onEnterPress();
+    } else if (e.key === 'ArrowDown') {
       e.preventDefault();
       if (!activeDropdown) {
-        setActiveDropdown('industry');
+        setActiveDropdown(true);
         setHighlightedIndex(0);
       } else {
         setHighlightedIndex((prev) =>
@@ -294,15 +224,14 @@ const BusinessInformation = () => {
       }
     } else if (e.key === 'Escape') {
       e.preventDefault();
-      setActiveDropdown(null);
+      setActiveDropdown(false);
       setHighlightedIndex(0);
     }
   };
 
   const handleIndustrySelect = (industryValue: string) => {
-    handleInputChange('businessIndustry', industryValue);
-    setIndustrySearch(industryValue);
-    setActiveDropdown(null);
+    onChange(industryValue);
+    setActiveDropdown(false);
     setHighlightedIndex(0);
   };
 
@@ -315,10 +244,8 @@ const BusinessInformation = () => {
   const handleIndustryInputChange = (
     e: React.ChangeEvent<HTMLInputElement>
   ) => {
-    const value = e.target.value;
-    setIndustrySearch(value);
-    handleInputChange('businessIndustry', value);
-    setActiveDropdown('industry');
+    onChange(e.target.value);
+    setActiveDropdown(true);
     setHighlightedIndex(0);
   };
 
@@ -328,16 +255,131 @@ const BusinessInformation = () => {
         industryContainerRef.current &&
         !industryContainerRef.current.contains(document.activeElement)
       ) {
-        setActiveDropdown(null);
+        setActiveDropdown(false);
         setHighlightedIndex(0);
       }
     }, 100);
   };
 
   const handleIndustryFocus = () => {
-    setActiveDropdown('industry');
+    setActiveDropdown(true);
     setHighlightedIndex(0);
   };
+
+  return (
+    <div ref={industryContainerRef} className="space-y-4">
+      <div className="flex items-center space-x-2 mb-4">
+        <Search className="h-5 w-5 text-green-600" />
+        <h3 className="text-lg font-semibold text-gray-800">
+          Business Industry
+        </h3>
+        <div className="inline-flex items-center space-x-1 bg-green-50 text-green-700 px-2 py-1 rounded text-xs font-medium">
+          <span>Required</span>
+        </div>
+      </div>
+
+      <div className="relative">
+        <input
+          ref={industryRef}
+          type="text"
+          value={value}
+          onChange={handleIndustryInputChange}
+          onFocus={handleIndustryFocus}
+          onBlur={handleIndustryBlur}
+          onKeyDown={handleKeyDown}
+          placeholder="Search industries..."
+          className="w-full p-3 text-lg border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition-all duration-200 pr-10"
+        />
+        <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400 pointer-events-none" />
+
+        {activeDropdown && (
+          <div className="absolute z-[9999] w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-80 overflow-hidden">
+            <div className="bg-gray-100 px-4 py-3 border-b border-gray-200 flex items-center justify-between">
+              <span className="text-gray-700 font-medium">
+                Search or select your industry
+              </span>
+              <ChevronUp className="h-4 w-4 text-gray-500" />
+            </div>
+
+            <div className="max-h-64 overflow-y-auto">
+              {filteredCategories.map((category) => (
+                <div key={category.category}>
+                  <div className="bg-gray-50 px-4 py-2 border-b border-gray-100">
+                    <h4 className="font-semibold text-gray-800 text-sm">
+                      {category.category}
+                    </h4>
+                  </div>
+
+                  {category.industries.map((industry) => {
+                    const fullIndustryName = `${category.category} - ${industry}`;
+                    const isHighlighted = isItemHighlighted(
+                      category.category,
+                      industry
+                    );
+
+                    return (
+                      <button
+                        key={fullIndustryName}
+                        onClick={() => handleIndustrySelect(fullIndustryName)}
+                        className={`w-full px-4 py-3 text-left transition-colors duration-150 border-b border-gray-50 last:border-b-0 ${
+                          isHighlighted
+                            ? 'bg-blue-500 text-white'
+                            : 'hover:bg-blue-50 text-gray-700'
+                        }`}
+                      >
+                        <span className="text-sm">{industry}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              ))}
+
+              {filteredCategories.length === 0 && (
+                <div className="px-4 py-6 text-center text-gray-500">
+                  <Search className="h-8 w-8 mx-auto mb-2 text-gray-300" />
+                  <p>No industries found</p>
+                  <p className="text-xs mt-1">Try a different search term</p>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
+const BusinessInformation = () => {
+  const { formData, saveFormData, isStepCompleted, moveForward, isNavigating } =
+    useApplicationStep('business-information');
+
+  const businessNameRef = useRef<HTMLInputElement>(null);
+
+  const [localFormData, setLocalFormData] = useState<FormData>({
+    businessName: '',
+    businessIndustry: '',
+  });
+
+  useEffect(() => {
+    const initialData = {
+      businessName: formData.businessName || '',
+      businessIndustry: formData.businessIndustry || '',
+    };
+    setLocalFormData(initialData);
+  }, [formData]);
+
+  useEffect(() => {
+    if (businessNameRef.current) {
+      businessNameRef.current.focus();
+    }
+  }, []);
+
+  const handleInputChange = (field: string, value: string) => {
+    const updatedData = { ...localFormData, [field]: value };
+    setLocalFormData(updatedData);
+    saveFormData(updatedData);
+  };
+
   const handleNext = async () => {
     try {
       await moveForward(localFormData);
@@ -356,7 +398,6 @@ const BusinessInformation = () => {
       isSubmitting={isNavigating}
       stepId="business-information"
     >
-      {/* Business Name Section */}
       <div className="space-y-4">
         <div className="flex items-center space-x-2 mb-4">
           <Building2 className="h-5 w-5 text-blue-600" />
@@ -370,9 +411,28 @@ const BusinessInformation = () => {
           <input
             ref={businessNameRef}
             type="text"
-            value={formData.businessName}
+            value={localFormData.businessName}
             onChange={(e) => handleInputChange('businessName', e.target.value)}
-            onKeyDown={(e) => handleKeyDown(e, 'businessName')}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') {
+                e.preventDefault();
+                // Find the next input element and focus it
+                const form = e.currentTarget.closest('form');
+                if (form) {
+                  const focusable = form.querySelectorAll(
+                    'input, button, select, textarea'
+                  );
+                  const index = Array.prototype.indexOf.call(
+                    focusable,
+                    e.currentTarget
+                  );
+                  if (index > -1 && index + 1 < focusable.length) {
+                    const nextElement = focusable[index + 1] as HTMLElement;
+                    nextElement.focus();
+                  }
+                }
+              }
+            }}
             placeholder="Your Business Name Inc."
             required={true}
             className="w-full p-3 text-lg border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition-all duration-200"
@@ -380,90 +440,11 @@ const BusinessInformation = () => {
         </div>
       </div>
 
-      {/* Business Industry Section */}
-      <div ref={industryContainerRef} className="space-y-4">
-        <div className="flex items-center space-x-2 mb-4">
-          <Search className="h-5 w-5 text-green-600" />
-          <h3 className="text-lg font-semibold text-gray-800">
-            Business Industry
-          </h3>
-          <div className="inline-flex items-center space-x-1 bg-green-50 text-green-700 px-2 py-1 rounded text-xs font-medium">
-            <span>Required</span>
-          </div>
-        </div>
-
-        <div className="relative">
-          <input
-            ref={industryRef}
-            type="text"
-            value={industrySearch}
-            onChange={handleIndustryInputChange}
-            onFocus={handleIndustryFocus}
-            onBlur={handleIndustryBlur}
-            onKeyDown={(e) => handleKeyDown(e, 'industry')}
-            placeholder="Search industries..."
-            className="w-full p-3 text-lg border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition-all duration-200 pr-10"
-          />
-          <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400 pointer-events-none" />
-
-          {activeDropdown === 'industry' && (
-            <div className="absolute z-[9999] w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-80 overflow-hidden">
-              {/* Header */}
-              <div className="bg-gray-100 px-4 py-3 border-b border-gray-200 flex items-center justify-between">
-                <span className="text-gray-700 font-medium">
-                  Search or select your industry
-                </span>
-                <ChevronUp className="h-4 w-4 text-gray-500" />
-              </div>
-
-              {/* Scrollable Content */}
-              <div className="max-h-64 overflow-y-auto">
-                {filteredCategories.map((category, categoryIndex) => (
-                  <div key={category.category}>
-                    {/* Category Header */}
-                    <div className="bg-gray-50 px-4 py-2 border-b border-gray-100">
-                      <h4 className="font-semibold text-gray-800 text-sm">
-                        {category.category}
-                      </h4>
-                    </div>
-
-                    {/* Category Items */}
-                    {category.industries.map((industry, industryIndex) => {
-                      const fullIndustryName = `${category.category} - ${industry}`;
-                      const isHighlighted = isItemHighlighted(
-                        category.category,
-                        industry
-                      );
-
-                      return (
-                        <button
-                          key={`${category.category}-${industry}`}
-                          onClick={() => handleIndustrySelect(fullIndustryName)}
-                          className={`w-full px-4 py-3 text-left transition-colors duration-150 border-b border-gray-50 last:border-b-0 ${
-                            isHighlighted
-                              ? 'bg-blue-500 text-white'
-                              : 'hover:bg-blue-50 text-gray-700'
-                          }`}
-                        >
-                          <span className="text-sm">{industry}</span>
-                        </button>
-                      );
-                    })}
-                  </div>
-                ))}
-
-                {filteredCategories.length === 0 && (
-                  <div className="px-4 py-6 text-center text-gray-500">
-                    <Search className="h-8 w-8 mx-auto mb-2 text-gray-300" />
-                    <p>No industries found</p>
-                    <p className="text-xs mt-1">Try a different search term</p>
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
-        </div>
-      </div>
+      <BusinessIndustrySearch
+        value={localFormData.businessIndustry}
+        onChange={(value) => handleInputChange('businessIndustry', value)}
+        onEnterPress={handleNext}
+      />
     </ApplicationStepWrapper>
   );
 };
