@@ -44,3 +44,15 @@ body {
     @apply bg-gray-200 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-300 transition-colors duration-200 font-medium;
   }
 }
+/* Custom loading animation for the LoadingScreen component */
+@keyframes loading-bar {
+  0% {
+    width: 0%;
+  }
+  100% {
+    width: 100%;
+  }
+}
+.animate-loading-bar {
+  animation: loading-bar 5s ease-in-out forwards;
+}
