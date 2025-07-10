@@ -36,7 +36,9 @@ const VerifySubmitScreen: React.FC<VerifySubmitScreenProps> = ({
   const formatDate = (dateString: string) => {
     if (!dateString) return '';
     try {
-      const date = new Date(dateString.replace(/\//g, '-'));
+      // Parse the date string directly to avoid timezone issues
+      const [year, month, day] = dateString.split('-');
+      const date = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
       return date.toLocaleDateString('en-US', {
         year: 'numeric',
         month: 'long',
