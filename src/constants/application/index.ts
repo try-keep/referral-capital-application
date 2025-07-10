@@ -78,7 +78,7 @@ export const APPLICATION_STEPS: ApplicationStep[] = [
     id: 'type-of-funding',
     label: 'Type of Funding Requested',
     description: 'What type of funding are you requesting?',
-    requiredFields: ['typeOfFunding'],
+    requiredFields: ['loanType'],
   },
   {
     id: 'existing-loans',

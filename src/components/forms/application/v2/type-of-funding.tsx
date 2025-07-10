@@ -17,12 +17,12 @@ const TypeOfFunding = () => {
     useApplicationStep('type-of-funding');
 
   const [localFormData, setLocalFormData] = useState<FormData>({
-    typeOfFunding: '',
+    loanType: '',
   });
 
   useEffect(() => {
     setLocalFormData({
-      typeOfFunding: formData.typeOfFunding || '',
+      loanType: formData.typeOfFunding || '',
     });
   }, [formData]);
 
