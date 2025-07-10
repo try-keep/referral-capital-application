@@ -23,8 +23,7 @@ const BusinessAddress = () => {
 
   return (
     <ApplicationStepWrapper
-      title="Business Address"
-      description="Business Address"
+      title="Business Address & Contact Information"
       onNext={handleNext}
       canGoNext={canGoNext}
       isSubmitting={isNavigating}

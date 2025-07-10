@@ -35,7 +35,7 @@ const FundingTimeline = () => {
     saveFormData(updatedData);
   };
 
-  const canGoNext = isStepCompleted('funding-timline') && !isNavigating;
+  const canGoNext = isStepCompleted('funding-timeline') && !isNavigating;
   const handleNext = async () => {
     try {
       await moveForward(localFormData);
@@ -46,8 +46,7 @@ const FundingTimeline = () => {
 
   return (
     <ApplicationStepWrapper
-      title="Funding Timeline"
-      description="When do you need the funding?"
+      title="When do you need the funding?"
       onNext={handleNext}
       canGoNext={canGoNext}
       isSubmitting={isNavigating}

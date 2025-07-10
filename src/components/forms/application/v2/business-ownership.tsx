@@ -61,8 +61,7 @@ const BusinessAddress = () => {
 
   return (
     <ApplicationStepWrapper
-      title="Business Ownership & Authorization"
-      description="Are you an owner of the business, or are you authorized to secure capital on its behalf?"
+      title="Are you an owner of the business, or are you authorized to secure capital on its behalf?"
       onNext={handleNext}
       canGoNext={canGoNext}
       isSubmitting={isNavigating}

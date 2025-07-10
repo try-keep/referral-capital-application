@@ -49,8 +49,7 @@ const NumberOfEmployees = () => {
 
   return (
     <ApplicationStepWrapper
-      title="Number of Employees"
-      description="How many employees does your business have?"
+      title="How many employees does your business have?"
       onNext={handleNext}
       canGoNext={canGoNext}
       isSubmitting={isNavigating}

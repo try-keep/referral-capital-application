@@ -43,8 +43,7 @@ const TypeOfFunding = () => {
 
   return (
     <ApplicationStepWrapper
-      title="Type of Funding Requested"
-      description="What is the type of funding you are requesting?"
+      title="What is the type of funding you are requesting?"
       onNext={handleNext}
       canGoNext={canGoNext}
       isSubmitting={isNavigating}

@@ -48,8 +48,7 @@ const BusinessEntityType = () => {
 
   return (
     <ApplicationStepWrapper
-      title="Business Entity Type"
-      description="What is your business entity type?"
+      title="What is your business entity type?"
       onNext={handleNext}
       canGoNext={canGoNext}
       isSubmitting={isNavigating}

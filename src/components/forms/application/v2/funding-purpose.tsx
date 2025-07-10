@@ -55,8 +55,7 @@ const FundingPurpose = () => {
 
   return (
     <ApplicationStepWrapper
-      title="Funding Purpose"
-      description="What is the primary purpose for this funding?"
+      title="What is the primary purpose for this funding?"
       onNext={handleNext}
       canGoNext={canGoNext}
       isSubmitting={isNavigating}

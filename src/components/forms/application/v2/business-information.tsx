@@ -351,7 +351,6 @@ const BusinessInformation = () => {
   return (
     <ApplicationStepWrapper
       title="Business Information"
-     
       onNext={handleNext}
       canGoNext={canGoNext}
       isSubmitting={isNavigating}
