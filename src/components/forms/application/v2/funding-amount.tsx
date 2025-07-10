@@ -6,6 +6,8 @@ import ApplicationStepWrapper from './ApplicationStepWrapper';
 import { useApplicationStep } from '@/contexts/';
 import CardWithRadio from '../../fields/CardWithRadio';
 
+const CURRENT_STEP_ID = 'funding-amount';
+
 const fundingAmountOptions = [
   { value: '$5K–$10K', label: '$5K–$10K' },
   { value: '$10K–$25K', label: '$10K–$25K' },
@@ -19,7 +21,7 @@ const fundingAmountOptions = [
 
 const FundingAmount = () => {
   const { formData, saveFormData, isStepCompleted, moveForward, isNavigating } =
-    useApplicationStep('funding-amount');
+    useApplicationStep(CURRENT_STEP_ID);
 
   const [localFormData, setLocalFormData] = useState<FormData>({
     fundingAmount: '',
@@ -47,7 +49,7 @@ const FundingAmount = () => {
     }
   };
 
-  const canGoNext = isStepCompleted('funding-amount') && !isNavigating;
+  const canGoNext = isStepCompleted(CURRENT_STEP_ID) && !isNavigating;
 
   return (
     <ApplicationStepWrapper
@@ -56,7 +58,7 @@ const FundingAmount = () => {
       onNext={handleNext}
       canGoNext={canGoNext}
       isSubmitting={isNavigating}
-      stepId="funding-amount"
+      stepId={CURRENT_STEP_ID}
     >
       <CardWithRadio
         onChange={(value) => handleInputChange('fundingAmount', value)}

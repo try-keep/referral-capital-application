@@ -11,6 +11,7 @@ import {
 import ApplicationStepWrapper from './ApplicationStepWrapper';
 import { useApplicationStep } from '@/contexts';
 import { isDefined } from '@/utils';
+import { FormData } from '@/types';
 
 interface VerifySubmitScreenProps {
   onEditField?: (fieldId: string) => void;
@@ -35,7 +36,9 @@ const VerifySubmitScreen: React.FC<VerifySubmitScreenProps> = ({
   const formatDate = (dateString: string) => {
     if (!dateString) return '';
     try {
-      const date = new Date(dateString.replace(/\//g, '-'));
+      // Parse the date string directly to avoid timezone issues
+      const [year, month, day] = dateString.split('-');
+      const date = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
       return date.toLocaleDateString('en-US', {
         year: 'numeric',
         month: 'long',
@@ -46,21 +49,20 @@ const VerifySubmitScreen: React.FC<VerifySubmitScreenProps> = ({
     }
   };
 
-  const formatAddress = (addressJson: string) => {
-    if (!addressJson) return '';
+  const formatAddress = (data: FormData) => {
+    if (!data) return '';
     try {
-      const address = JSON.parse(addressJson);
+      const address = data;
       const parts = [
-        address.streetAddress,
-        address.apartment,
+        address.addressLine1,
+        address.addressLine2,
         address.city,
         address.province,
         address.postalCode,
-        address.country,
       ].filter(Boolean);
       return parts.join(', ');
     } catch {
-      return addressJson;
+      return 'Not specified';
     }
   };
 
@@ -234,7 +236,7 @@ const VerifySubmitScreen: React.FC<VerifySubmitScreenProps> = ({
                   Personal Address
                 </span>
                 <p className="text-gray-900">
-                  {formatAddress(formData.personalAddress) || 'Not specified'}
+                  {formatAddress(formData) || 'Not specified'}
                 </p>
               </div>
               <EditButton field="personalAddress" />
