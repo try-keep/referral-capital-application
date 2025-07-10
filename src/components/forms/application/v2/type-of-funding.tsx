@@ -7,9 +7,9 @@ import CardWithRadio from '../../fields/CardWithRadio';
 import { FormData } from '@/types';
 
 const fundingPurposeOptions = [
-  { value: 'A business loan', label: 'A business loan' },
-  { value: 'A line of credit', label: 'A line of credit' },
-  { value: 'Both', label: 'Both' },
+  { value: 'business-loan', label: 'A business loan' },
+  { value: 'line-of-credit', label: 'A line of credit' },
+  { value: 'both', label: 'Both' },
 ];
 
 const TypeOfFunding = () => {
