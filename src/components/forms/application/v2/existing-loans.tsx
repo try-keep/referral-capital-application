@@ -109,8 +109,8 @@ const ExistingLoans = () => {
 
   return (
     <ApplicationStepWrapper
-      title="Existing Business Loans"
-      description="Do you have any existing business loans?"
+      title="Do you have any existing business loans?`"
+      description="This helps us understand your current financial commitments"
       onNext={handleNext}
       canGoNext={canGoNext}
       isSubmitting={isNavigating}
