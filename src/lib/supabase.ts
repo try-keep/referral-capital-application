@@ -129,6 +129,13 @@ export interface ApplicationData {
   // Step 13: Additional Details
   business_address: string;
   business_phone: string;
+  business_address_line1?: string;
+  business_address_line2?: string;
+  business_address_city?: string;
+  business_address_province?: string;
+  business_address_postal_code?: string;
+  business_address_country?: string;
+
   website_url?: string;
   additional_info?: string;
 
