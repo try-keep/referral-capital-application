@@ -26,7 +26,7 @@ const TRUSTED_FLINKS_ORIGIN = new URL(
 ).origin;
 
 const BankAccountConnection = () => {
-  const { formData, saveFormData, isStepCompleted, moveForward, isNavigating } =
+  const { formData, saveFormData, moveForward, isNavigating } =
     useApplicationStep('bank-account-connection');
 
   const [localFormData, setLocalFormData] = useState<
@@ -44,6 +44,7 @@ const BankAccountConnection = () => {
       }>;
     }
   >({
+    ...formData,
     bankConnectionCompleted: formData.bankConnectionCompleted || false,
     bankConnectionMethod: (formData.bankConnectionMethod || '') as
       | 'flinks'
@@ -78,17 +79,15 @@ const BankAccountConnection = () => {
   const [applicationUploadId, setApplicationUploadId] = useState<string>('');
 
   // Check if bank connection is already completed
-  // Don't show completed state if we just finished uploading (prevents flash of success screen)
-  const [justUploaded, setJustUploaded] = useState(false);
   const isConnectionCompleted =
-    (localFormData.bankConnectionCompleted === 'true' ||
-      localFormData.bankConnectionCompleted === true) &&
-    !justUploaded;
+    localFormData.bankConnectionCompleted === 'true' ||
+    localFormData.bankConnectionCompleted === true;
 
   // Update local data when formData prop changes (for when user navigates back)
   useEffect(() => {
-    console.log('🔄 Step12Form - formData prop changed:', formData);
+    console.log('🔄 BankAccountConnection - formData prop changed:', formData);
     setLocalFormData({
+      ...formData,
       bankConnectionCompleted: formData.bankConnectionCompleted || false,
       bankConnectionMethod: (formData.bankConnectionMethod || '') as
         | 'flinks'
@@ -100,7 +99,10 @@ const BankAccountConnection = () => {
     });
 
     // If connection is already completed, set status to success
-    if (formData.bankConnectionCompleted === 'true') {
+    if (
+      formData.bankConnectionCompleted === 'true' ||
+      formData.bankConnectionCompleted === true
+    ) {
       setConnectionStatus('success');
     }
 
@@ -172,6 +174,11 @@ const BankAccountConnection = () => {
           institution,
           applicationUploadId: applicationUploadId,
         });
+
+        // Let the success state render for a moment before auto-navigation
+        setTimeout(() => {
+          // The success state will now be shown based on isConnectionCompleted
+        }, 100);
       }
 
       if (eventStep === 'COMPONENT_CONSENT_INTRO') {
@@ -189,7 +196,12 @@ const BankAccountConnection = () => {
         window.removeEventListener('message', listener);
       };
     }
-  }, [localFormData, isConnectionCompleted]);
+  }, [
+    localFormData,
+    isConnectionCompleted,
+    applicationUploadId,
+    handleInputChange,
+  ]);
 
   // Handle file selection
   const handleFileSelect = (e: ChangeEvent<HTMLInputElement>) => {
@@ -268,7 +280,6 @@ const BankAccountConnection = () => {
     setUploadError('');
 
     try {
-      setJustUploaded(true); // Prevent success screen from showing
       const uploadPromises = uploadedFiles.map(async (file) => {
         const formData = new FormData();
         formData.append('file', file);
@@ -290,13 +301,16 @@ const BankAccountConnection = () => {
 
       const uploadedStatements = await Promise.all(uploadPromises);
 
-      // Save the bank statements to formData before proceeding
+      // Save the bank statements to formData and set connection status
       handleInputChange({
         bankConnectionCompleted: 'true',
         bankConnectionMethod: 'manual' as 'manual',
         bankStatements: uploadedStatements,
         applicationUploadId: applicationUploadId,
       });
+
+      // Set connection status to success
+      setConnectionStatus('success');
     } catch (error) {
       console.error('Upload error:', error);
       setUploadError('Failed to upload files. Please try again.');
@@ -307,7 +321,21 @@ const BankAccountConnection = () => {
 
   // Handle method selection
   const handleMethodSelect = (method: 'flinks' | 'manual' | '') => {
-    handleInputChange({ bankConnectionMethod: method });
+    // Reset connection status when changing methods
+    if (method === '') {
+      setConnectionStatus('connecting');
+      hasHandledRedirect.current = false;
+      // Clear bank connection data when going back to selection
+      handleInputChange({
+        bankConnectionMethod: method,
+        bankConnectionCompleted: false,
+        loginId: '',
+        institution: '',
+        bankStatements: [],
+      });
+    } else {
+      handleInputChange({ bankConnectionMethod: method });
+    }
   };
 
   const flinksTags: Record<string, string> = {
@@ -323,10 +351,9 @@ const BankAccountConnection = () => {
   // Check if NEXT_PUBLIC_SKIP_FLINKS is explicitly set to 'true'
   const skipFlinks = process.env.NEXT_PUBLIC_SKIP_FLINKS === 'true';
 
-  const canGoNext =
-    isStepCompleted('bank-account-connection') &&
-    !isNavigating &&
-    connectionStatus === 'success';
+  const canGoNext = Boolean(
+    isConnectionCompleted && localFormData.bankConnectionMethod && !isNavigating
+  );
 
   const handleNext = async () => {
     try {
@@ -337,7 +364,7 @@ const BankAccountConnection = () => {
   };
 
   const renderContent = () => {
-    if (connectionStatus === 'success') {
+    if (isConnectionCompleted) {
       return (
         <div className="text-center space-y-8">
           <div className="flex justify-center">
@@ -351,9 +378,9 @@ const BankAccountConnection = () => {
               Bank Account Connected Successfully!
             </h2>
             <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-              Your bank account has been securely connected. This helps us
-              verify your business financial information and may improve your
-              loan terms and approval speed.
+              {localFormData.bankConnectionMethod === 'manual'
+                ? 'Your bank statements have been successfully uploaded and are ready for processing.'
+                : 'Your business bank account has been securely connected. This helps us verify your business financial information and may improve your loan terms and approval speed.'}
             </p>
           </div>
 
@@ -392,28 +419,6 @@ const BankAccountConnection = () => {
             Upload Bank Statements
           </h2>
           <div className="space-y-6">
-            <div className="flex items-center mb-6">
-              <button
-                onClick={() => handleMethodSelect('')}
-                className="text-blue-600 hover:text-blue-700 flex items-center"
-              >
-                <svg
-                  className="w-5 h-5 mr-1"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M15 19l-7-7 7-7"
-                  />
-                </svg>
-                Back
-              </button>
-            </div>
-
             <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
               <div className="flex items-start space-x-3">
                 <svg
@@ -540,7 +545,9 @@ const BankAccountConnection = () => {
                     onChange={handleFileSelect}
                   />
                   <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center hover:border-gray-400 transition-colors cursor-pointer">
-                    <p className="text-sm text-gray-600">+ Add more files</p>
+                    <p className="text-sm text-gray-600">
+                      + Add more files (you have {uploadedFiles.length}/6)
+                    </p>
                   </div>
                 </label>
               </div>
@@ -561,28 +568,26 @@ const BankAccountConnection = () => {
             >
               {isUploading ? 'Uploading...' : 'Submit documents'}
             </button>
-
-            {/* Continue button (disabled until files are uploaded) */}
+          </div>
+          <div className="text-center mt-4">
             <button
-              disabled
-              className="w-full bg-gray-200 text-gray-400 py-3 px-6 rounded-lg font-semibold cursor-not-allowed"
+              onClick={() => handleMethodSelect('')}
+              className="text-blue-600 hover:text-blue-800 underline text-sm"
             >
-              Continue
+              Connect to bank instead
             </button>
           </div>
-          <button
-            onClick={() => handleMethodSelect('')}
-            className="text-blue-600 hover:text-blue-800 underline text-sm mt-4"
-          >
-            Connect to bank instead
-          </button>
         </div>
       );
     }
 
     if (localFormData.bankConnectionMethod === 'flinks') {
       return (
-        <>
+        <div>
+          <h2 className="text-2xl font-bold text-gray-800 mb-4">
+            Connect Your Bank Account
+          </h2>
+
           <div className="mb-8" style={{ maxHeight: '600px' }}>
             {isLoading && (
               <div
@@ -602,6 +607,7 @@ const BankAccountConnection = () => {
               title="Bank Connection"
             />
           </div>
+
           {/* Security note */}
           <div className="mt-1 p-4 bg-gray-50 rounded-lg">
             <div className="flex items-start space-x-3">
@@ -627,20 +633,21 @@ const BankAccountConnection = () => {
               </div>
             </div>
           </div>
-          <div className="text-center">
+
+          <div className="text-center mt-4">
             <button
               onClick={() => handleMethodSelect('')}
-              className="text-gray-600 hover:text-gray-800 text-m underline transition-colors duration-200"
+              className="text-gray-600 hover:text-gray-800 text-sm underline transition-colors duration-200"
             >
-              Go back to select another method
+              Upload bank statements instead
             </button>
           </div>
-        </>
+        </div>
       );
     }
 
     return (
-      <>
+      <div className="space-y-8">
         <div className="bg-white border-2 border-gray-300 rounded-2xl p-8 max-w-3xl mx-auto">
           <div className="space-y-6">
             <h3 className="text-xl font-semibold text-gray-800 text-center">
@@ -710,7 +717,7 @@ const BankAccountConnection = () => {
             </div>
           </div>
         </div>
-      </>
+      </div>
     );
   };
 
@@ -727,9 +734,5 @@ const BankAccountConnection = () => {
     </ApplicationStepWrapper>
   );
 };
-
-const FlinksConnection = () => {};
-
-const UploadBankStatements = () => {};
 
 export default BankAccountConnection;
