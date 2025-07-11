@@ -169,7 +169,7 @@ export const APPLICATION_STEPS: Record<StepId, ApplicationStep> = {
     id: 'bank-account-connection',
     label: 'Bank Account Connection',
     description: 'Connect your business bank account',
-    requiredFields: [],
+    requiredFields: ['bankConnectionCompleted', 'bankConnectionMethod'],
   },
   submit: {
     id: 'submit',
