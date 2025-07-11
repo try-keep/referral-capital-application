@@ -121,7 +121,7 @@ export const APPLICATION_STEPS: ApplicationStep[] = [
     id: 'bank-account-connection',
     label: 'Bank Account Connection',
     description: 'Connect your business bank account',
-    requiredFields: [],
+    requiredFields: ['bankConnectionCompleted', 'bankConnectionMethod'],
   },
   {
     id: 'submit',
