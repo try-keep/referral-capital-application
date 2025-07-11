@@ -13,7 +13,7 @@ function canSearchAddress(address: string) {
  * @returns lookupAddress: function to lookup an address
  * @returns cleanupSuggestions: function to cleanup the address suggestions
  */
-export function useAddressAutoComplete() {
+export function useAddressAutoComplete({ country }: { country?: 'CA' }) {
   const [addressSuggestions, setAddressSuggestions] = useState<
     GeoapifyFeature[]
   >([]);
@@ -31,7 +31,7 @@ export function useAddressAutoComplete() {
       timeoutRef.current = setTimeout(async () => {
         try {
           setIsSearching(true);
-          const suggestions = await searchAddresses(searchTerm);
+          const suggestions = await searchAddresses(searchTerm, country);
           setAddressSuggestions(suggestions);
         } catch (error) {
           console.error('Address search error:', error);
@@ -50,7 +50,7 @@ export function useAddressAutoComplete() {
         clearTimeout(timeoutRef.current);
       }
     };
-  }, [searchTerm]);
+  }, [searchTerm, country]);
 
   const lookupAddress = useCallback((address: string) => {
     setSearchTerm(address);
