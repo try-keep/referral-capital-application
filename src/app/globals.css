@@ -18,7 +18,12 @@ body {
 /* Custom gradient for Keep Capital branding */
 @layer utilities {
   .gradient-yellow-pink-purple {
-    background: linear-gradient(135deg, #fbbf24 0%, #ec4899 50%, #8b5cf6 100%);
+    background: linear-gradient(
+      to right,
+      #f15379 0%,
+      #e28f43 50%,
+      #914ae8 100%
+    );
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
@@ -32,16 +37,57 @@ body {
     -ms-overflow-style: none;
     scrollbar-width: none;
   }
+  .gradient-red-orange {
+    background: linear-gradient(45deg, #f15379 0%, #e28f43 100%);
+  }
+
+  .bg-inverse {
+    background-color: #181c20;
+  }
+
+  .bg-soft {
+    background-color: #edeff1;
+  }
+
+  .bg-disabled {
+    background-color: #f5f8f8;
+  }
+
+  .text-primary {
+    color: #181c20;
+  }
+  .text-secondary {
+    color: #616a72;
+  }
+  .border-soft {
+    border-color: #edeff1;
+  }
+  .neutral-500 {
+    color: #616a72;
+  }
+  .bg-success {
+    background-color: #eefbf4;
+  }
+  .text-success {
+    color: #12533a;
+  }
 }
 
 /* Button styles */
 @layer components {
   .btn-primary {
-    @apply bg-gray-900 text-white px-4 py-2 rounded-lg hover:bg-black transition-colors duration-200 font-medium;
+    @apply bg-inverse text-white px-4 py-2 rounded-xl font-medium;
   }
 
   .btn-secondary {
-    @apply bg-gray-200 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-300 transition-colors duration-200 font-medium;
+    @apply bg-soft text-gray-700 px-4 py-2 rounded-xl hover:bg-gray-300 transition-colors duration-200 font-medium;
+  }
+
+  .card-with-radio {
+    @apply bg-disabled p-4 rounded-[16px] text-left transition-all duration-200 hover:shadow-lg text-primary hover:bg-inverse hover:text-white;
+  }
+  .card-with-radio-selected {
+    @apply bg-inverse p-4 rounded-[16px] text-left transition-all duration-200 hover:shadow-lg text-white;
   }
 }
 /* Custom loading animation for the LoadingScreen component */

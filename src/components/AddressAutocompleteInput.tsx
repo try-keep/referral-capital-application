@@ -20,6 +20,7 @@ type AddressAutoCompleteProps = AdressAutocompleteInputProps & {
   address: string;
   onSuggestionSelected: (address: AddressSuggestion) => void;
   onAddressChange: (addressLine1: string) => void;
+  country?: 'CA';
 };
 
 /**
@@ -38,7 +39,7 @@ export function AddressAutocompleteInput({
   ...props
 }: AddressAutoCompleteProps) {
   const { suggestions, isSearching, lookupAddress, cleanupSuggestions } =
-    useAddressAutoComplete();
+    useAddressAutoComplete({ country: props.country });
 
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [addressSelected, setAddressSelected] = useState(false);

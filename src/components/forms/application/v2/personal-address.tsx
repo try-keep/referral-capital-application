@@ -8,6 +8,7 @@ import {
   AddressAutocompleteInput,
   AddressSuggestion,
 } from '@/components/AddressAutocompleteInput';
+import Input from '@/components/Input';
 
 const CURRENT_STEP_ID = 'personal-address';
 
@@ -71,7 +72,7 @@ export default function PersonalAddress() {
 
   return (
     <ApplicationStepWrapper
-      title="What is your personal address?"
+      title="What is your address?"
       onNext={handleNext}
       canGoNext={!!canGoNext}
       isSubmitting={isNavigating}
@@ -80,10 +81,10 @@ export default function PersonalAddress() {
         moveBackward();
       }}
     >
-      <div className="w-full mx-auto space-y-8">
+      <div className="w-full mx-auto space-y-4">
         {/* Header */}
-        <div className="mb-6">
-          <h3 className="text-xl font-bold text-gray-800 mt-2">
+        <div className="mb-2">
+          <h3 className="text-lg font-light text-primary">
             Address Information
           </h3>
         </div>
@@ -91,8 +92,8 @@ export default function PersonalAddress() {
         <div className="space-y-4">
           {/* Street Address */}
           <div className="relative">
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Street Address *
+            <label className="block text-sm font-thin text-secondary mb-2 uppercase">
+              Street Address
             </label>
             <AddressAutocompleteInput
               address={formData.addressLine1}
@@ -108,68 +109,41 @@ export default function PersonalAddress() {
             />
           </div>
           {/* Apartment/Suite */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Apartment, suite, etc. (Optional)
-            </label>
-            <input
-              type="text"
-              value={localFormData.addressLine2}
-              onChange={(e) =>
-                handleInputChange('addressLine2', e.target.value)
-              }
-              placeholder="e.g., Suite 100"
-              className="w-full p-3 text-lg border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition-all duration-200"
-            />
-          </div>
-          {/* City, Province, Postal Code Row */}
+          <Input
+            label="Apartment, suite, etc. (Optional)"
+            value={localFormData.addressLine2}
+            onChange={(value) => handleInputChange('addressLine2', value)}
+            type="text"
+            placeholder="e.g., Suite 100"
+          />
+
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {/* City */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                City *
-              </label>
-              <input
-                type="text"
-                value={localFormData.city}
-                onChange={(e) => handleInputChange('city', e.target.value)}
-                placeholder="e.g., Toronto"
-                required
-                className="w-full p-3 text-lg border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition-all duration-200"
-              />
-            </div>
+            <Input
+              label="City"
+              value={localFormData.city}
+              onChange={(value) => handleInputChange('city', value)}
+              type="text"
+              placeholder="e.g., Toronto"
+            />
 
             {/* Province/State */}
-            <div className="relative">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Province *
-              </label>
-              <input
-                type="text"
-                value={localFormData.province}
-                onChange={(e) => handleInputChange('province', e.target.value)}
-                placeholder="e.g., Ontario"
-                required
-                className="w-full p-3 text-lg border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition-all duration-200"
-              />
-            </div>
+            <Input
+              label="Province"
+              value={localFormData.province}
+              onChange={(value) => handleInputChange('province', value)}
+              type="text"
+              placeholder="e.g., Ontario"
+            />
 
             {/* Postal Code */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Postal Code *
-              </label>
-              <input
-                type="text"
-                value={localFormData.postalCode}
-                onChange={(e) =>
-                  handleInputChange('postalCode', e.target.value)
-                }
-                placeholder="e.g., M5A 1A1"
-                required
-                className="w-full p-3 text-lg border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition-all duration-200"
-              />
-            </div>
+            <Input
+              label="Postal Code"
+              value={localFormData.postalCode}
+              onChange={(value) => handleInputChange('postalCode', value)}
+              type="text"
+              placeholder="e.g., M5A 1A1"
+            />
           </div>
         </div>
       </div>

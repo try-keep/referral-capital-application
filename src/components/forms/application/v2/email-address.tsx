@@ -84,7 +84,7 @@ export default function EmailAddress() {
           type="email"
           value={localFormData.email}
           onChange={(e) => handleInputChange('email', e.target.value)}
-          placeholder="your@email.com"
+          placeholder="Enter work email"
           required
           className={`w-full p-4 text-lg border-2 rounded-lg focus:ring-2 focus:ring-blue-200 outline-none transition-all duration-200 ${
             emailError

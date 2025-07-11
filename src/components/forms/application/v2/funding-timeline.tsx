@@ -13,9 +13,16 @@ const fundingTimelineOptions = [
   { value: 'More than 30 days', label: 'More than 30 days' },
 ];
 
+const CURRENT_STEP_ID = 'funding-timeline';
 const FundingTimeline = () => {
-  const { formData, saveFormData, isStepCompleted, moveForward, isNavigating } =
-    useApplicationStep('funding-timeline');
+  const {
+    formData,
+    saveFormData,
+    isStepCompleted,
+    moveForward,
+    isNavigating,
+    moveBackward,
+  } = useApplicationStep(CURRENT_STEP_ID);
 
   const [localFormData, setLocalFormData] = useState<FormData>({
     fundingTimeline: '',
@@ -50,7 +57,10 @@ const FundingTimeline = () => {
       onNext={handleNext}
       canGoNext={canGoNext}
       isSubmitting={isNavigating}
-      stepId="funding-timeline"
+      stepId={CURRENT_STEP_ID}
+      onBack={() => {
+        moveBackward();
+      }}
     >
       <CardWithRadio
         onChange={(value) => handleInputChange('fundingTimeline', value)}

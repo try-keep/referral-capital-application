@@ -25,6 +25,8 @@ const TRUSTED_FLINKS_ORIGIN = new URL(
   process.env.NEXT_PUBLIC_FLINKS_IFRAME_URL || ''
 ).origin;
 
+const CURRENT_STEP_ID = 'bank-account-connection';
+
 const BankAccountConnection = () => {
   const { formData, saveFormData, moveForward, isNavigating } =
     useApplicationStep('bank-account-connection');
@@ -742,7 +744,7 @@ const BankAccountConnection = () => {
       onNext={handleNext}
       canGoNext={canGoNext}
       isSubmitting={isNavigating}
-      stepId="business-account-connection"
+      stepId={CURRENT_STEP_ID}
     >
       {renderContent()}
     </ApplicationStepWrapper>

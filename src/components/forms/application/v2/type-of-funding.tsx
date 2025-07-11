@@ -12,9 +12,16 @@ const fundingPurposeOptions = [
   { value: 'both', label: 'Both' },
 ];
 
+const CURRENT_STEP_ID = 'type-of-funding';
 const TypeOfFunding = () => {
-  const { formData, saveFormData, isStepCompleted, moveForward, isNavigating } =
-    useApplicationStep('type-of-funding');
+  const {
+    formData,
+    saveFormData,
+    isStepCompleted,
+    moveForward,
+    isNavigating,
+    moveBackward,
+  } = useApplicationStep(CURRENT_STEP_ID);
 
   const [localFormData, setLocalFormData] = useState<FormData>({
     loanType: '',
@@ -47,12 +54,15 @@ const TypeOfFunding = () => {
       onNext={handleNext}
       canGoNext={canGoNext}
       isSubmitting={isNavigating}
-      stepId="type-of-funding"
+      stepId={CURRENT_STEP_ID}
+      onBack={() => {
+        moveBackward();
+      }}
     >
       <CardWithRadio
         onChange={(value) => handleInputChange('typeOfFunding', value)}
         options={fundingPurposeOptions}
-        value={localFormData.fundingPurpose}
+        value={localFormData.loanType}
       />
     </ApplicationStepWrapper>
   );

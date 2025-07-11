@@ -15,9 +15,17 @@ const entityTypeOptions = [
   { value: 'Other', label: 'Other' },
 ];
 
+const CURRENT_STEP_ID = 'business-entity-type';
+
 const BusinessEntityType = () => {
-  const { formData, saveFormData, isStepCompleted, moveForward, isNavigating } =
-    useApplicationStep('business-entity-type');
+  const {
+    formData,
+    saveFormData,
+    isStepCompleted,
+    moveForward,
+    isNavigating,
+    moveBackward,
+  } = useApplicationStep(CURRENT_STEP_ID);
 
   const [localFormData, setLocalFormData] = useState<FormData>({
     entityType: '',
@@ -52,7 +60,10 @@ const BusinessEntityType = () => {
       onNext={handleNext}
       canGoNext={canGoNext}
       isSubmitting={isNavigating}
-      stepId="business-entity-type"
+      stepId={CURRENT_STEP_ID}
+      onBack={() => {
+        moveBackward();
+      }}
     >
       <CardWithRadio
         onChange={(value) => handleInputChange('entityType', value)}

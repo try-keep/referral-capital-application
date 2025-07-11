@@ -9,7 +9,10 @@ import React, {
 import { useRouter } from 'next/navigation';
 import {
   APPLICATION_V2_ROUTES_MAP,
-  APPLICATION_STEPS,
+  STEP_IDS,
+  getCurrentStepInfo,
+  getStep,
+  getCompletedSteps,
 } from '@/constants/application';
 import { FormData } from '@/types/form-data';
 import { ApplicationContextState, ApplicationStepId } from './types';
@@ -25,7 +28,6 @@ const ApplicationContext = createContext<ApplicationContextState | null>(null);
 // Provider props
 interface ApplicationContextProviderProps {
   children: ReactNode;
-  initialStepId?: ApplicationStepId;
   onStepChange?: (stepId: ApplicationStepId, data: FormData) => void;
   onComplete?: (data: FormData) => void;
 }
@@ -57,7 +59,7 @@ const saveToStorage = (data: FormData): void => {
 };
 
 const getStepRequiredFields = (stepId: ApplicationStepId): string[] => {
-  const step = APPLICATION_STEPS.find((s) => s.id === stepId);
+  const step = getCurrentStepInfo(stepId);
   return step?.requiredFields || [];
 };
 
@@ -71,16 +73,11 @@ const isStepValid = (stepId: ApplicationStepId, data: FormData): boolean => {
 
 export const ApplicationContextProvider: FC<
   ApplicationContextProviderProps
-> = ({
-  children,
-  initialStepId = APPLICATION_STEPS[0].id,
-  onStepChange,
-  onComplete,
-}) => {
+> = ({ children, onStepChange, onComplete }) => {
   const router = useRouter();
   const [formData, setFormData] = useState<FormData>({});
   const [currentStepId, setCurrentStepId] =
-    useState<ApplicationStepId>(initialStepId);
+    useState<ApplicationStepId>('funding-amount');
   const [isNavigating, setIsNavigating] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -93,9 +90,9 @@ export const ApplicationContextProvider: FC<
     // Set current step from saved data or initial
     if (
       savedData.currentStepId &&
-      APPLICATION_STEPS.some((s) => s.id === savedData.currentStepId)
+      STEP_IDS.includes(savedData.currentStepId as any)
     ) {
-      setCurrentStepId(savedData.currentStepId);
+      setCurrentStepId(savedData.currentStepId as ApplicationStepId);
     }
   }, []);
 
@@ -118,24 +115,14 @@ export const ApplicationContextProvider: FC<
     return isStepValid(stepId, formData);
   };
 
-  // Get current step information
-  const getCurrentStep = () => {
-    return APPLICATION_STEPS.find((s) => s.id === currentStepId);
-  };
-
-  // Get step index
-  const getStepIndex = (stepId: ApplicationStepId): number => {
-    return APPLICATION_STEPS.findIndex((s) => s.id === stepId);
-  };
-
   // Get total steps count
   const getTotalSteps = (): number => {
-    return APPLICATION_STEPS.length;
+    return STEP_IDS.length;
   };
 
   // Get completed steps count
   const getCompletedStepsCount = (): number => {
-    return APPLICATION_STEPS.filter((step) => isStepCompleted(step.id)).length;
+    return getCompletedSteps(formData).length;
   };
 
   // Navigation handlers
@@ -230,7 +217,7 @@ export const ApplicationContextProvider: FC<
       setIsNavigating(true);
 
       // Validate target step exists
-      if (!APPLICATION_STEPS.some((s) => s.id === targetStepId)) {
+      if (!STEP_IDS.includes(targetStepId)) {
         throw new Error(`Invalid step ID: ${targetStepId}`);
       }
 
@@ -317,12 +304,11 @@ export const ApplicationContextProvider: FC<
     moveToStep,
     saveFormData,
     clearFormData,
-    getCurrentStep,
-    getStepIndex,
     getTotalSteps,
     getCompletedStepsCount,
     submit,
     isLoading,
+    getStep: getCurrentStepInfo,
   };
 
   return (
@@ -351,14 +337,12 @@ export const useApplicationStep = (stepId: ApplicationStepId) => {
 
   const isCurrentStep = context.currentStepId === stepId;
   const isCompleted = context.isStepCompleted(stepId);
-  const stepIndex = context.getStepIndex(stepId);
-  const step = APPLICATION_STEPS.find((s) => s.id === stepId);
+  const step = getStep(stepId);
 
   return {
     ...context,
     isCurrentStep,
     isCompleted,
-    stepIndex,
     step,
     stepData: context.formData,
   };

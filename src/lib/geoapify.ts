@@ -31,7 +31,8 @@ export interface GeoapifyResponse {
 }
 
 export async function searchAddresses(
-  query: string
+  query: string,
+  country?: 'CA'
 ): Promise<GeoapifyFeature[]> {
   if (!query || query.trim().length < 3) {
     return [];
@@ -41,9 +42,17 @@ export async function searchAddresses(
     const requestOptions = {
       method: 'GET',
     };
+    const params = new URLSearchParams({
+      text: query,
+      apiKey: GEOAPIFY_API_KEY,
+      limit: '5',
+    });
+    if (country) {
+      params.append('filter', `countrycode:${country.toLowerCase()}`);
+    }
 
     const response = await fetch(
-      `https://api.geoapify.com/v1/geocode/autocomplete?text=${encodeURIComponent(query)}&apiKey=${GEOAPIFY_API_KEY}&limit=5`,
+      `https://api.geoapify.com/v1/geocode/autocomplete?${params.toString()}`,
       requestOptions
     );
 

@@ -5,15 +5,24 @@ import { Plus, X, Building2, DollarSign } from 'lucide-react';
 import { FormData } from '@/types';
 import ApplicationStepWrapper from './ApplicationStepWrapper';
 import { useApplicationStep } from '@/contexts/';
+import Input from '@/components/Input';
 
 interface Loan {
   lenderName: string;
   loanAmount: string;
 }
 
+const CURRENT_STEP_ID = 'existing-loans';
+
 const ExistingLoans = () => {
-  const { formData, saveFormData, isStepCompleted, moveForward, isNavigating } =
-    useApplicationStep('existing-loans');
+  const {
+    formData,
+    saveFormData,
+    isStepCompleted,
+    moveForward,
+    isNavigating,
+    moveBackward,
+  } = useApplicationStep(CURRENT_STEP_ID);
 
   const [localFormData, setLocalFormData] = useState<FormData>({
     hasExistingLoans: '',
@@ -91,7 +100,7 @@ const ExistingLoans = () => {
   };
 
   const canGoNext =
-    isStepCompleted('existing-loans') &&
+    isStepCompleted(CURRENT_STEP_ID) &&
     (localFormData.hasExistingLoans === 'no' ||
       ((localFormData.existingLoans?.length ?? 0) > 0 &&
         localFormData.existingLoans?.every(
@@ -114,7 +123,10 @@ const ExistingLoans = () => {
       onNext={handleNext}
       canGoNext={canGoNext}
       isSubmitting={isNavigating}
-      stepId="existing-loans"
+      stepId={CURRENT_STEP_ID}
+      onBack={() => {
+        moveBackward();
+      }}
     >
       {/* Yes/No Selection */}
       <div className="flex justify-center space-x-4 mb-8">
@@ -143,12 +155,12 @@ const ExistingLoans = () => {
       {localFormData.hasExistingLoans === 'yes' && (
         <div className="space-y-4">
           <div className="flex justify-between items-center">
-            <h3 className="text-lg font-semibold text-gray-900">
+            <h3 className="text-lg font-light text-primary">
               Your Business Loans
             </h3>
             <button
               onClick={addLoan}
-              className="flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-200"
+              className="flex items-center space-x-2 px-4 py-2 text-white btn-primary"
             >
               <Plus className="h-4 w-4" />
               <span>Add Loan</span>
@@ -170,7 +182,9 @@ const ExistingLoans = () => {
                   className="bg-gray-50 rounded-lg p-4 border border-gray-200"
                 >
                   <div className="flex justify-between items-start mb-4">
-                    <h4 className="font-medium text-gray-900">Loan Details</h4>
+                    <h3 className="text-lg font-light text-primary">
+                      Loan Details
+                    </h3>
                     <button
                       onClick={() => removeLoan(index)}
                       className="text-red-500 hover:text-red-700 transition-colors duration-200"
@@ -180,41 +194,25 @@ const ExistingLoans = () => {
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Lender Name
-                      </label>
-                      <div className="relative">
-                        <Building2 className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-                        <input
-                          type="text"
-                          value={loan.lenderName}
-                          onChange={(e) =>
-                            updateLoan(index, 'lenderName', e.target.value)
-                          }
-                          placeholder="e.g., Chase Bank, SBA Loan"
-                          className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                        />
-                      </div>
-                    </div>
+                    <Input
+                      label="Lender Name *"
+                      value={loan.lenderName}
+                      onChange={(value) =>
+                        updateLoan(index, 'lenderName', value)
+                      }
+                      type="text"
+                      placeholder="e.g., Chase Bank, SBA Loan"
+                    />
 
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Outstanding Amount
-                      </label>
-                      <div className="relative">
-                        <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-                        <input
-                          type="text"
-                          value={loan.loanAmount}
-                          onChange={(e) =>
-                            updateLoan(index, 'loanAmount', e.target.value)
-                          }
-                          placeholder="e.g., $50,000"
-                          className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                        />
-                      </div>
-                    </div>
+                    <Input
+                      label="Outstanding Amount *"
+                      value={loan.loanAmount}
+                      onChange={(value) =>
+                        updateLoan(index, 'loanAmount', value)
+                      }
+                      type="text"
+                      placeholder="e.g., $50,000"
+                    />
                   </div>
                 </div>
               ))}

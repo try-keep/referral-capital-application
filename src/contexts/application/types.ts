@@ -1,8 +1,8 @@
-import { APPLICATION_STEPS } from '@/constants/application';
+import { ApplicationStepInfo, StepId } from '@/constants/application';
 import { FormData } from '@/types';
 
 // Application step types
-export type ApplicationStepId = (typeof APPLICATION_STEPS)[number]['id'];
+export type ApplicationStepId = StepId;
 
 export interface ApplicationContextState {
   // Current application data
@@ -29,9 +29,8 @@ export interface ApplicationContextState {
   clearFormData: () => void;
 
   // Step information
-  getCurrentStep: () => (typeof APPLICATION_STEPS)[number] | undefined;
-  getStepIndex: (stepId: ApplicationStepId) => number;
   getTotalSteps: () => number;
   getCompletedStepsCount: () => number;
   submit: () => Promise<void>;
+  getStep: (stepId: ApplicationStepId) => ApplicationStepInfo;
 }

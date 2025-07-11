@@ -16,9 +16,17 @@ const numberOfEmployeesOptions = [
   { value: 'over-100', label: 'Over 100 employees' },
 ];
 
+const CURRENT_STEP_ID = 'number-of-employees';
+
 const NumberOfEmployees = () => {
-  const { formData, saveFormData, isStepCompleted, moveForward, isNavigating } =
-    useApplicationStep('number-of-employees');
+  const {
+    formData,
+    saveFormData,
+    isStepCompleted,
+    moveForward,
+    isNavigating,
+    moveBackward,
+  } = useApplicationStep(CURRENT_STEP_ID);
 
   const [localFormData, setLocalFormData] = useState<FormData>({
     numberOfEmployees: '',
@@ -53,7 +61,10 @@ const NumberOfEmployees = () => {
       onNext={handleNext}
       canGoNext={canGoNext}
       isSubmitting={isNavigating}
-      stepId="number-of-employees"
+      stepId={CURRENT_STEP_ID}
+      onBack={() => {
+        moveBackward();
+      }}
     >
       <CardWithRadio
         onChange={(value) => handleInputChange('numberOfEmployees', value)}
