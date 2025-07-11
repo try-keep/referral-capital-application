@@ -351,6 +351,20 @@ const BankAccountConnection = () => {
   // Check if NEXT_PUBLIC_SKIP_FLINKS is explicitly set to 'true'
   const skipFlinks = process.env.NEXT_PUBLIC_SKIP_FLINKS === 'true';
 
+  // Create Flinks connection parameters
+  const flinksConnectionParams = new URLSearchParams({
+    customerName: 'Keep',
+    daysOfTransactions: 'Days365',
+    scheduleRefresh: 'false',
+    consentEnable: 'true',
+    detailsAndStatementEnable: 'true',
+    monthsOfStatements: 'Months12',
+    enhancedMFA: 'false',
+    maximumRetry: '3',
+    tag: formattedFlinksTags,
+    ...(skipFlinks && { demo: 'true' }),
+  });
+
   const canGoNext = Boolean(
     isConnectionCompleted && localFormData.bankConnectionMethod && !isNavigating
   );
@@ -599,7 +613,7 @@ const BankAccountConnection = () => {
               </div>
             )}
             <iframe
-              src={`${process.env.NEXT_PUBLIC_FLINKS_IFRAME_URL}/v2?customerName=Keep&daysOfTransactions=Days365&scheduleRefresh=false&consentEnable=true&detailsAndStatementEnable=true&monthsOfStatements=Months12&enhancedMFA=false&maximumRetry=3&tag=${formattedFlinksTags}${skipFlinks ? '&demo=true' : ''}`}
+              src={`${process.env.NEXT_PUBLIC_FLINKS_IFRAME_URL}/v2?${flinksConnectionParams.toString()}`}
               width="100%"
               height="600"
               frameBorder="0"
