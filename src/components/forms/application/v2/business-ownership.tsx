@@ -6,9 +6,17 @@ import { FormData } from '@/types';
 import ApplicationStepWrapper from './ApplicationStepWrapper';
 import { useApplicationStep } from '@/contexts/';
 
-const BusinessAddress = () => {
-  const { formData, saveFormData, isStepCompleted, moveForward, isNavigating } =
-    useApplicationStep('business-ownership');
+const CURRENT_STEP_ID = 'business-ownership';
+
+const BusinessOwnership = () => {
+  const {
+    formData,
+    saveFormData,
+    isStepCompleted,
+    moveForward,
+    isNavigating,
+    moveBackward,
+  } = useApplicationStep(CURRENT_STEP_ID);
 
   const [showPercentageQuestion, setShowPercentageQuestion] = useState(false);
   const [showRejection, setShowRejection] = useState(false);
@@ -65,7 +73,10 @@ const BusinessAddress = () => {
       onNext={handleNext}
       canGoNext={canGoNext}
       isSubmitting={isNavigating}
-      stepId="business-ownership"
+      stepId={CURRENT_STEP_ID}
+      onBack={() => {
+        moveBackward();
+      }}
     >
       {showRejection ? (
         <RejectionMessage />
@@ -183,4 +194,4 @@ const RejectionMessage = () => (
   </div>
 );
 
-export default BusinessAddress;
+export default BusinessOwnership;

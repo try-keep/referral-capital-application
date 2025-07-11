@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { type FormData } from '@/types';
 import ApplicationStepWrapper from './ApplicationStepWrapper';
 import { useApplicationStep } from '@/contexts/';
+import Input from '@/components/Input';
 
 const CURRENT_STEP_ID = 'personal-details';
 
@@ -52,7 +53,7 @@ export default function PersonalDetails() {
 
   return (
     <ApplicationStepWrapper
-      title="Enter your personal information"
+      title="Enter your information"
       onNext={handleNext}
       canGoNext={!!canGoNext}
       isSubmitting={isNavigating}
@@ -65,74 +66,50 @@ export default function PersonalDetails() {
         {/* Name Section */}
         <div className="space-y-6">
           <div className="mb-4">
-            <h3 className="text-lg font-semibold text-gray-800">Full Name</h3>
+            <h3 className="text-lg font-light text-primary">Full Name</h3>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                First Name *
-              </label>
-              <input
-                type="text"
-                value={localFormData.firstName}
-                onChange={(e) => handleInputChange('firstName', e.target.value)}
-                placeholder="John"
-                className="w-full p-3 text-lg border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition-all duration-200"
-              />
-            </div>
+            <Input
+              label="First Name"
+              value={localFormData.firstName}
+              onChange={(value) => handleInputChange('firstName', value)}
+              type="text"
+              placeholder="Enter first name"
+            />
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Last Name *
-              </label>
-              <input
-                type="text"
-                value={localFormData.lastName}
-                onChange={(e) => handleInputChange('lastName', e.target.value)}
-                placeholder="Smith"
-                className="w-full p-3 text-lg border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition-all duration-200"
-              />
-            </div>
+            <Input
+              label="Last Name"
+              value={localFormData.lastName}
+              onChange={(value) => handleInputChange('lastName', value)}
+              type="text"
+              placeholder="Enter last name"
+            />
           </div>
         </div>
 
         {/* Phone Section */}
         <div className="space-y-4">
           <div className="mb-4">
-            <h3 className="text-lg font-semibold text-gray-800">
+            <h3 className="text-lg font-light text-primary">
               Additional Details
             </h3>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Phone Number *
-              </label>
-              <input
-                type="tel"
-                value={localFormData.phone}
-                onChange={(e) => handleInputChange('phone', e.target.value)}
-                placeholder="(555) 123-4567"
-                required
-                className="w-full p-3 text-lg border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition-all duration-200"
-              />
-            </div>
-            <div className="relative">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Date of Birth
-              </label>
-              <div className="relative">
-                <input
-                  type="date"
-                  value={localFormData.dateOfBirth}
-                  onChange={(e) =>
-                    handleInputChange('dateOfBirth', e.target.value)
-                  }
-                  placeholder="Select your date of birth"
-                  className="w-full p-3 text-lg border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition-all duration-200 pr-10"
-                />
-              </div>
-            </div>
+            <Input
+              label="Phone Number"
+              value={localFormData.phone}
+              onChange={(value) => handleInputChange('phone', value)}
+              type="tel"
+              placeholder="(555) 123-4567"
+            />
+
+            <Input
+              label="Date of Birth"
+              value={localFormData.dateOfBirth}
+              onChange={(value) => handleInputChange('dateOfBirth', value)}
+              type="date"
+              placeholder="Select your date of birth"
+            />
           </div>
         </div>
       </div>

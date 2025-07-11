@@ -53,8 +53,7 @@ const FundingAmount = () => {
 
   return (
     <ApplicationStepWrapper
-      title="Funding Amount"
-      description="How much funding do you need?"
+      title="How much funding do you need?"
       onNext={handleNext}
       canGoNext={canGoNext}
       isSubmitting={isNavigating}

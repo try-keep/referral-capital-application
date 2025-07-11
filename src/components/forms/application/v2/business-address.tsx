@@ -9,6 +9,7 @@ import {
   AddressAutocompleteInput,
   AddressSuggestion,
 } from '@/components/AddressAutocompleteInput';
+import Input from '@/components/Input';
 
 const CURRENT_STEP_ID = 'business-address';
 
@@ -112,150 +113,99 @@ const BusinessAddress = () => {
     >
       <div className="w-full mx-auto space-y-8">
         {/* Header */}
-        <div className="mb-6 flex items-center space-x-2">
-          <Building2 className="text-blue-500" size={20} />
-          <h3 className="text-xl font-bold text-gray-800">Business Address</h3>
-        </div>
-
         <div className="space-y-4">
-          {/* Street Address */}
-          <div className="relative">
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Street Address *
-            </label>
-            <AddressAutocompleteInput
-              address={localFormData.businessAddressLine1}
-              onSuggestionSelected={(address) => {
-                handleSuggestionSelected(address);
-              }}
-              onAddressChange={(addressLine1) => {
-                handleInputChange('businessAddressLine1', addressLine1);
-              }}
-              placeholder="e.g., 470 Yonge St"
-              required
-              className="w-full p-3 text-lg border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition-all duration-200"
-            />
-          </div>
-          {/* Apartment/Suite */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Apartment, suite, etc. (Optional)
-            </label>
-            <input
-              type="text"
-              value={localFormData.businessAddressLine2}
-              onChange={(e) =>
-                handleInputChange('businessAddressLine2', e.target.value)
-              }
-              placeholder="e.g., Suite 100"
-              className="w-full p-3 text-lg border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition-all duration-200"
-            />
-          </div>
-          {/* City, Province, Postal Code Row */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {/* City */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                City *
-              </label>
-              <input
-                type="text"
-                value={localFormData.businessCity}
-                onChange={(e) =>
-                  handleInputChange('businessCity', e.target.value)
-                }
-                placeholder="e.g., Toronto"
-                required
-                className="w-full p-3 text-lg border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition-all duration-200"
-              />
-            </div>
+          <h3 className="text-lg font-light text-primary">Business Address</h3>
 
-            {/* Province/State */}
+          <div className="space-y-4">
+            {/* Street Address */}
             <div className="relative">
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Province *
+                Street Address *
               </label>
-              <input
-                type="text"
-                value={localFormData.businessProvince}
-                onChange={(e) =>
-                  handleInputChange('businessProvince', e.target.value)
-                }
-                placeholder="e.g., Ontario"
+              <AddressAutocompleteInput
+                address={localFormData.businessAddressLine1}
+                onSuggestionSelected={(address) => {
+                  handleSuggestionSelected(address);
+                }}
+                onAddressChange={(addressLine1) => {
+                  handleInputChange('businessAddressLine1', addressLine1);
+                }}
+                placeholder="e.g., 470 Yonge St"
                 required
                 className="w-full p-3 text-lg border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition-all duration-200"
+                country="CA"
               />
             </div>
-
-            {/* Postal Code */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Postal Code *
-              </label>
-              <input
+            {/* Apartment/Suite */}
+            <Input
+              label="Apartment, suite, etc. (Optional)"
+              value={localFormData.businessAddressLine2}
+              onChange={(value) =>
+                handleInputChange('businessAddressLine2', value)
+              }
+              type="text"
+              placeholder="e.g., Suite 100"
+            />
+            {/* City, Province, Postal Code Row */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              {/* City */}
+              <Input
+                label="City"
+                value={localFormData.businessCity}
+                onChange={(value) => handleInputChange('businessCity', value)}
                 type="text"
-                value={localFormData.businessPostalCode}
-                onChange={(e) =>
-                  handleInputChange('businessPostalCode', e.target.value)
+                placeholder="e.g., Toronto"
+              />
+
+              {/* Province/State */}
+              <Input
+                label="Province"
+                value={localFormData.businessProvince}
+                onChange={(value) =>
+                  handleInputChange('businessProvince', value)
                 }
+                type="text"
+                placeholder="e.g., Ontario"
+              />
+
+              {/* Postal Code */}
+              <Input
+                label="Postal Code"
+                value={localFormData.businessPostalCode}
+                onChange={(value) =>
+                  handleInputChange('businessPostalCode', value)
+                }
+                type="text"
                 placeholder="e.g., M5A 1A1"
-                required
-                className="w-full p-3 text-lg border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-200 outline-none transition-all duration-200"
               />
             </div>
           </div>
         </div>
 
         {/* Contact Information */}
-        <div className="mb-6 flex items-center space-x-2">
-          <Phone className="text-blue-500" size={20} />
-          <h3 className="text-xl font-bold text-gray-800">
-            Contact Information
+        <div className="space-y-4">
+          <h3 className="text-lg font-light text-primary">
+            Business Contact Information
           </h3>
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {/* Business Phone */}
-          <div className="relative">
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Business Phone Number *
-            </label>
-            <div className="relative">
-              <Phone
-                className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
-                size={20}
-              />
-              <input
-                type="tel"
-                value={localFormData.businessPhone}
-                onChange={(e) =>
-                  handleInputChange('businessPhone', e.target.value)
-                }
-                placeholder="e.g., (123) 456-7890"
-                required
-                className="w-full p-3 pl-10 text-lg border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition-all duration-200"
-              />
-            </div>
-          </div>
-          {/* Website URL */}
-          <div className="relative">
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Business Website (Optional)
-            </label>
-            <div className="relative">
-              <Globe
-                className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
-                size={20}
-              />
-              <input
-                type="url"
-                value={localFormData.websiteUrl}
-                onChange={(e) =>
-                  handleInputChange('websiteUrl', e.target.value)
-                }
-                placeholder="e.g., https://www.example.com"
-                className="w-full p-3 pl-10 text-lg border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition-all duration-200"
-              />
-            </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {/* Business Phone */}
+            <Input
+              label="Business Phone Number"
+              value={localFormData.businessPhone}
+              onChange={(value) => handleInputChange('businessPhone', value)}
+              type="tel"
+              placeholder="e.g., (123) 456-7890"
+              required
+            />
+            {/* Website URL */}
+            <Input
+              label="Business Website"
+              value={localFormData.websiteUrl}
+              onChange={(value) => handleInputChange('websiteUrl', value)}
+              type="url"
+              placeholder="e.g., https://yourbusiness.com"
+              required
+            />
           </div>
         </div>
       </div>

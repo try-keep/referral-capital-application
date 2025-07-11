@@ -12,6 +12,7 @@ import ApplicationStepWrapper from './ApplicationStepWrapper';
 import { useApplicationStep } from '@/contexts';
 import { isDefined } from '@/utils';
 import { FormData } from '@/types';
+import Image from 'next/image';
 
 interface VerifySubmitScreenProps {
   onEditField?: (fieldId: string) => void;
@@ -107,6 +108,7 @@ const VerifySubmitScreen: React.FC<VerifySubmitScreenProps> = ({
       description="Please review your information below. Click any edit button to make changes, then submit your application when everything looks correct."
       isSubmitting={isNavigating}
       stepId={CURRENT_STEP_ID}
+      hideProgress
     >
       <div className="max-w-4xl mx-auto space-y-6">
         {/* Funding Details */}
@@ -440,7 +442,12 @@ const VerifySubmitScreen: React.FC<VerifySubmitScreenProps> = ({
         <div className="bg-gradient-to-r from-green-50 to-blue-50 border border-green-200 rounded-lg p-6">
           <div className="text-center space-y-4">
             <div className="flex justify-center">
-              <Shield className="h-8 w-8 text-green-600" />
+              <Image
+                src="/svgs/check-green-icon.svg"
+                alt="success"
+                width={100}
+                height={100}
+              />
             </div>
             <h3 className="text-xl font-semibold text-gray-800">
               Ready to Submit Your Application

@@ -13,6 +13,8 @@ import {
   Database,
   Building2,
 } from 'lucide-react';
+import ProgressBar from '@/components/ProgressBar';
+import Image from 'next/image';
 
 const CURRENT_STEP_ID = 'profile-analysis';
 
@@ -78,6 +80,17 @@ const LoadingStep: React.FC<LoadingStepProps> = ({
   );
 };
 
+const Benefit = ({ text, number }: { text: string; number: number }) => {
+  return (
+    <div
+      className={`flex items-center space-x-3 p-5 rounded-2xl transition-all duration-500 bg-success`}
+    >
+      <span className="text-sm font-bold text-success">{number}.</span>
+      <span className={`text-base font-thin text-success`}>{text}.</span>
+    </div>
+  );
+};
+
 const LoadingScreen: React.FC<{ onComplete: () => void }> = ({
   onComplete,
 }) => {
@@ -91,13 +104,12 @@ const LoadingScreen: React.FC<{ onComplete: () => void }> = ({
 
   return (
     <div className="text-center space-y-8">
-      {/* Animated Loading Circle */}
-      <div className="flex justify-center mb-8">
-        <div className="relative">
-          <div className="w-20 h-20 border-4 border-blue-200 rounded-full"></div>
-          <div className="absolute top-0 left-0 w-20 h-20 border-4 border-blue-500 rounded-full border-t-transparent animate-spin"></div>
-        </div>
-      </div>
+      {/* Progress Bar */}
+      <ProgressBar className="gradient-red-orange animate-loading-bar transition-all duration-300" />
+
+      <p className="text-sm text-gray-500 mt-2">
+        This may take a few moments...
+      </p>
 
       {/* Loading Steps with Animation */}
       <div className="max-w-2xl mx-auto space-y-4">
@@ -127,79 +139,61 @@ const LoadingScreen: React.FC<{ onComplete: () => void }> = ({
           delay={4000}
         />
       </div>
-
-      {/* Progress Bar */}
-      <div className="max-w-md mx-auto">
-        <div className="w-full bg-gray-200 rounded-full h-2">
-          <div
-            className="h-2 rounded-full animate-loading-bar transition-all duration-300"
-            style={{
-              background:
-                'linear-gradient(to right, #f15379 0%, #e28f43 50%, #914ae8 100%)',
-            }}
-          ></div>
-        </div>
-        <p className="text-sm text-gray-500 mt-2">
-          This may take a few moments...
-        </p>
-      </div>
     </div>
   );
 };
 
 const MatchScreen: React.FC = () => {
   return (
-    <div className="text-center space-y-8">
+    <div className="text-center space-y-4">
       {/* Success Animation */}
       <div className="flex justify-center">
         <div className="relative">
-          <div className="w-24 h-24 bg-green-100 rounded-full flex items-center justify-center animate-pulse">
-            <CheckCircle className="h-16 w-16 text-green-500" />
-          </div>
-          <div
-            className="absolute -top-2 -right-2 w-8 h-8 rounded-full flex items-center justify-center animate-bounce"
-            style={{ backgroundColor: 'var(--button-primary, #3b82f6)' }}
-          >
-            <Star className="h-4 w-4 text-white" />
-          </div>
+          <Image
+            src="/svgs/check-green-icon.svg"
+            alt="success"
+            width={100}
+            height={100}
+          />
         </div>
       </div>
 
       <div className="space-y-4">
         <h2 className="text-3xl font-bold text-gray-800">
-          Great news! You likely qualify with our lending partners.
+          Great news! You likely qualify <br /> with our lending partners.
         </h2>
-        <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-          Based on your business profile, we&apos;ve identified several funding
-          options that match your needs. Let&apos;s gather a few more details to
-          get you the best possible offers.
-        </p>
+        <div className="flex flex-col gap-8 w-full justify-center items-center">
+          <p className="text-base max-w-lg text-secondary font-extralight w-full">
+            Based on your business profile, we&apos;ve identified several
+            funding options that match your needs. Let&apos;s gather a few more
+            details to get you the best possible offers.
+          </p>
+          <p className="text-base max-w-lg mx-auto text-secondary font-bold">
+            What to expect next:
+          </p>
+        </div>
       </div>
 
       {/* Expected Outcomes */}
-      <div className="bg-gradient-to-r from-blue-50 to-green-50 rounded-lg p-6 max-w-3xl mx-auto border border-green-200">
+      <div className="rounded-lg sm:p-6 p-0 max-w-3xl mx-auto">
         <div className="flex items-start space-x-4">
-          <div
-            className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0"
-            style={{ backgroundColor: 'var(--button-primary, #3b82f6)' }}
-          >
-            <DollarSign className="h-5 w-5 text-white" />
-          </div>
-          <div className="text-left">
-            <h4 className="font-semibold text-gray-800 mb-2">
-              What to expect next:
-            </h4>
-            <ul className="text-sm text-gray-700 space-y-1 list-disc list-inside">
-              <li>
-                Complete your application with personal and business details
-              </li>
-              <li>
-                Connect your bank account for instant verification (optional but
-                recommended)
-              </li>
-              <li>Receive multiple loan offers within 24-48 hours</li>
-              <li>Choose the best terms and get funded in 3-5 business days</li>
-            </ul>
+          <div className="space-y-1 list-disc list-inside flex flex-col gap-1.5 w-full">
+            <Benefit
+              number={1}
+              text="Complete your application with personal and business details"
+            />
+            <Benefit
+              number={2}
+              text="Connect your bank account for instant verification"
+            />
+            <Benefit
+              number={3}
+              text="Receive multiple loan offers within 24-48 hours"
+            />
+            <Benefit
+              number={4}
+              text="Choose the best terms and get funded in 3-5 business days"
+            />
           </div>
         </div>
       </div>
@@ -220,6 +214,8 @@ export default function BusinessProfileAnalysis() {
   const [localFormData, setLocalFormData] = useState<FormData>({
     tierResult: formData.tierResult || '',
   });
+
+  // remove this
 
   const [currentPhase, setCurrentPhase] = useState<'loading' | 'match'>(
     formData.tierResult && formData.tierResult !== '' ? 'match' : 'loading'
@@ -255,26 +251,24 @@ export default function BusinessProfileAnalysis() {
   const canGoNext = currentPhase === 'match' && !isNavigating;
 
   const title =
-    currentPhase === 'loading'
-      ? 'Analyzing Your Business Profile'
-      : 'Great news! You likely qualify with our lending partners.';
+    currentPhase === 'loading' ? 'Analyzing Your Business Profile' : undefined;
 
-  const description =
-    currentPhase === 'loading'
-      ? "Based on your business profile, we've identified several funding options that match your needs. Let's gather a few more details to get you the best possible offers."
-      : "We've found a lender that can help you get the funding you need.";
   return (
     <ApplicationStepWrapper
+      hideProgress
       title={title}
-      description={description}
-      onNext={handleNext}
+      onNext={currentPhase === 'loading' ? undefined : handleNext}
       canGoNext={!!canGoNext}
       isSubmitting={isNavigating}
       stepId={CURRENT_STEP_ID}
       isLoading={isLoading}
-      onBack={() => {
-        moveBackward();
-      }}
+      onBack={
+        currentPhase === 'loading'
+          ? undefined
+          : () => {
+              moveBackward();
+            }
+      }
     >
       <>
         {currentPhase === 'loading' && (

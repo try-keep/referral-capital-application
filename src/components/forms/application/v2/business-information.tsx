@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
-import { Building2, Search, ChevronUp } from 'lucide-react';
+import { Search, ChevronUp } from 'lucide-react';
 import { FormData } from '@/types';
 import ApplicationStepWrapper from './ApplicationStepWrapper';
 import { useApplicationStep } from '@/contexts/';
@@ -151,6 +151,7 @@ const industryCategories = [
   },
 ];
 
+const CURRENT_STEP_ID = 'business-information';
 interface BusinessIndustrySearchProps {
   value: string;
   onChange: (value: string) => void;
@@ -269,13 +270,7 @@ const BusinessIndustrySearch: React.FC<BusinessIndustrySearchProps> = ({
   return (
     <div ref={industryContainerRef} className="space-y-4">
       <div className="flex items-center space-x-2 mb-4">
-        <Search className="h-5 w-5 text-green-600" />
-        <h3 className="text-lg font-semibold text-gray-800">
-          Business Industry
-        </h3>
-        <div className="inline-flex items-center space-x-1 bg-green-50 text-green-700 px-2 py-1 rounded text-xs font-medium">
-          <span>Required</span>
-        </div>
+        <h3 className="text-lg font-light text-primary">Business Industry</h3>
       </div>
 
       <div className="relative">
@@ -290,7 +285,7 @@ const BusinessIndustrySearch: React.FC<BusinessIndustrySearchProps> = ({
           placeholder="Search industries..."
           className="w-full p-3 text-lg border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition-all duration-200 pr-10"
         />
-        <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400 pointer-events-none" />
+        <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-primary pointer-events-none" />
 
         {activeDropdown && (
           <div className="absolute z-[9999] w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-80 overflow-hidden">
@@ -350,8 +345,14 @@ const BusinessIndustrySearch: React.FC<BusinessIndustrySearchProps> = ({
 };
 
 const BusinessInformation = () => {
-  const { formData, saveFormData, isStepCompleted, moveForward, isNavigating } =
-    useApplicationStep('business-information');
+  const {
+    formData,
+    saveFormData,
+    isStepCompleted,
+    moveForward,
+    isNavigating,
+    moveBackward,
+  } = useApplicationStep(CURRENT_STEP_ID);
 
   const businessNameRef = useRef<HTMLInputElement>(null);
 
@@ -388,7 +389,7 @@ const BusinessInformation = () => {
     }
   };
 
-  const canGoNext = isStepCompleted('business-information') && !isNavigating;
+  const canGoNext = isStepCompleted(CURRENT_STEP_ID) && !isNavigating;
 
   return (
     <ApplicationStepWrapper
@@ -396,16 +397,13 @@ const BusinessInformation = () => {
       onNext={handleNext}
       canGoNext={canGoNext}
       isSubmitting={isNavigating}
-      stepId="business-information"
+      stepId={CURRENT_STEP_ID}
+      onBack={() => {
+        moveBackward();
+      }}
     >
       <div className="space-y-4">
-        <div className="flex items-center space-x-2 mb-4">
-          <Building2 className="h-5 w-5 text-blue-600" />
-          <h3 className="text-lg font-semibold text-gray-800">Business Name</h3>
-          <div className="inline-flex items-center space-x-1 bg-blue-50 text-blue-700 px-2 py-1 rounded text-xs font-medium">
-            <span>Required</span>
-          </div>
-        </div>
+        <h3 className="text-lg font-light text-primary">Business Name</h3>
 
         <div>
           <input
@@ -433,7 +431,7 @@ const BusinessInformation = () => {
                 }
               }
             }}
-            placeholder="Your Business Name Inc."
+            placeholder="Enter business name"
             required={true}
             className="w-full p-3 text-lg border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition-all duration-200"
           />

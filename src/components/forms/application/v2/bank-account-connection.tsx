@@ -5,6 +5,8 @@ import { FormData } from '@/types';
 import ApplicationStepWrapper from './ApplicationStepWrapper';
 import { useApplicationStep } from '@/contexts/';
 
+const CURRENT_STEP_ID = 'bank-account-connection';
+
 const BankAccountConnection = () => {
   const { formData, saveFormData, isStepCompleted, moveForward, isNavigating } =
     useApplicationStep('bank-account-connection');
@@ -27,7 +29,7 @@ const BankAccountConnection = () => {
       onNext={handleNext}
       canGoNext={canGoNext}
       isSubmitting={isNavigating}
-      stepId="business-account-connection"
+      stepId={CURRENT_STEP_ID}
     >
       <p>WIP</p>
     </ApplicationStepWrapper>

@@ -23,10 +23,17 @@ const fundingPurposeOptions = [
   { value: 'Equipment purchases', label: 'Equipment purchases' },
   { value: 'Inventory purchases', label: 'Inventory purchases' },
 ];
+const CURRENT_STEP_ID = 'funding-purpose';
 
 const FundingPurpose = () => {
-  const { formData, saveFormData, isStepCompleted, moveForward, isNavigating } =
-    useApplicationStep('funding-purpose');
+  const {
+    formData,
+    saveFormData,
+    isStepCompleted,
+    moveForward,
+    isNavigating,
+    moveBackward,
+  } = useApplicationStep(CURRENT_STEP_ID);
 
   const [localFormData, setLocalFormData] = useState<FormData>({
     fundingPurpose: '',
@@ -59,7 +66,10 @@ const FundingPurpose = () => {
       onNext={handleNext}
       canGoNext={canGoNext}
       isSubmitting={isNavigating}
-      stepId="funding-purpose"
+      stepId={CURRENT_STEP_ID}
+      onBack={() => {
+        moveBackward();
+      }}
     >
       <CardWithRadio
         onChange={(value) => handleInputChange('fundingPurpose', value)}
