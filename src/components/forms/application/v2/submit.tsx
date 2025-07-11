@@ -124,6 +124,18 @@ const VerifySubmitScreen: React.FC<VerifySubmitScreenProps> = ({
             <div className="flex justify-between items-center p-3 bg-gray-50 rounded">
               <div>
                 <span className="text-sm font-medium text-gray-700">
+                  Loan Type
+                </span>
+                <p className="text-gray-900">
+                  {formData.loanType || 'Not specified'}
+                </p>
+              </div>
+              <EditButton field="loanType" />
+            </div>
+
+            <div className="flex justify-between items-center p-3 bg-gray-50 rounded">
+              <div>
+                <span className="text-sm font-medium text-gray-700">
                   Funding Amount
                 </span>
                 <p className="text-gray-900">
@@ -167,6 +179,30 @@ const VerifySubmitScreen: React.FC<VerifySubmitScreenProps> = ({
                 </p>
               </div>
               <EditButton field="creditScore" />
+            </div>
+
+            <div className="flex justify-between items-center p-3 bg-gray-50 rounded">
+              <div>
+                <span className="text-sm font-medium text-gray-700">
+                  Annual Revenue
+                </span>
+                <p className="text-gray-900">
+                  {formData.annualRevenue || 'Not specified'}
+                </p>
+              </div>
+              <EditButton field="annualRevenue" />
+            </div>
+
+            <div className="flex justify-between items-center p-3 bg-gray-50 rounded">
+              <div>
+                <span className="text-sm font-medium text-gray-700">
+                  Cash Flow
+                </span>
+                <p className="text-gray-900">
+                  {formData.cashFlow || 'Not specified'}
+                </p>
+              </div>
+              <EditButton field="cashFlow" />
             </div>
           </div>
         </div>
@@ -274,10 +310,10 @@ const VerifySubmitScreen: React.FC<VerifySubmitScreenProps> = ({
                   Entity Type
                 </span>
                 <p className="text-gray-900">
-                  {formData.businessEntityType || 'Not specified'}
+                  {formData.entityType || 'Not specified'}
                 </p>
               </div>
-              <EditButton field="businessEntityType" />
+              <EditButton field="entityType" />
             </div>
 
             <div className="flex justify-between items-center p-3 bg-gray-50 rounded">
@@ -286,45 +322,59 @@ const VerifySubmitScreen: React.FC<VerifySubmitScreenProps> = ({
                   Industry
                 </span>
                 <p className="text-gray-900">
-                  {formData.businessIndustry || 'Not specified'}
+                  {formData.businessType || 'Not specified'}
                 </p>
               </div>
-              <EditButton field="businessBasics" />
+              <EditButton field="businessType" />
+            </div>
+
+            <div className="flex justify-between items-center p-3 bg-gray-50 rounded">
+              <div>
+                <span className="text-sm font-medium text-gray-700">
+                  Number of Employees
+                </span>
+                <p className="text-gray-900">
+                  {formData.numberOfEmployees || 'Not specified'}
+                </p>
+              </div>
+              <EditButton field="numberOfEmployees" />
             </div>
           </div>
 
-          {businessInfo.streetAddress && (
-            <div className="mt-4">
-              <div className="flex justify-between items-start p-3 bg-gray-50 rounded">
-                <div className="flex-1">
-                  <span className="text-sm font-medium text-gray-700">
-                    Business Address & Contact
-                  </span>
+          <div className="mt-4">
+            <div className="flex justify-between items-start p-3 bg-gray-50 rounded">
+              <div className="flex-1">
+                <span className="text-sm font-medium text-gray-700">
+                  Business Address & Contact
+                </span>
+                <p className="text-gray-900">
+                  {businessInfo.streetAddress
+                    ? [
+                        businessInfo.streetAddress,
+                        businessInfo.apartment,
+                        businessInfo.city,
+                        businessInfo.province,
+                        businessInfo.postalCode,
+                        businessInfo.country,
+                      ]
+                        .filter(Boolean)
+                        .join(', ')
+                    : formData.businessAddress || 'Not specified'}
+                </p>
+                {(businessInfo.phone || formData.businessPhone) && (
                   <p className="text-gray-900">
-                    {[
-                      businessInfo.streetAddress,
-                      businessInfo.apartment,
-                      businessInfo.city,
-                      businessInfo.province,
-                      businessInfo.postalCode,
-                      businessInfo.country,
-                    ]
-                      .filter(Boolean)
-                      .join(', ')}
+                    Phone: {businessInfo.phone || formData.businessPhone}
                   </p>
-                  {businessInfo.phone && (
-                    <p className="text-gray-900">Phone: {businessInfo.phone}</p>
-                  )}
-                  {businessInfo.website && (
-                    <p className="text-gray-900">
-                      Website: {businessInfo.website}
-                    </p>
-                  )}
-                </div>
-                <EditButton field="businessInfo" />
+                )}
+                {(businessInfo.website || formData.websiteUrl) && (
+                  <p className="text-gray-900">
+                    Website: {businessInfo.website || formData.websiteUrl}
+                  </p>
+                )}
               </div>
+              <EditButton field="businessInfo" />
             </div>
-          )}
+          </div>
         </div>
 
         {/* Funding Requirements */}
@@ -381,10 +431,14 @@ const VerifySubmitScreen: React.FC<VerifySubmitScreenProps> = ({
                   Bank Connected
                 </span>
                 <p className="text-gray-900">
-                  {formData.bankAccountConnected ? 'Yes' : 'No'}
+                  {formData.bankConnectionCompleted
+                    ? 'Yes'
+                    : formData.skippedBankConnection
+                      ? 'Skipped'
+                      : 'No'}
                 </p>
               </div>
-              <EditButton field="bankAccountConnected" />
+              <EditButton field="bankConnection" />
             </div>
           </div>
 
@@ -398,17 +452,21 @@ const VerifySubmitScreen: React.FC<VerifySubmitScreenProps> = ({
                 {formData?.existingLoans?.length &&
                 formData?.existingLoans?.length > 0 ? (
                   <div className="mt-2 space-y-2">
-                    {loansData.map((loan: any, index: number) => (
+                    {formData.existingLoans.map((loan: any, index: number) => (
                       <div key={index} className="bg-white p-2 rounded border">
                         <p className="text-sm">
-                          <strong>{loan.lender}</strong> - {loan.amount}
+                          <strong>{loan.lenderName}</strong> - {loan.loanAmount}
                         </p>
                       </div>
                     ))}
                   </div>
                 ) : (
                   <p className="text-gray-900">
-                    {formData?.existingLoans?.length || 'Not specified'}
+                    {formData?.hasExistingLoans === 'yes'
+                      ? 'Yes'
+                      : formData?.hasExistingLoans === 'no'
+                        ? 'No'
+                        : 'Not specified'}
                   </p>
                 )}
               </div>
@@ -424,11 +482,11 @@ const VerifySubmitScreen: React.FC<VerifySubmitScreenProps> = ({
                   Business Authorization
                 </span>
                 <p className="text-gray-900">
-                  {formData.businessOwnership === 'Yes'
+                  {formData.isBusinessOwner === 'yes'
                     ? 'Authorized to apply'
                     : 'Not authorized'}
-                  {formData.ownershipPercentage &&
-                    ` (${formData.ownershipPercentage === 'Yes' ? '50%+ owner' : 'Minority owner'})`}
+                  {formData.owns_more_than_50pct &&
+                    ` (${formData.owns_more_than_50pct === 'yes' ? '50%+ owner' : 'Minority owner'})`}
                 </p>
               </div>
               <EditButton field="ownershipFlow" />
