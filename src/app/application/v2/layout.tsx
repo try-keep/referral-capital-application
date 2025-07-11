@@ -8,6 +8,8 @@ import { FormData } from '@/types';
 import { ApplicationContextProvider, useApplicationContext } from '@/contexts/';
 import { ApplicationStepId } from '@/contexts/application/types';
 import { user } from '@/client';
+import { useColorfulBackground } from '@/hooks/';
+import Image from 'next/image';
 
 interface ApplicationLayoutProps {
   children: React.ReactNode;
@@ -27,14 +29,9 @@ const ApplicationLayoutContent: React.FC<ApplicationLayoutProps> = ({
 }) => {
   const [showProgressSidebar, setShowProgressSidebar] = useState(true);
 
-  const {
-    formData,
-    currentStepId,
-    isStepCompleted,
-    moveToStep,
-    getTotalSteps,
-    getCompletedStepsCount,
-  } = useApplicationContext();
+  const { formData, currentStepId, isStepCompleted, moveToStep } =
+    useApplicationContext();
+  const { getPageContainerProps } = useColorfulBackground();
 
   const toggleProgressSidebar = () => {
     setShowProgressSidebar((prev) => !prev);
@@ -48,34 +45,43 @@ const ApplicationLayoutContent: React.FC<ApplicationLayoutProps> = ({
     }
   };
 
-  const totalSteps = getTotalSteps();
-  const completedSteps = getCompletedStepsCount();
-
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
+    <div
+      className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100"
+      style={getPageContainerProps()}
+    >
       <div className="max-w-none mx-auto px-6 py-6">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-          {/* Left Sidebar - Progress */}
-          <ProgressSidebar
-            show={showProgressSidebar}
-            onToggle={toggleProgressSidebar}
-            completedSteps={completedSteps}
-            totalSteps={totalSteps}
-            applicationSteps={APPLICATION_STEPS}
-            isStepCompleted={isStepCompleted}
-            currentStepId={currentStepId}
-            jumpToStep={jumpToStep}
-          />
-          {/* Main Content */}
-          <div className="col-span-1 lg:col-span-12 lg:col-start-3 lg:col-end-11">
-            <div className="bg-white rounded-lg shadow-lg p-6 min-h-[500px] flex flex-col max-w-4xl mx-auto">
-              <div className="flex-1 flex items-center justify-center">
-                <div className="w-full">{children}</div>
+        <div className="flex flex-col items-center justify-center mt-[68px] max-w[720px] w-full">
+          <div className="flex justify-center mb-12 ">
+            <Image
+              src="/svgs/logos/full-keep-logo.svg"
+              alt="Keep Capital"
+              width={42}
+              height={140}
+              className="h-10 w-auto"
+            />
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 w-full">
+            {/* Left Sidebar - Progress */}
+            <ProgressSidebar
+              show={showProgressSidebar}
+              onToggle={toggleProgressSidebar}
+              isStepCompleted={isStepCompleted}
+              currentStepId={currentStepId}
+              jumpToStep={jumpToStep}
+            />
+            {/* Main Content */}
+            <div className="col-span-1 lg:col-span-12 lg:col-start-3 lg:col-end-11">
+              <div className=" bg-transparent sm:bg-white rounded-2xl  p-6 min-h-[500px] flex flex-col max-w-4xl mx-auto sm:border border-0 border-soft">
+                <div className="flex-1 flex items-center justify-center">
+                  <div className="w-full">{children}</div>
+                </div>
               </div>
             </div>
+            {/* Right Sidebar - Dev View */}
+            {/*     <DevView data={formData} title="Application Data" /> */}
           </div>
-          {/* Right Sidebar - Dev View */}
-          <DevView data={formData} title="Application Data" />
         </div>
       </div>
     </div>
@@ -88,7 +94,6 @@ export default function ApplicationLayout({
 }: ApplicationLayoutProps) {
   return (
     <ApplicationContextProvider
-      initialStepId="funding-amount"
       onStepChange={(stepId, data) => {
         stepChangeSideEffects(stepId, data);
       }}

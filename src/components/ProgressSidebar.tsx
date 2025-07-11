@@ -4,24 +4,19 @@ import {
   APPLICATION_STEP_GROUPS,
   APPLICATION_STEPS,
 } from '../constants/application';
+import { ApplicationStepId } from '@/contexts/application/types';
 
 interface ProgressSidebarProps {
   show: boolean;
   onToggle: () => void;
-  completedSteps: number;
-  totalSteps: number;
-  applicationSteps: { id: string; label: string }[];
-  isStepCompleted: (stepId: string) => boolean;
-  currentStepId: string;
+  isStepCompleted: (stepId: ApplicationStepId) => boolean;
+  currentStepId: ApplicationStepId;
   jumpToStep: (stepId: string) => void;
 }
 
 const ProgressSidebar: React.FC<ProgressSidebarProps> = ({
   show,
   onToggle,
-  completedSteps,
-  totalSteps,
-  applicationSteps,
   isStepCompleted,
   currentStepId,
   jumpToStep,
@@ -61,14 +56,14 @@ const ProgressSidebar: React.FC<ProgressSidebarProps> = ({
             // Get the steps for this group
             const groupSteps = group.stepIds
               .map((stepId) => {
-                const step = APPLICATION_STEPS.find((s) => s.id === stepId);
+                const step = APPLICATION_STEPS[stepId];
                 return step ? { id: step.id, label: step.label } : null;
               })
               .filter(Boolean) as { id: string; label: string }[];
 
             // Calculate completed steps for this group
             const groupCompletedSteps = groupSteps.filter((step) =>
-              isStepCompleted(step.id)
+              isStepCompleted(step.id as ApplicationStepId)
             ).length;
 
             return (
@@ -83,7 +78,9 @@ const ProgressSidebar: React.FC<ProgressSidebarProps> = ({
                 </div>
                 <div className="ml-6 space-y-1">
                   {groupSteps.map((step) => {
-                    const isCompleted = isStepCompleted(step.id);
+                    const isCompleted = isStepCompleted(
+                      step.id as ApplicationStepId
+                    );
                     const isCurrent = currentStepId === step.id;
                     return (
                       <button
