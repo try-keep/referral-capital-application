@@ -32,6 +32,7 @@ jobs:
           NEXT_PUBLIC_HOME_URL=https://trykeep.com/capital
           NEWSAPI_KEY=dummy_newsapi_key
           OPENAI_API_KEY=sk-dummy-openai-key
+          NEXT_PUBLIC_FLINKS_IFRAME_URL=https://dummy.private.fin.ag/v2/
           EOF
 
       - name: Cache Next.js build
