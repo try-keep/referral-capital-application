@@ -64,13 +64,13 @@ const ApplicationLayoutContent: React.FC<ApplicationLayoutProps> = ({
 
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 w-full">
             {/* Left Sidebar - Progress */}
-            <ProgressSidebar
+            {/* <ProgressSidebar
               show={showProgressSidebar}
               onToggle={toggleProgressSidebar}
               isStepCompleted={isStepCompleted}
               currentStepId={currentStepId}
               jumpToStep={jumpToStep}
-            />
+            /> */}
             {/* Main Content */}
             <div className="col-span-1 lg:col-span-12 lg:col-start-3 lg:col-end-11">
               <div className=" bg-transparent sm:bg-white rounded-2xl  p-6 min-h-[500px] flex flex-col max-w-4xl mx-auto sm:border border-0 border-soft">
