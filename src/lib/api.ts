@@ -79,6 +79,12 @@ export interface ApplicationData {
   // Step 13: Additional Details
   businessAddress: string;
   businessPhone: string;
+  businessCountry?: string;
+  businessAddressLine1?: string;
+  businessAddressLine2?: string;
+  businessCity?: string;
+  businessProvince?: string;
+  businessPostalCode?: string;
   websiteUrl?: string;
   additionalInfo?: string;
 

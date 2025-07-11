@@ -66,7 +66,13 @@ export const APPLICATION_STEPS: ApplicationStep[] = [
     id: 'business-address',
     label: 'Business Address & Contact Information',
     description: 'Business Address & Contact Information',
-    requiredFields: [],
+    requiredFields: [
+      'businessAddressLine1',
+      'businessCity',
+      'businessProvince',
+      'businessPostalCode',
+      'businessPhone',
+    ],
   },
   {
     id: 'business-entity-type',
