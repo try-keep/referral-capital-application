@@ -29,7 +29,7 @@ const TypeOfFunding = () => {
 
   useEffect(() => {
     setLocalFormData({
-      loanType: formData.typeOfFunding || '',
+      loanType: formData.loanType || '',
     });
   }, [formData]);
 
@@ -60,7 +60,7 @@ const TypeOfFunding = () => {
       }}
     >
       <CardWithRadio
-        onChange={(value) => handleInputChange('typeOfFunding', value)}
+        onChange={(value) => handleInputChange('loanType', value)}
         options={fundingPurposeOptions}
         value={localFormData.loanType}
       />
