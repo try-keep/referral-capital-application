@@ -11,7 +11,16 @@ import { isDefined } from '@/utils';
 import { type FormData } from '@/types';
 import ApplicationStepWrapper from './ApplicationStepWrapper';
 import { useApplicationStep } from '@/contexts/';
-import { Shield, CheckCircle, Lock } from 'lucide-react';
+import {
+  Shield,
+  CheckCircle,
+  Lock,
+  TrendingUp,
+  TrendingDown,
+  BarChart3,
+  Upload,
+} from 'lucide-react';
+import Image from 'next/image';
 
 type FlinksEventStep = 'COMPONENT_CONSENT_INTRO' | 'REDIRECT';
 
@@ -26,6 +35,404 @@ const TRUSTED_FLINKS_ORIGIN = new URL(
 ).origin;
 
 const CURRENT_STEP_ID = 'bank-account-connection';
+
+// Private sub-components for better organization
+const ConnectionMethodCard: React.FC<{
+  onSelectMethod: (method: 'flinks' | 'manual') => void;
+}> = ({ onSelectMethod }) => {
+  return (
+    <div className="max-w-2xl mx-auto">
+      {/* Main card */}
+      <div
+        className="bg-gradient-to-b from-green-100 via-green-50 to-white border border-green-200 rounded-3xl p-8 mb-6"
+        style={{
+          backgroundImage:
+            'linear-gradient(to bottom, rgb(220 252 231), rgb(240 253 244) 25%, white 33%)',
+        }}
+      >
+        {/* Shield icon */}
+        <div className="flex justify-center mb-6">
+          <div className="relative">
+            <Image
+              src="/svgs/shield.svg"
+              alt="Security Shield"
+              width={80}
+              height={80}
+              className="drop-shadow-sm"
+            />
+          </div>
+        </div>
+
+        {/* Title */}
+        <h3 className="text-xl font-medium text-gray-900 text-center mb-8">
+          Why Connect your business account?
+        </h3>
+
+        {/* Benefits grid - 2x2 layout */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
+          <div className="bg-white/60 backdrop-blur-sm rounded-2xl p-4 text-center">
+            <div className="flex justify-center mb-2">
+              <TrendingUp className="h-6 w-6 text-green-600" />
+            </div>
+            <p className="text-sm font-medium text-gray-900">
+              Get approved{' '}
+              <span className="font-bold text-green-700">10x faster</span>
+            </p>
+          </div>
+          <div className="bg-white/60 backdrop-blur-sm rounded-2xl p-4 text-center">
+            <div className="flex justify-center mb-2">
+              <BarChart3 className="h-6 w-6 text-green-600" />
+            </div>
+            <p className="text-sm font-medium text-gray-900">
+              More likely to{' '}
+              <span className="font-bold text-green-700">get funded</span>
+            </p>
+          </div>
+          <div className="bg-white/60 backdrop-blur-sm rounded-2xl p-4 text-center">
+            <div className="flex justify-center mb-2">
+              <TrendingDown className="h-6 w-6 text-green-600 rotate-180" />
+            </div>
+            <p className="text-sm font-medium text-gray-900">
+              Get funded{' '}
+              <span className="font-bold text-green-700">5x faster</span>
+            </p>
+          </div>
+          <div className="bg-white/60 backdrop-blur-sm rounded-2xl p-4 text-center">
+            <div className="flex justify-center mb-2">
+              <Lock className="h-6 w-6 text-green-600" />
+            </div>
+            <p className="text-sm font-medium text-gray-900">
+              Maintain a{' '}
+              <span className="font-bold text-green-700">safer connection</span>
+            </p>
+          </div>
+        </div>
+
+        {/* Primary CTA Button */}
+        <button
+          onClick={() => onSelectMethod('flinks')}
+          className="w-full bg-gray-800 hover:bg-gray-900 text-white py-4 px-6 rounded-2xl font-semibold text-lg transition-colors duration-200 mb-6"
+        >
+          Connect your account
+        </button>
+
+        {/* Security features */}
+        <div className="flex flex-col sm:flex-row justify-center items-center gap-4 text-sm text-gray-600">
+          <div className="flex items-center gap-2">
+            <Shield className="h-4 w-4" />
+            <span>Bank-level security</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <Lock className="h-4 w-4" />
+            <span>256-bit encryption</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <CheckCircle className="h-4 w-4" />
+            <span>Read-only access</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Upload alternative */}
+      <div className="text-center">
+        <p className="text-gray-600">
+          Prefer to upload bank statements?{' '}
+          <button
+            onClick={() => onSelectMethod('manual')}
+            className="text-blue-600 hover:text-blue-800 font-medium underline transition-colors duration-200"
+          >
+            Upload
+          </button>
+        </p>
+      </div>
+    </div>
+  );
+};
+
+const SuccessScreen: React.FC<{
+  connectionMethod: 'flinks' | 'manual';
+}> = ({ connectionMethod }) => {
+  const nextSteps = [
+    "We'll review your application and financial data",
+    "You'll receive a preliminary decision within 24-48 hours",
+    'Final approval and funding typically within 3-5 business days',
+    'Your banking data is encrypted and secure',
+  ];
+
+  return (
+    <div className="max-w-2xl mx-auto text-center space-y-8">
+      {/* Success icon */}
+      <div className="flex justify-center">
+        <div className="relative">
+          <Image
+            src="/svgs/check-green-icon.svg"
+            alt="Success"
+            width={100}
+            height={100}
+            className="drop-shadow-sm"
+          />
+        </div>
+      </div>
+
+      {/* Title and description */}
+      <div className="space-y-4">
+        <h2 className="text-3xl font-bold text-gray-900">
+          Bank Account Connected Successfully!
+        </h2>
+        <p className="text-gray-600 text-lg max-w-lg mx-auto">
+          {connectionMethod === 'manual'
+            ? 'Your bank statements have been successfully uploaded and are ready for processing.'
+            : 'Your bank account has been securely connected. This helps us verify your business financial information and may improve your loan terms and approval speed.'}
+        </p>
+      </div>
+
+      {/* What happens next */}
+      <div className="space-y-4">
+        <h3 className="text-xl font-semibold text-gray-900">
+          What happens next:
+        </h3>
+
+        <div className="space-y-3">
+          {nextSteps.map((step, index) => (
+            <div
+              key={index}
+              className="bg-green-50 border border-green-100 rounded-2xl p-4 text-left"
+            >
+              <div className="flex items-start gap-3">
+                <div className="flex-shrink-0 w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
+                  <span className="text-green-700 font-bold text-sm">
+                    {index + 1}
+                  </span>
+                </div>
+                <p className="text-gray-700 text-sm font-medium pt-1">{step}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const FlinksConnectionScreen: React.FC<{
+  flinksConnectionParams: URLSearchParams;
+  isLoading: boolean;
+  onBack: () => void;
+}> = ({ flinksConnectionParams, isLoading, onBack }) => {
+  return (
+    <div className="max-w-4xl mx-auto">
+      <div
+        className="bg-white border border-gray-200 rounded-2xl overflow-hidden"
+        style={{ minHeight: '600px' }}
+      >
+        {isLoading && (
+          <div
+            className="flex justify-center items-center flex-col gap-4"
+            style={{ minHeight: '600px' }}
+          >
+            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-green-600"></div>
+            <p className="text-sm text-gray-500">Connecting to your bank...</p>
+          </div>
+        )}
+        <iframe
+          src={`${process.env.NEXT_PUBLIC_FLINKS_IFRAME_URL}/v2?${flinksConnectionParams.toString()}`}
+          width="100%"
+          height="600"
+          frameBorder="0"
+          style={{ border: 'none', borderRadius: '16px' }}
+          title="Bank Connection"
+        />
+      </div>
+
+      {/* Security note */}
+      <div className="mt-6 bg-green-50 border border-green-100 rounded-2xl p-4">
+        <div className="flex items-start gap-3">
+          <Shield className="h-5 w-5 text-green-600 mt-0.5 flex-shrink-0" />
+          <div>
+            <p className="text-sm font-medium text-green-900 mb-1">
+              Bank-grade security
+            </p>
+            <p className="text-sm text-green-700">
+              Your banking information is encrypted and secure. We cannot see
+              your login credentials.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div className="text-center mt-4">
+        <button
+          onClick={onBack}
+          className="text-gray-600 hover:text-gray-800 text-sm underline transition-colors duration-200"
+        >
+          Upload bank statements instead
+        </button>
+      </div>
+    </div>
+  );
+};
+
+const ManualUploadScreen: React.FC<{
+  uploadedFiles: File[];
+  isUploading: boolean;
+  uploadError: string;
+  isDragging: boolean;
+  onFileSelect: (e: ChangeEvent<HTMLInputElement>) => void;
+  onFileRemove: (index: number) => void;
+  onDragEnter: (e: DragEvent) => void;
+  onDragLeave: (e: DragEvent) => void;
+  onDragOver: (e: DragEvent) => void;
+  onDrop: (e: DragEvent) => void;
+  onSubmit: () => void;
+  onBack: () => void;
+}> = ({
+  uploadedFiles,
+  isUploading,
+  uploadError,
+  isDragging,
+  onFileSelect,
+  onFileRemove,
+  onDragEnter,
+  onDragLeave,
+  onDragOver,
+  onDrop,
+  onSubmit,
+  onBack,
+}) => {
+  return (
+    <div className="max-w-2xl mx-auto">
+      <div className="space-y-6">
+        {/* Info card */}
+        <div className="bg-blue-50 border border-blue-100 rounded-2xl p-4">
+          <div className="flex items-start gap-3">
+            <Upload className="h-6 w-6 text-blue-600 mt-0.5 flex-shrink-0" />
+            <div>
+              <h3 className="font-semibold text-blue-900 mb-1">
+                Upload Bank Statements Manually
+              </h3>
+              <p className="text-sm text-blue-700">
+                Please upload 6 bank statements that are no older than 6 months
+                to help us understand your business.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Upload area */}
+        {uploadedFiles.length === 0 ? (
+          <div
+            className={`border-2 border-dashed rounded-2xl p-8 text-center transition-colors ${
+              isDragging
+                ? 'border-blue-500 bg-blue-50'
+                : 'border-gray-300 hover:border-gray-400 bg-gray-50'
+            }`}
+            onDragEnter={onDragEnter}
+            onDragLeave={onDragLeave}
+            onDragOver={onDragOver}
+            onDrop={onDrop}
+          >
+            <Upload className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+            <p className="text-lg font-medium text-gray-900 mb-1">
+              Drop the files here or upload
+            </p>
+            <p className="text-sm text-gray-500 mb-4">
+              Format: PDF only (10MB max)
+            </p>
+            <input
+              id="file-upload"
+              type="file"
+              className="hidden"
+              accept=".pdf"
+              multiple
+              onChange={onFileSelect}
+            />
+            <label htmlFor="file-upload">
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.preventDefault();
+                  document.getElementById('file-upload')?.click();
+                }}
+                className="bg-gray-800 text-white px-6 py-3 rounded-xl hover:bg-gray-700 transition-colors font-medium"
+              >
+                + Upload
+              </button>
+            </label>
+          </div>
+        ) : (
+          <div className="space-y-3">
+            {uploadedFiles.map((file, index) => (
+              <div
+                key={index}
+                className="bg-white border border-gray-200 rounded-xl p-4 flex items-center justify-between"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-red-100 rounded-lg flex items-center justify-center">
+                    <Upload className="w-5 h-5 text-red-600" />
+                  </div>
+                  <div>
+                    <p className="font-medium text-gray-900">{file.name}</p>
+                    <p className="text-sm text-gray-500">
+                      {(file.size / 1024 / 1024).toFixed(2)}MB
+                    </p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => onFileRemove(index)}
+                  className="text-red-600 hover:text-red-700 font-medium px-3 py-1 rounded-lg hover:bg-red-50 transition-colors"
+                >
+                  Remove
+                </button>
+              </div>
+            ))}
+
+            {/* Add more files */}
+            <label htmlFor="add-more-files" className="block">
+              <input
+                id="add-more-files"
+                type="file"
+                className="hidden"
+                accept=".pdf"
+                multiple
+                onChange={onFileSelect}
+              />
+              <div className="border-2 border-dashed border-gray-300 rounded-xl p-4 text-center hover:border-gray-400 transition-colors cursor-pointer">
+                <p className="text-sm text-gray-600">
+                  + Add more files (you have {uploadedFiles.length}/6)
+                </p>
+              </div>
+            </label>
+          </div>
+        )}
+
+        {/* Error message */}
+        {uploadError && (
+          <div className="bg-red-50 border border-red-200 rounded-xl p-4">
+            <p className="text-sm text-red-600">{uploadError}</p>
+          </div>
+        )}
+
+        {/* Submit button */}
+        <button
+          onClick={onSubmit}
+          disabled={uploadedFiles.length < 6 || isUploading}
+          className="w-full bg-gray-800 text-white py-4 px-6 rounded-xl font-semibold hover:bg-gray-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-gray-800"
+        >
+          {isUploading ? 'Uploading...' : 'Submit documents'}
+        </button>
+
+        <div className="text-center">
+          <button
+            onClick={onBack}
+            className="text-blue-600 hover:text-blue-800 underline text-sm transition-colors duration-200"
+          >
+            Connect to bank instead
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
 
 const BankAccountConnection = () => {
   const { formData, saveFormData, moveForward, isNavigating } =
@@ -382,365 +789,55 @@ const BankAccountConnection = () => {
   const renderContent = () => {
     if (isConnectionCompleted) {
       return (
-        <div className="text-center space-y-8">
-          <div className="flex justify-center">
-            <div className="bg-green-100 p-6 rounded-full">
-              <CheckCircle className="h-16 w-16 text-green-500" />
-            </div>
-          </div>
-
-          <div>
-            <h2 className="text-3xl font-bold text-gray-800 mb-4">
-              Bank Account Connected Successfully!
-            </h2>
-            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-              {localFormData.bankConnectionMethod === 'manual'
-                ? 'Your bank statements have been successfully uploaded and are ready for processing.'
-                : 'Your business bank account has been securely connected. This helps us verify your business financial information and may improve your loan terms and approval speed.'}
-            </p>
-          </div>
-
-          <div className="bg-green-50 border border-green-200 rounded-lg p-6 max-w-2xl mx-auto">
-            <div className="flex items-start space-x-3">
-              <Shield className="h-6 w-6 text-green-600 mt-1 flex-shrink-0" />
-              <div className="text-left">
-                <h4 className="font-semibold text-green-800 mb-2">
-                  What happens next?
-                </h4>
-                <ul className="text-sm text-green-700 space-y-1">
-                  <li>
-                    • We&apos;ll review your application and financial data
-                  </li>
-                  <li>
-                    • You&apos;ll receive a preliminary decision within 24-48
-                    hours
-                  </li>
-                  <li>
-                    • Final approval and funding typically within 3-5 business
-                    days
-                  </li>
-                  <li>• Your banking data is encrypted and secure</li>
-                </ul>
-              </div>
-            </div>
-          </div>
-        </div>
+        <SuccessScreen
+          connectionMethod={
+            localFormData.bankConnectionMethod as 'flinks' | 'manual'
+          }
+        />
       );
     }
 
     if (localFormData.bankConnectionMethod === 'manual') {
       return (
-        <div>
-          <h2 className="text-2xl font-bold text-gray-800 mb-4">
-            Upload Bank Statements
-          </h2>
-          <div className="space-y-6">
-            <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
-              <div className="flex items-start space-x-3">
-                <svg
-                  className="w-6 h-6 text-gray-600 mt-0.5"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-                  />
-                </svg>
-                <div>
-                  <h3 className="font-semibold text-gray-900">
-                    Upload Bank Statements Manually
-                  </h3>
-                  <p className="text-sm text-gray-600 mt-1">
-                    Please upload 6 bank statements that are no older than 6
-                    months to help us understand your business.
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            {/* Upload area */}
-            {uploadedFiles.length === 0 ? (
-              <div
-                className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors ${
-                  isDragging
-                    ? 'border-blue-500 bg-blue-50'
-                    : 'border-gray-300 hover:border-gray-400'
-                }`}
-                onDragEnter={handleDragEnter}
-                onDragLeave={handleDragLeave}
-                onDragOver={handleDragOver}
-                onDrop={handleDrop}
-              >
-                <svg
-                  className="w-12 h-12 text-gray-400 mx-auto mb-4"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-                  />
-                </svg>
-                <p className="text-lg font-medium text-gray-900 mb-1">
-                  Drop the files here or upload
-                </p>
-                <p className="text-sm text-gray-500">Format: PDF only (10MB)</p>
-                <input
-                  id="file-upload"
-                  type="file"
-                  className="hidden"
-                  accept=".pdf"
-                  multiple
-                  onChange={handleFileSelect}
-                />
-                <label htmlFor="file-upload">
-                  <button
-                    type="button"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      document.getElementById('file-upload')?.click();
-                    }}
-                    className="mt-4 bg-gray-800 text-white px-4 py-2 rounded-lg hover:bg-gray-700 transition-colors"
-                  >
-                    + Upload
-                  </button>
-                </label>
-              </div>
-            ) : (
-              <div className="space-y-3">
-                {uploadedFiles.map((file, index) => (
-                  <div
-                    key={index}
-                    className="bg-white border border-gray-200 rounded-lg p-4 flex items-center justify-between"
-                  >
-                    <div className="flex items-center space-x-3">
-                      <svg
-                        className="w-8 h-8 text-gray-400"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-                        />
-                      </svg>
-                      <div>
-                        <p className="font-medium text-gray-900">{file.name}</p>
-                        <p className="text-sm text-gray-500">
-                          {(file.size / 1024 / 1024).toFixed(2)}MB
-                        </p>
-                      </div>
-                    </div>
-                    <button
-                      onClick={() => handleFileRemove(index)}
-                      className="text-red-600 hover:text-red-700 font-medium"
-                    >
-                      Delete
-                    </button>
-                  </div>
-                ))}
-
-                {/* Add more files button */}
-                <label htmlFor="add-more-files" className="block">
-                  <input
-                    id="add-more-files"
-                    type="file"
-                    className="hidden"
-                    accept=".pdf,.png,.doc,.docx"
-                    multiple
-                    onChange={handleFileSelect}
-                  />
-                  <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center hover:border-gray-400 transition-colors cursor-pointer">
-                    <p className="text-sm text-gray-600">
-                      + Add more files (you have {uploadedFiles.length}/6)
-                    </p>
-                  </div>
-                </label>
-              </div>
-            )}
-
-            {/* Error message */}
-            {uploadError && (
-              <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-                <p className="text-sm text-red-600">{uploadError}</p>
-              </div>
-            )}
-
-            {/* Submit button */}
-            <button
-              onClick={handleManualUploadSubmit}
-              disabled={uploadedFiles.length < 6 || isUploading}
-              className="w-full bg-gray-800 text-white py-3 px-6 rounded-lg font-semibold hover:bg-gray-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {isUploading ? 'Uploading...' : 'Submit documents'}
-            </button>
-          </div>
-          <div className="text-center mt-4">
-            <button
-              onClick={() => handleMethodSelect('')}
-              className="text-blue-600 hover:text-blue-800 underline text-sm"
-            >
-              Connect to bank instead
-            </button>
-          </div>
-        </div>
+        <ManualUploadScreen
+          uploadedFiles={uploadedFiles}
+          isUploading={isUploading}
+          uploadError={uploadError}
+          isDragging={isDragging}
+          onFileSelect={handleFileSelect}
+          onFileRemove={handleFileRemove}
+          onDragEnter={handleDragEnter}
+          onDragLeave={handleDragLeave}
+          onDragOver={handleDragOver}
+          onDrop={handleDrop}
+          onSubmit={handleManualUploadSubmit}
+          onBack={() => handleMethodSelect('')}
+        />
       );
     }
 
     if (localFormData.bankConnectionMethod === 'flinks') {
       return (
-        <div>
-          <h2 className="text-2xl font-bold text-gray-800 mb-4">
-            Connect Your Bank Account
-          </h2>
-
-          <div className="mb-8" style={{ maxHeight: '600px' }}>
-            {isLoading && (
-              <div
-                className="flex justify-center items-center flex-col gap-4 no-scrollbar "
-                style={{ minHeight: '600px' }}
-              >
-                <p className="text-sm text-gray-500">Connecting to Flinks...</p>
-                <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-gray-900"></div>
-              </div>
-            )}
-            <iframe
-              src={`${process.env.NEXT_PUBLIC_FLINKS_IFRAME_URL}/v2?${flinksConnectionParams.toString()}`}
-              width="100%"
-              height="600"
-              frameBorder="0"
-              style={{ border: 'none', borderRadius: '8px' }}
-              title="Bank Connection"
-            />
-          </div>
-
-          {/* Security note */}
-          <div className="mt-1 p-4 bg-gray-50 rounded-lg">
-            <div className="flex items-start space-x-3">
-              <svg
-                className="w-5 h-5 text-green-500 mt-0.5 flex-shrink-0"
-                fill="currentColor"
-                viewBox="0 0 20 20"
-              >
-                <path
-                  fillRule="evenodd"
-                  d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z"
-                  clipRule="evenodd"
-                />
-              </svg>
-              <div>
-                <p className="text-sm font-medium text-gray-900">
-                  Bank-grade security
-                </p>
-                <p className="text-sm text-gray-600">
-                  Your banking information is encrypted and secure. We cannot
-                  see your login credentials.
-                </p>
-              </div>
-            </div>
-          </div>
-
-          <div className="text-center mt-4">
-            <button
-              onClick={() => handleMethodSelect('')}
-              className="text-gray-600 hover:text-gray-800 text-sm underline transition-colors duration-200"
-            >
-              Upload bank statements instead
-            </button>
-          </div>
-        </div>
+        <FlinksConnectionScreen
+          flinksConnectionParams={flinksConnectionParams}
+          isLoading={isLoading}
+          onBack={() => handleMethodSelect('')}
+        />
       );
     }
 
-    return (
-      <div className="space-y-8">
-        <div className="bg-white border-2 border-gray-300 rounded-2xl p-8 max-w-3xl mx-auto">
-          <div className="space-y-6">
-            <h3 className="text-xl font-semibold text-gray-800 text-center">
-              Connect your business bank account to:
-            </h3>
-
-            <ul className="space-y-4">
-              <li className="flex items-center space-x-3">
-                <div className="w-2 h-2 bg-gray-800 rounded-full flex-shrink-0"></div>
-                <span className="text-lg text-gray-700">
-                  Get approved 10x faster
-                </span>
-              </li>
-              <li className="flex items-center space-x-3">
-                <div className="w-2 h-2 bg-gray-800 rounded-full flex-shrink-0"></div>
-                <span className="text-lg text-gray-700">
-                  Get funded 5x faster
-                </span>
-              </li>
-              <li className="flex items-center space-x-3">
-                <div className="w-2 h-2 bg-gray-800 rounded-full flex-shrink-0"></div>
-                <span className="text-lg text-gray-700">
-                  More likely to get funded
-                </span>
-              </li>
-              <li className="flex items-center space-x-3">
-                <div className="w-2 h-2 bg-gray-800 rounded-full flex-shrink-0"></div>
-                <span className="text-lg text-gray-700">
-                  Maintain a safer connection
-                </span>
-              </li>
-            </ul>
-
-            <div className="pt-4">
-              <button
-                onClick={() => handleMethodSelect('flinks')}
-                className="btn-primary w-full py-4 text-lg"
-              >
-                Connect your account
-              </button>
-            </div>
-          </div>
-        </div>
-
-        <div className="text-center">
-          <button
-            onClick={() => handleMethodSelect('manual')}
-            className="text-gray-600 hover:text-gray-800 text-lg underline transition-colors duration-200"
-          >
-            Upload bank statements instead
-          </button>
-        </div>
-
-        <div className="max-w-3xl mx-auto">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-center">
-            <div className="flex items-center justify-center space-x-2 text-sm text-gray-500">
-              <Shield className="h-4 w-4" />
-              <span>Bank-level security</span>
-            </div>
-            <div className="flex items-center justify-center space-x-2 text-sm text-gray-500">
-              <Lock className="h-4 w-4" />
-              <span>256-bit encryption</span>
-            </div>
-            <div className="flex items-center justify-center space-x-2 text-sm text-gray-500">
-              <CheckCircle className="h-4 w-4" />
-              <span>Read-only access</span>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
+    return <ConnectionMethodCard onSelectMethod={handleMethodSelect} />;
   };
 
   return (
     <ApplicationStepWrapper
-      title="Connect your business bank account"
-      description="Funders require at least 6 months of your most recent bank statements from a business bank account"
+      hideProgress={isConnectionCompleted}
+      title={isConnectionCompleted ? '' : 'Connect your business bank account'}
+      description={
+        isConnectionCompleted
+          ? ''
+          : 'Funders require at least 6 months of your most recent bank statements from a business bank account'
+      }
       onNext={handleNext}
       canGoNext={canGoNext}
       isSubmitting={isNavigating}
